@@ -15,6 +15,8 @@ interface HeaderProps {
   onOpenAuth: () => void;
   onOpenProfile: () => void;
   onOpenAnalytics?: () => void;
+  currentLogo?: string;
+  onOpenLogoPicker?: () => void;
 }
 
 export function Header({
@@ -29,14 +31,16 @@ export function Header({
   onOpenAuth,
   onOpenProfile,
   onOpenAnalytics,
+  currentLogo = "/logo-opcao-1.jpg",
+  onOpenLogoPicker,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: "BaladaON - Encontre sua balada ou restaurante ideal em SP",
-        text: "Descubra as melhores baladas e restaurantes por perto com lista VIP e estimativa de Uber!",
+        title: "Qual o Rolê? - Encontre sua balada, restaurante ou motel ideal em SP",
+        text: "Descubra as melhores baladas, restaurantes e motéis por perto com lista VIP e estimativa de Uber!",
         url: window.location.href,
       }).catch(() => {});
     } else {
@@ -49,19 +53,27 @@ export function Header({
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#070a11]/90 backdrop-blur-xl transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3 w-full">
         {/* Brand / Logo */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 shadow-[0_0_25px_-5px_rgba(168,85,247,0.6)]">
-            <span className="text-xl sm:text-2xl select-none">🪩</span>
-            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+        <div
+          onClick={onOpenLogoPicker}
+          className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer group"
+          title="Clique para ver as opções de logotipo!"
+        >
+          <div className="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/40 bg-black shadow-[0_0_20px_-3px_rgba(168,85,247,0.6)] group-hover:border-purple-400 group-hover:scale-105 transition-all">
+            <img
+              src={currentLogo}
+              alt="Logo Qual o Rolê"
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#070a11]"></span>
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 border border-[#070a11]"></span>
             </span>
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <h1 className="bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-lg sm:text-2xl font-extrabold tracking-tight text-transparent">
-                Balada<span className="text-purple-400">ON</span>
+                Qual o <span className="text-purple-400">Rolê?</span>
               </h1>
               <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-purple-300">
                 SP LIVE

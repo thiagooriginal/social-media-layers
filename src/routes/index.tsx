@@ -18,6 +18,7 @@ import { RegisterVenueModal } from "../components/RegisterVenueModal";
 import { AuthModal } from "../components/AuthModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
+import { LogoPickerModal } from "../components/LogoPickerModal";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
@@ -29,6 +30,10 @@ export const Route = createFileRoute("/")({
 function IndexPage() {
   // Dynamic Venues State (Supabase + Local fallback)
   const [venues, setVenues] = useState<Venue[]>(VENUES_DATA);
+
+  // Logo Picker State
+  const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
+  const [currentLogo, setCurrentLogo] = useState("/logo-opcao-1.jpg");
 
   // User Auth State
   const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
@@ -309,6 +314,8 @@ function IndexPage() {
           setAnalyticsVenueId(undefined);
           setIsAnalyticsOpen(true);
         }}
+        currentLogo={currentLogo}
+        onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
       />
 
       {/* Hero Banner Section */}
@@ -316,9 +323,19 @@ function IndexPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-600/10 via-pink-600/5 to-transparent pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-bold text-purple-300 backdrop-blur-md mb-4 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-            <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-            <span>São Paulo Hoje • Onde a noite acontece</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-bold text-purple-300 backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+              <span>São Paulo Hoje • Onde a noite acontece</span>
+            </div>
+
+            <button
+              onClick={() => setIsLogoPickerOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/40 bg-purple-500/20 px-3.5 py-1 text-xs font-extrabold text-white backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-purple-500/30 transition-all active:scale-95"
+            >
+              <span>🎨</span>
+              <span>Ver as 3 Opções de Logo</span>
+            </button>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -503,6 +520,14 @@ function IndexPage() {
         initialVenueId={analyticsVenueId}
       />
 
+      {/* Logo Picker Modal */}
+      <LogoPickerModal
+        isOpen={isLogoPickerOpen}
+        onClose={() => setIsLogoPickerOpen(false)}
+        selectedLogo={currentLogo}
+        onSelectLogo={(logo) => setCurrentLogo(logo)}
+      />
+
       {/* Floating Mobile Bottom Navigation */}
       <MobileNav
         activeTab={activeTab}
@@ -517,12 +542,13 @@ function IndexPage() {
       <footer className="mt-20 border-t border-white/10 bg-[#05070d] py-8 text-center text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-300">
-            <span>BaladaON</span>
-            <span className="text-purple-400">🪩</span>
+            <img src={currentLogo} alt="Logo Qual o Rolê" className="h-6 w-6 rounded-lg object-cover border border-purple-500/30" />
+            <span>Qual o Rolê?</span>
+            <span className="text-purple-400">•</span>
             <span>São Paulo</span>
           </div>
           <p className="mt-2">
-            Encontre sua balada ou restaurante ideal com lista VIP e estimativa de corrida.
+            Encontre sua balada, restaurante ou motel ideal com lista VIP e estimativa de corrida.
           </p>
 
           <div className="mt-3 flex items-center justify-center gap-4 text-xs font-medium">

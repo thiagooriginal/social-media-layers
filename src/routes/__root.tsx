@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "BaladaON 🪩 | Encontre sua balada e restaurante ideal em SP" },
+      { name: "description", content: "Descubra as melhores baladas, festas e restaurantes com espaço kids por perto em São Paulo com estimativa de Uber e lista VIP." },
+      { name: "author", content: "BaladaON" },
+      { property: "og:title", content: "BaladaON 🪩 | Baladas e Restaurantes em SP" },
+      { property: "og:description", content: "Encontre sua balada ou restaurante ideal em São Paulo hoje à noite." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -102,11 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" className="dark">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-[#070a11] text-slate-100 antialiased min-h-screen selection:bg-purple-600 selection:text-white">
         {children}
         <Scripts />
       </body>

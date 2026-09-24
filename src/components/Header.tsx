@@ -1,0 +1,200 @@
+import React from "react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass } from "lucide-react";
+import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
+
+interface HeaderProps {
+  currentNeighborhood: NeighborhoodCoord;
+  onSelectNeighborhood: (n: NeighborhoodCoord) => void;
+  favoritesCount: number;
+  onOpenFavorites: () => void;
+  isFavoritesActive: boolean;
+  totalVenuesCount: number;
+  onOpenRegisterModal: () => void;
+}
+
+export function Header({
+  currentNeighborhood,
+  onSelectNeighborhood,
+  favoritesCount,
+  onOpenFavorites,
+  isFavoritesActive,
+  totalVenuesCount,
+  onOpenRegisterModal,
+}: HeaderProps) {
+  const [isPickerOpen, setIsPickerOpen] = React.useState(false);
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: "BaladaON - Encontre sua balada ou restaurante ideal em SP",
+        text: "Descubra as melhores baladas e restaurantes por perto com lista VIP e estimativa de Uber!",
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copiado para a área de transferência!");
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#070a11]/90 backdrop-blur-xl transition-all">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+        {/* Brand / Logo */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 shadow-[0_0_25px_-5px_rgba(168,85,247,0.6)]">
+            <span className="text-2xl select-none">🪩</span>
+            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#070a11]"></span>
+            </span>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-xl font-extrabold tracking-tight text-transparent sm:text-2xl">
+                Balada<span className="text-purple-400">ON</span>
+              </h1>
+              <span className="hidden rounded-full border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-300 sm:inline-block">
+                SP LIVE
+              </span>
+            </div>
+            <p className="text-[11px] font-medium text-slate-400">
+              Baladas & Restaurantes por perto
+            </p>
+          </div>
+        </div>
+
+        {/* Center / Location Picker */}
+        <div className="relative hidden md:block">
+          <button
+            onClick={() => setIsPickerOpen(!isPickerOpen)}
+            className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-slate-200 transition-all hover:border-purple-500/50 hover:bg-white/10"
+          >
+            <MapPin className="h-3.5 w-3.5 text-purple-400 animate-pulse" />
+            <span>Partida:</span>
+            <span className="text-purple-300 font-bold underline decoration-dotted underline-offset-4">
+              {currentNeighborhood.name}
+            </span>
+          </button>
+
+          {isPickerOpen && (
+            <div className="absolute left-1/2 top-full mt-2 w-64 -translate-x-1/2 rounded-2xl border border-white/15 bg-[#0e1422] p-2 shadow-2xl backdrop-blur-2xl z-50">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                Selecione seu Bairro (para Uber & Distância)
+              </div>
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {NEIGHBORHOODS.map((n) => (
+                  <button
+                    key={n.name}
+                    onClick={() => {
+                      onSelectNeighborhood(n);
+                      setIsPickerOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                      n.name === currentNeighborhood.name
+                        ? "bg-purple-600 text-white font-bold"
+                        : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span>{n.name}</span>
+                    {n.name === currentNeighborhood.name && (
+                      <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">Ativo</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Quick neighborhood button for mobile */}
+          <button
+            onClick={() => setIsPickerOpen(!isPickerOpen)}
+            className="flex md:hidden items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-300"
+          >
+            <MapPin className="h-3.5 w-3.5 text-purple-400" />
+            <span className="truncate max-w-[90px] text-[11px] font-semibold text-purple-300">
+              {currentNeighborhood.name}
+            </span>
+          </button>
+
+          {/* Register Venue / Anuncie Button */}
+          <button
+            onClick={onOpenRegisterModal}
+            className="flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/15 px-3 py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)]"
+          >
+            <span className="text-purple-400 font-extrabold">+</span>
+            <span className="hidden lg:inline">Cadastrar Local</span>
+            <span className="lg:hidden">Anuncie</span>
+          </button>
+
+          {/* Share */}
+          <button
+            onClick={handleShare}
+            title="Compartilhar app"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+
+          {/* Favorites Button */}
+          <button
+            onClick={onOpenFavorites}
+            className={`relative flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              isFavoritesActive
+                ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)]"
+                : "border border-white/10 bg-white/5 text-slate-200 hover:border-pink-500/40 hover:bg-pink-500/10"
+            }`}
+          >
+            <Heart
+              className={`h-4 w-4 ${
+                favoritesCount > 0 ? "fill-pink-500 text-pink-500" : "text-slate-400"
+              } ${isFavoritesActive ? "!text-white !fill-white" : ""}`}
+            />
+            <span className="hidden sm:inline">Salvos</span>
+            {favoritesCount > 0 && (
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white shadow">
+                {favoritesCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Location Dropdown overlay */}
+      {isPickerOpen && (
+        <div className="md:hidden border-t border-white/10 bg-[#0a0e1a] px-4 py-3">
+          <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+            <span>Selecione onde você está para calcular a distância e Uber:</span>
+            <button
+              onClick={() => setIsPickerOpen(false)}
+              className="text-xs font-bold text-purple-400"
+            >
+              Fechar
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+            {NEIGHBORHOODS.map((n) => (
+              <button
+                key={n.name}
+                onClick={() => {
+                  onSelectNeighborhood(n);
+                  setIsPickerOpen(false);
+                }}
+                className={`rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
+                  n.name === currentNeighborhood.name
+                    ? "bg-purple-600 text-white font-bold"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10"
+                }`}
+              >
+                {n.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

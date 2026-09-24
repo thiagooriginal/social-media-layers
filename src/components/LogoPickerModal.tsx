@@ -18,31 +18,45 @@ export function LogoPickerModal({
 
   const options = [
     {
-      id: "opcao-1",
+      id: "cocktail",
+      path: "/logo-cocktail.jpg",
+      title: "1. Taça de Cocktail & Drinks",
+      desc: "Taça de drink neon fundida ao ponto de interrogação '?', perfeita para restaurantes, bares e festas.",
+      badge: "Drinks & Restô",
+    },
+    {
+      id: "soundwave",
+      path: "/logo-soundwave.jpg",
+      title: "2. Equalizador & Ondas Sonoras",
+      desc: "Barras de som e frequências musicais pulsando no centro com o '?' e letreiro 'QUAL O ROLÊ?'.",
+      badge: "Música & Baladas",
+    },
+    {
+      id: "flame",
+      path: "/logo-flame.jpg",
+      title: "3. Chama / Fogo Noturno",
+      desc: "Chama de alta energia representando noites quentes, pistas animadas e after/motéis.",
+      badge: "Alta Energia & Vibe",
+    },
+    {
+      id: "sparkle",
+      path: "/logo-sparkle.jpg",
+      title: "4. Estrela VIP & Bússola",
+      desc: "Estrela facetada de brilho noturno com o '?', estilo sofisticado para listas VIP e gastronomia.",
+      badge: "VIP & Luxo",
+    },
+    {
+      id: "globo",
       path: "/logo-opcao-1.jpg",
-      title: "Opção 1: Pino GPS + Interrogação '?' + Globo",
-      desc: "Ícone de app 3D com o ponto de interrogação '?' e globo espelhado dentro do pino de localização GPS.",
-      badge: "Mais Votado",
-    },
-    {
-      id: "opcao-2",
-      path: "/logo-opcao-2.jpg",
-      title: "Opção 2: Letra 'Q' com Órbita Noturna",
-      desc: "O pino forma a letra 'Q' com órbita estelar e tipografia 'QUAL O ROLÊ?' iluminada na base.",
-      badge: "Ideal para Branding",
-    },
-    {
-      id: "opcao-3",
-      path: "/logo-opcao-3.jpg",
-      title: "Opção 3: Badge Urbano Noturno",
-      desc: "Pino minimalista abraçando o globo de balada com visual urbano paulistano e letreiro neon.",
-      badge: "Estilo Urbano",
+      title: "5. Globo Espelhado (Original)",
+      desc: "O modelo inicial com o globo espelhado de balada dentro do pino de GPS e interrogação.",
+      badge: "Clássico",
     },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-purple-500/30 bg-[#0b0f19] p-5 sm:p-6 shadow-2xl text-slate-100">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-purple-500/30 bg-[#0b0f19] p-5 sm:p-6 shadow-2xl text-slate-100">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
@@ -51,10 +65,10 @@ export function LogoPickerModal({
             </div>
             <div>
               <h2 className="text-lg font-black text-white sm:text-xl">
-                Escolha o Logotipo: <span className="text-purple-400">Qual o Rolê?</span>
+                Modelos Centrais no Pino GPS: <span className="text-purple-400">Qual o Rolê?</span>
               </h2>
               <p className="text-xs text-slate-400">
-                Veja as 3 opções criadas em alta resolução e teste ao vivo no app!
+                Mantivemos a base da Opção 1 e criamos novas ideias para o elemento central!
               </p>
             </div>
           </div>
@@ -67,7 +81,7 @@ export function LogoPickerModal({
         </div>
 
         {/* Options Grid */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {options.map((opt) => {
             const isSelected = selectedLogo === opt.path;
             return (

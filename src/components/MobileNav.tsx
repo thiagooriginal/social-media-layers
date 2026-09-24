@@ -1,21 +1,28 @@
 import React from "react";
-import { Sparkles, UtensilsCrossed, Baby, Heart } from "lucide-react";
+import { Sparkles, UtensilsCrossed, Baby, Heart, User } from "lucide-react";
 import { MainCategory } from "./CategoryTabs";
+import { UserProfile } from "../services/authService";
 
 interface MobileNavProps {
   activeTab: MainCategory;
   onTabChange: (tab: MainCategory) => void;
   favoritesCount: number;
+  user: UserProfile | null;
+  onOpenAuth: () => void;
+  onOpenProfile: () => void;
 }
 
 export function MobileNav({
   activeTab,
   onTabChange,
   favoritesCount,
+  user,
+  onOpenAuth,
+  onOpenProfile,
 }: MobileNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden border-t border-white/10 bg-[#070a11]/95 px-3 py-2 backdrop-blur-xl">
-      <div className="grid grid-cols-4 gap-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden border-t border-white/10 bg-[#070a11]/95 px-2 py-2 backdrop-blur-xl">
+      <div className="grid grid-cols-5 gap-1">
         {/* Baladas */}
         <button
           onClick={() => onTabChange("baladas")}
@@ -73,6 +80,21 @@ export function MobileNav({
             )}
           </div>
           <span className="mt-1">Salvos</span>
+        </button>
+
+        {/* User Account */}
+        <button
+          onClick={user ? onOpenProfile : onOpenAuth}
+          className="flex flex-col items-center justify-center rounded-xl py-1 text-[10px] font-bold text-slate-400 hover:text-slate-200 transition-all"
+        >
+          {user ? (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-[9px] font-black text-white">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+          ) : (
+            <span className="text-base leading-none">👤</span>
+          )}
+          <span className="mt-1">{user ? "Perfil" : "Entrar"}</span>
         </button>
       </div>
     </nav>

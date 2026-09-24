@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CheckCircle, Ticket, Sparkles, Send, ShieldCheck, User, Phone, Users } from "lucide-react";
 import { Venue } from "../data/venues";
 import { submitVipListLead } from "../services/venueService";
+import { getCurrentUser, saveUserVipPass } from "../services/authService";
 
 interface VipListModalProps {
   venue: Venue | null;
@@ -15,6 +16,17 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
   const [guestsCount, setGuestsCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [generatedPassCode, setGeneratedPassCode] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      const user = getCurrentUser();
+      if (user) {
+        if (!userName) setUserName(user.name);
+        if (!userWhatsapp) setUserWhatsapp(user.whatsapp);
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen || !venue) return null;
 
@@ -34,6 +46,17 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
         userWhatsapp,
         guestsCount,
       });
+
+      const pass = saveUserVipPass({
+        venueId: venue.id,
+        venueName: venue.name,
+        venueImage: venue.image,
+        userName,
+        userWhatsapp,
+        guestsCount,
+        entryBenefit: venue.entryPrice,
+      });
+      setGeneratedPassCode(pass.passCode);
 
       setIsSuccess(true);
     } catch (err) {
@@ -205,7 +228,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
             <div className="mt-5 rounded-2xl border border-dashed border-purple-500/50 bg-purple-950/20 p-4 text-left">
               <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
-                  Passe VIP Digital • BaladaON
+                  Passe VIP Digital {generatedPassCode ? `• ${generatedPassCode}` : "• BaladaON"}
                 </span>
                 <span className="text-[10px] font-extrabold text-emerald-400">ATIVO</span>
               </div>

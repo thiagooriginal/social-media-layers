@@ -15,7 +15,10 @@ import { VenueModal } from "../components/VenueModal";
 import { MobileNav } from "../components/MobileNav";
 import { VipListModal } from "../components/VipListModal";
 import { RegisterVenueModal } from "../components/RegisterVenueModal";
+import { AuthModal } from "../components/AuthModal";
+import { UserProfileModal } from "../components/UserProfileModal";
 import { getVenues } from "../services/venueService";
+import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -25,6 +28,11 @@ export const Route = createFileRoute("/")({
 function IndexPage() {
   // Dynamic Venues State (Supabase + Local fallback)
   const [venues, setVenues] = useState<Venue[]>(VENUES_DATA);
+
+  // User Auth State
+  const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Modals state
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -58,6 +66,11 @@ function IndexPage() {
         setVenues(data);
       }
     });
+
+    const unsubscribe = subscribeToAuth((newUser) => {
+      setUser(newUser);
+    });
+    return () => unsubscribe();
   }, []);
 
   // Favorites state persisted in localStorage
@@ -249,6 +262,9 @@ function IndexPage() {
         isFavoritesActive={activeTab === "favorites"}
         totalVenuesCount={venues.length}
         onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+        user={user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       {/* Hero Banner Section */}
@@ -409,11 +425,29 @@ function IndexPage() {
         onVenueCreated={handleVenueCreated}
       />
 
+      {/* Auth / Login / Signup Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(loggedUser) => setUser(loggedUser)}
+      />
+
+      {/* User Profile & Saved VIP Passes Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={user}
+        onLogout={() => setUser(null)}
+      />
+
       {/* Floating Mobile Bottom Navigation */}
       <MobileNav
         activeTab={activeTab}
         onTabChange={handleTabChange}
         favoritesCount={favorites.length}
+        user={user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       {/* Footer */}

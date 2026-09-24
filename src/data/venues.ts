@@ -31,6 +31,8 @@ export interface Venue {
   tags: string[];
   lineup?: string[];
   menuHighlights?: string[];
+  plan?: "mensal" | "semestral" | "anual";
+  planPrice?: number;
 }
 
 export interface NeighborhoodCoord {

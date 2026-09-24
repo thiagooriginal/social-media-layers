@@ -46,6 +46,8 @@ export interface NewVenueInput {
   isWomenFree?: boolean;
   hasParking?: boolean;
   tags?: string[];
+  plan?: "mensal" | "semestral" | "anual";
+  planPrice?: number;
 }
 
 function getCustomVenues(): Venue[] {
@@ -234,6 +236,8 @@ export async function registerVenue(input: NewVenueInput): Promise<{
       is_women_free: Boolean(input.isWomenFree),
       has_parking: Boolean(input.hasParking),
       tags: input.tags || [],
+      plan: input.plan || "semestral",
+      plan_price: input.planPrice || 59,
     };
 
     const { error } = await (supabase as any).from("venues").insert([dbPayload]);
@@ -272,6 +276,8 @@ export async function registerVenue(input: NewVenueInput): Promise<{
       instagram: input.instagram || "",
       highlight: input.highlight || "",
       tags: input.tags || [],
+      plan: input.plan || "semestral",
+      planPrice: input.planPrice || 59,
     };
 
     saveCustomVenue(createdVenue);

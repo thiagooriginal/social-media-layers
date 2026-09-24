@@ -76,7 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" },
       { title: "BaladaON 🪩 | Encontre sua balada e restaurante ideal em SP" },
       { name: "description", content: "Descubra as melhores baladas, festas e restaurantes com espaço kids por perto em São Paulo com estimativa de Uber e lista VIP." },
       { name: "author", content: "BaladaON" },
@@ -102,11 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" className="dark w-full max-w-full overflow-x-hidden">
       <head>
         <HeadContent />
       </head>
-      <body className="bg-[#070a11] text-slate-100 antialiased min-h-screen selection:bg-purple-600 selection:text-white">
+      <body className="bg-[#070a11] text-slate-100 antialiased min-h-screen selection:bg-purple-600 selection:text-white w-full max-w-full overflow-x-hidden">
         {children}
         <Scripts />
       </body>

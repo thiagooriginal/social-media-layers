@@ -46,7 +46,7 @@ export function MobileNav({
           }`}
         >
           <span className="text-base leading-none">🍽️</span>
-          <span className="mt-1">Restô</span>
+          <span className="mt-1 text-[9px] sm:text-[10px] truncate max-w-[65px]">Restaurantes</span>
         </button>
 
         {/* Motéis & Suítes */}

@@ -292,7 +292,7 @@ function IndexPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-purple-600 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <Header
         currentNeighborhood={userLocation}

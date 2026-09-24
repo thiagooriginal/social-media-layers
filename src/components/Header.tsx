@@ -47,28 +47,28 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#070a11]/90 backdrop-blur-xl transition-all">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3 w-full">
         {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 shadow-[0_0_25px_-5px_rgba(168,85,247,0.6)]">
-            <span className="text-2xl select-none">🪩</span>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 shadow-[0_0_25px_-5px_rgba(168,85,247,0.6)]">
+            <span className="text-xl sm:text-2xl select-none">🪩</span>
             <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#070a11]"></span>
             </span>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-xl font-extrabold tracking-tight text-transparent sm:text-2xl">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-lg sm:text-2xl font-extrabold tracking-tight text-transparent">
                 Balada<span className="text-purple-400">ON</span>
               </h1>
-              <span className="hidden rounded-full border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-300 sm:inline-block">
+              <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-purple-300">
                 SP LIVE
               </span>
             </div>
-            <p className="text-[11px] font-medium text-slate-400">
-              Baladas, Restôs & Motéis por perto
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
+              Baladas, Restaurantes & Motéis por perto
             </p>
           </div>
         </div>
@@ -117,14 +117,14 @@ export function Header({
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Quick neighborhood button for mobile */}
           <button
             onClick={() => setIsPickerOpen(!isPickerOpen)}
-            className="flex md:hidden items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-300"
+            className="flex md:hidden items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-slate-300"
           >
-            <MapPin className="h-3.5 w-3.5 text-purple-400" />
-            <span className="truncate max-w-[90px] text-[11px] font-semibold text-purple-300">
+            <MapPin className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+            <span className="truncate max-w-[70px] xs:max-w-[85px] text-[10px] xs:text-[11px] font-semibold text-purple-300">
               {currentNeighborhood.name}
             </span>
           </button>
@@ -134,7 +134,7 @@ export function Header({
             <button
               onClick={onOpenAnalytics}
               title="Painel de Relatórios & Desempenho"
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-xs font-bold text-slate-300 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white transition-all shadow-sm"
+              className="flex items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 h-8 w-8 sm:h-auto sm:w-auto sm:px-2.5 sm:py-2 text-xs font-bold text-slate-300 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white transition-all shadow-sm"
             >
               <BarChart3 className="h-3.5 w-3.5 text-purple-400" />
               <span className="hidden sm:inline">Relatórios</span>
@@ -144,47 +144,47 @@ export function Header({
           {/* Register Venue / Anuncie Button */}
           <button
             onClick={onOpenRegisterModal}
-            className="flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/15 px-3 py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)]"
+            className="flex items-center gap-1 rounded-xl border border-purple-500/40 bg-purple-500/15 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)]"
           >
             <span className="text-purple-400 font-extrabold">+</span>
             <span className="hidden lg:inline">Cadastrar Local</span>
-            <span className="lg:hidden">Anuncie</span>
+            <span className="lg:hidden text-[11px]">Anuncie</span>
           </button>
 
-          {/* User Account / Profile */}
+          {/* User Account / Profile - Hidden on mobile because it's already in MobileNav */}
           {user ? (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 px-2.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+              className="hidden sm:flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 px-2.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
             >
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-[11px] font-black text-white">
                 {user.name.charAt(0).toUpperCase()}
               </div>
-              <span className="hidden sm:inline max-w-[90px] truncate">{user.name.split(" ")[0]}</span>
+              <span className="hidden xl:inline text-xs">{user.name.split(" ")[0]}</span>
             </button>
           ) : (
             <button
               onClick={onOpenAuth}
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition-all hover:border-purple-400/50 hover:bg-white/10 hover:text-white"
+              className="hidden sm:flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition-all hover:border-purple-400/50 hover:bg-white/10 hover:text-white"
             >
               <UserIcon className="h-3.5 w-3.5 text-purple-400" />
-              <span className="hidden sm:inline">Entrar</span>
+              <span>Entrar</span>
             </button>
           )}
 
-          {/* Share */}
+          {/* Share - Desktop only */}
           <button
             onClick={handleShare}
             title="Compartilhar app"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
           >
             <Share2 className="h-4 w-4" />
           </button>
 
-          {/* Favorites Button */}
+          {/* Favorites Button - Desktop only (mobile has bottom bar) */}
           <button
             onClick={onOpenFavorites}
-            className={`relative flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+            className={`relative hidden sm:flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
               isFavoritesActive
                 ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)]"
                 : "border border-white/10 bg-white/5 text-slate-200 hover:border-pink-500/40 hover:bg-pink-500/10"
@@ -195,7 +195,7 @@ export function Header({
                 favoritesCount > 0 ? "fill-pink-500 text-pink-500" : "text-slate-400"
               } ${isFavoritesActive ? "!text-white !fill-white" : ""}`}
             />
-            <span className="hidden sm:inline">Salvos</span>
+            <span>Salvos</span>
             {favoritesCount > 0 && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white shadow">
                 {favoritesCount}

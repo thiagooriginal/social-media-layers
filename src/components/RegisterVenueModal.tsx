@@ -324,7 +324,7 @@ export function RegisterVenueModal({
                     }`}
                   >
                     <span>🍽️</span>
-                    <span className="truncate">Restô</span>
+                    <span className="truncate">Restaurante</span>
                   </button>
 
                   <button

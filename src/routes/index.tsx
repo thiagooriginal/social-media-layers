@@ -17,6 +17,7 @@ import { VipListModal } from "../components/VipListModal";
 import { RegisterVenueModal } from "../components/RegisterVenueModal";
 import { AuthModal } from "../components/AuthModal";
 import { UserProfileModal } from "../components/UserProfileModal";
+import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
@@ -33,6 +34,10 @@ function IndexPage() {
   const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Analytics & Insights Modal State
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [analyticsVenueId, setAnalyticsVenueId] = useState<string | undefined>(undefined);
 
   // Modals state
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -300,6 +305,10 @@ function IndexPage() {
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenAnalytics={() => {
+          setAnalyticsVenueId(undefined);
+          setIsAnalyticsOpen(true);
+        }}
       />
 
       {/* Hero Banner Section */}
@@ -450,6 +459,11 @@ function IndexPage() {
           setActiveVenue(null);
           handleOpenVipModal(v);
         }}
+        onOpenAnalytics={(id) => {
+          setActiveVenue(null);
+          setAnalyticsVenueId(id);
+          setIsAnalyticsOpen(true);
+        }}
       />
 
       {/* VIP List Lead Capture Modal */}
@@ -481,6 +495,14 @@ function IndexPage() {
         onLogout={() => setUser(null)}
       />
 
+      {/* Partner Performance & Insights Modal (Instagram style metrics) */}
+      <PartnerAnalyticsModal
+        isOpen={isAnalyticsOpen}
+        onClose={() => setIsAnalyticsOpen(false)}
+        venues={venues}
+        initialVenueId={analyticsVenueId}
+      />
+
       {/* Floating Mobile Bottom Navigation */}
       <MobileNav
         activeTab={activeTab}
@@ -502,7 +524,29 @@ function IndexPage() {
           <p className="mt-2">
             Encontre sua balada ou restaurante ideal com lista VIP e estimativa de corrida.
           </p>
-          <p className="mt-1 text-[11px] text-slate-600">
+
+          <div className="mt-3 flex items-center justify-center gap-4 text-xs font-medium">
+            <button
+              onClick={() => {
+                setAnalyticsVenueId(undefined);
+                setIsAnalyticsOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              <span>📊</span>
+              <span>Painel de Desempenho & Relatórios</span>
+            </button>
+            <span className="text-slate-700">•</span>
+            <button
+              onClick={() => setIsRegisterModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <span>✨</span>
+              <span>Cadastrar meu local</span>
+            </button>
+          </div>
+
+          <p className="mt-3 text-[11px] text-slate-600">
             © {new Date().getFullYear()} BaladaON • Feito com ❤️ para a noite paulistana.
           </p>
         </div>

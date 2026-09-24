@@ -1,6 +1,7 @@
 import React from "react";
 import { Star, MapPin, Heart, Clock, Car, Sparkles, ArrowRight, Baby } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
+import { trackEvent } from "../services/analyticsService";
 
 interface VenueCardProps {
   venue: Venue;
@@ -151,7 +152,10 @@ export function VenueCard({
         {/* Actions Button */}
         <div className="mt-4 pt-3 border-t border-white/10">
           <button
-            onClick={() => onOpenDetails(venue)}
+            onClick={() => {
+              trackEvent(venue.id, "open_details", venue.name);
+              onOpenDetails(venue);
+            }}
             className={`flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 text-xs font-bold text-white transition-all active:scale-[0.98] ${
               venue.category === "baladas"
                 ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 shadow-[0_0_20px_-5px_rgba(168,85,247,0.5)] hover:brightness-110"

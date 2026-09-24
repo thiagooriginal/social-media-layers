@@ -14,8 +14,10 @@ import {
   Baby,
   ShieldCheck,
   Navigation,
+  BarChart3,
 } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
+import { trackEvent } from "../services/analyticsService";
 
 interface VenueModalProps {
   venue: Venue | null;
@@ -24,6 +26,7 @@ interface VenueModalProps {
   onToggleFavorite: (id: string) => void;
   onClose: () => void;
   onOpenVipModal: (venue: Venue) => void;
+  onOpenAnalytics?: (venueId: string) => void;
 }
 
 export function VenueModal({
@@ -33,6 +36,7 @@ export function VenueModal({
   onToggleFavorite,
   onClose,
   onOpenVipModal,
+  onOpenAnalytics,
 }: VenueModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -54,6 +58,7 @@ export function VenueModal({
   };
 
   const handleShareWhatsApp = () => {
+    trackEvent(venue.id, "click_share_whatsapp", venue.name);
     const text = encodeURIComponent(
       `Bora colar no *${venue.name}* (${venue.subType}) em ${venue.neighborhood}? Dá uma olhada: ${window.location.href}`
     );
@@ -61,6 +66,7 @@ export function VenueModal({
   };
 
   const handleContactWhatsApp = () => {
+    trackEvent(venue.id, "click_whatsapp", venue.name);
     const message =
       venue.category === "baladas"
         ? `Olá! Vi o ${venue.name} no BaladaON e gostaria de colocar nome na Lista VIP / saber das atrações de hoje!`
@@ -74,6 +80,7 @@ export function VenueModal({
   };
 
   const handleOpenUber = () => {
+    trackEvent(venue.id, "click_uber", venue.name);
     const destination = encodeURIComponent(venue.address);
     // Universal Uber link
     window.open(
@@ -351,6 +358,16 @@ export function VenueModal({
               <Share2 className="h-4 w-4" />
             </button>
           </div>
+
+          {onOpenAnalytics && (
+            <button
+              onClick={() => onOpenAnalytics(venue.id)}
+              className="mt-2.5 flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-purple-300 transition-colors py-1"
+            >
+              <BarChart3 className="h-3.5 w-3.5 text-purple-400" />
+              <span>É o proprietário deste local? Ver Relatório de Cliques</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

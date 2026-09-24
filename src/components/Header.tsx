@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon } from "lucide-react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3 } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
 
@@ -14,6 +14,7 @@ interface HeaderProps {
   user: UserProfile | null;
   onOpenAuth: () => void;
   onOpenProfile: () => void;
+  onOpenAnalytics?: () => void;
 }
 
 export function Header({
@@ -27,6 +28,7 @@ export function Header({
   user,
   onOpenAuth,
   onOpenProfile,
+  onOpenAnalytics,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
@@ -66,7 +68,7 @@ export function Header({
               </span>
             </div>
             <p className="text-[11px] font-medium text-slate-400">
-              Baladas & Restaurantes por perto
+              Baladas, Restôs & Motéis por perto
             </p>
           </div>
         </div>
@@ -126,6 +128,18 @@ export function Header({
               {currentNeighborhood.name}
             </span>
           </button>
+
+          {/* Analytics / Insights Report Button */}
+          {onOpenAnalytics && (
+            <button
+              onClick={onOpenAnalytics}
+              title="Painel de Relatórios & Desempenho"
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-xs font-bold text-slate-300 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white transition-all shadow-sm"
+            >
+              <BarChart3 className="h-3.5 w-3.5 text-purple-400" />
+              <span className="hidden sm:inline">Relatórios</span>
+            </button>
+          )}
 
           {/* Register Venue / Anuncie Button */}
           <button

@@ -3,6 +3,7 @@ import { X, CheckCircle, Ticket, Sparkles, Send, ShieldCheck, User, Phone, Users
 import { Venue } from "../data/venues";
 import { submitVipListLead } from "../services/venueService";
 import { getCurrentUser, saveUserVipPass } from "../services/authService";
+import { trackEvent } from "../services/analyticsService";
 
 interface VipListModalProps {
   venue: Venue | null;
@@ -46,6 +47,8 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
         userWhatsapp,
         guestsCount,
       });
+
+      trackEvent(venue.id, "click_vip_list", venue.name);
 
       const pass = saveUserVipPass({
         venueId: venue.id,

@@ -14,7 +14,7 @@ export function RegisterVenueModal({
   onClose,
   onVenueCreated,
 }: RegisterVenueModalProps) {
-  const [category, setCategory] = useState<"baladas" | "restaurantes">("baladas");
+  const [category, setCategory] = useState<"baladas" | "restaurantes" | "moteis">("baladas");
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
   const [neighborhood, setNeighborhood] = useState(NEIGHBORHOODS[0].name);
@@ -32,6 +32,9 @@ export function RegisterVenueModal({
   const [hasVipList, setHasVipList] = useState(true);
   const [isWomenFree, setIsWomenFree] = useState(false);
   const [hasParking, setHasParking] = useState(true);
+  const [hasHydro, setHasHydro] = useState(true);
+  const [hasPool, setHasPool] = useState(false);
+  const [hasPrivateGarage, setHasPrivateGarage] = useState(true);
 
   // Plans Selection State
   const [selectedPlan, setSelectedPlan] = useState<"mensal" | "semestral" | "anual">("semestral");
@@ -113,6 +116,8 @@ export function RegisterVenueModal({
     const subTypeEmoji =
       category === "baladas"
         ? GENRES.find((g) => g.id === genre)?.emoji || "🪩"
+        : category === "moteis"
+        ? "🏩"
         : hasKidsSpace
         ? "🧸"
         : CUISINES.find((c) => c.id === cuisine)?.emoji || "🍽️";
@@ -120,6 +125,8 @@ export function RegisterVenueModal({
     const subTypeName =
       category === "baladas"
         ? GENRES.find((g) => g.id === genre)?.name || "Balada"
+        : category === "moteis"
+        ? "Motel & Suítes"
         : hasKidsSpace
         ? "Espaço Kids & Gastronomia"
         : CUISINES.find((c) => c.id === cuisine)?.name || "Restaurante";
@@ -141,11 +148,14 @@ export function RegisterVenueModal({
       entryPrice,
       whatsapp: whatsapp.replace(/\D/g, ""),
       instagram: instagram.replace("@", ""),
-      hasKidsSpace,
-      hasVipList,
-      isWomenFree,
+      hasKidsSpace: category === "restaurantes" ? hasKidsSpace : false,
+      hasVipList: category === "baladas" ? hasVipList : false,
+      isWomenFree: category === "baladas" ? isWomenFree : false,
       hasParking,
-      tags: [subTypeName, neighborhood, hasVipList ? "Lista VIP" : "Reserva"],
+      hasHydro: category === "moteis" ? hasHydro : false,
+      hasPool: category === "moteis" ? hasPool : false,
+      hasPrivateGarage: category === "moteis" ? hasPrivateGarage : false,
+      tags: [subTypeName, neighborhood, category === "moteis" ? "Suítes" : hasVipList ? "Lista VIP" : "Reserva"],
       plan: selectedPlan,
       planPrice: currentPlanObj.numericPrice,
     };
@@ -290,31 +300,44 @@ export function RegisterVenueModal({
                 <label className="block font-bold text-slate-300 mb-1.5">
                   1. Tipo de Estabelecimento
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setCategory("baladas")}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 font-bold transition-all ${
                       category === "baladas"
                         ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
                         : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
                     }`}
                   >
                     <span>🪩</span>
-                    <span>Balada & Lounge</span>
+                    <span className="truncate">Balada</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setCategory("restaurantes")}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 font-bold transition-all ${
                       category === "restaurantes"
                         ? "bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.5)]"
                         : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
                     }`}
                   >
                     <span>🍽️</span>
-                    <span>Restaurante & Bar</span>
+                    <span className="truncate">Restô</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCategory("moteis")}
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 font-bold transition-all ${
+                      category === "moteis"
+                        ? "bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)]"
+                        : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
+                    }`}
+                  >
+                    <span>🏩</span>
+                    <span className="truncate">Motel</span>
                   </button>
                 </div>
               </div>
@@ -480,47 +503,97 @@ export function RegisterVenueModal({
 
               {/* Comodidades Checkboxes */}
               <div className="pt-1 grid grid-cols-2 gap-2 text-xs">
-                {category === "restaurantes" && (
-                  <label className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={hasKidsSpace}
-                      onChange={(e) => setHasKidsSpace(e.target.checked)}
-                      className="rounded text-amber-500"
-                    />
-                    <span className="font-bold">🧸 Tem Espaço Kids</span>
-                  </label>
+                {category === "moteis" ? (
+                  <>
+                    <label className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-2 text-cyan-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasHydro}
+                        onChange={(e) => setHasHydro(e.target.checked)}
+                        className="rounded text-cyan-500"
+                      />
+                      <span className="font-bold">🛁 Banheira de Hidro</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 p-2 text-blue-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasPool}
+                        onChange={(e) => setHasPool(e.target.checked)}
+                        className="rounded text-blue-500"
+                      />
+                      <span className="font-bold">🏊 Piscina Privativa</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasPrivateGarage}
+                        onChange={(e) => setHasPrivateGarage(e.target.checked)}
+                        className="rounded text-purple-500"
+                      />
+                      <span>🚗 Garagem Privativa</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasParking}
+                        onChange={(e) => setHasParking(e.target.checked)}
+                        className="rounded text-emerald-500"
+                      />
+                      <span>🌙 Atendimento 24 Horas</span>
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    {category === "restaurantes" && (
+                      <label className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={hasKidsSpace}
+                          onChange={(e) => setHasKidsSpace(e.target.checked)}
+                          className="rounded text-amber-500"
+                        />
+                        <span className="font-bold">🧸 Tem Espaço Kids</span>
+                      </label>
+                    )}
+
+                    {category === "baladas" && (
+                      <>
+                        <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={hasVipList}
+                            onChange={(e) => setHasVipList(e.target.checked)}
+                            className="rounded text-purple-500"
+                          />
+                          <span>🎟️ Aceita Lista VIP</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isWomenFree}
+                            onChange={(e) => setIsWomenFree(e.target.checked)}
+                            className="rounded text-pink-500"
+                          />
+                          <span>💃 Mulher VIP</span>
+                        </label>
+                      </>
+                    )}
+
+                    <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasParking}
+                        onChange={(e) => setHasParking(e.target.checked)}
+                        className="rounded text-cyan-500"
+                      />
+                      <span>🚗 Estacionamento / Valet</span>
+                    </label>
+                  </>
                 )}
-
-                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasVipList}
-                    onChange={(e) => setHasVipList(e.target.checked)}
-                    className="rounded text-purple-500"
-                  />
-                  <span>🎟️ Aceita Lista VIP</span>
-                </label>
-
-                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isWomenFree}
-                    onChange={(e) => setIsWomenFree(e.target.checked)}
-                    className="rounded text-pink-500"
-                  />
-                  <span>💃 Mulher VIP</span>
-                </label>
-
-                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasParking}
-                    onChange={(e) => setHasParking(e.target.checked)}
-                    className="rounded text-cyan-500"
-                  />
-                  <span>🚗 Estacionamento / Valet</span>
-                </label>
               </div>
 
               {/* PLANOS DE ASSINATURA */}

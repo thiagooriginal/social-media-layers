@@ -1,13 +1,14 @@
 import React from "react";
-import { Sparkles, UtensilsCrossed, Baby, Heart } from "lucide-react";
+import { Sparkles, UtensilsCrossed, Baby, Heart, Flame } from "lucide-react";
 
-export type MainCategory = "baladas" | "restaurantes" | "kids" | "favorites";
+export type MainCategory = "baladas" | "restaurantes" | "moteis" | "kids" | "favorites";
 
 interface CategoryTabsProps {
   activeTab: MainCategory;
   onTabChange: (tab: MainCategory) => void;
   baladasCount: number;
   restaurantesCount: number;
+  moteisCount: number;
   kidsCount: number;
   favoritesCount: number;
 }
@@ -17,12 +18,13 @@ export function CategoryTabs({
   onTabChange,
   baladasCount,
   restaurantesCount,
+  moteisCount,
   kidsCount,
   favoritesCount,
 }: CategoryTabsProps) {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
         {/* Baladas */}
         <button
           onClick={() => onTabChange("baladas")}
@@ -89,6 +91,41 @@ export function CategoryTabs({
             </div>
             <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">
               Japonesa, carnes, massas & pubs
+            </p>
+          </div>
+        </button>
+
+        {/* Motéis & Suítes */}
+        <button
+          onClick={() => onTabChange("moteis")}
+          className={`group relative flex flex-col items-start rounded-2xl border p-3.5 text-left transition-all duration-300 sm:p-4 ${
+            activeTab === "moteis"
+              ? "border-rose-500/80 bg-gradient-to-br from-rose-950/80 via-pink-900/40 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(244,63,94,0.4)]"
+              : "border-white/10 bg-[#0c101c]/70 hover:border-rose-500/40 hover:bg-[#121829]"
+          }`}
+        >
+          <div className="flex w-full items-center justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/20 text-xl transition-transform group-hover:scale-110">
+              🏩
+            </div>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                activeTab === "moteis"
+                  ? "bg-rose-500 text-white shadow"
+                  : "bg-white/10 text-slate-400"
+              }`}
+            >
+              {moteisCount} motéis
+            </span>
+          </div>
+
+          <div className="mt-3">
+            <div className="flex items-center gap-1.5 font-bold text-slate-100">
+              <span>Motéis & Suítes</span>
+              <Flame className="h-3.5 w-3.5 text-rose-400" />
+            </div>
+            <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">
+              Hidro, piscina, design & pernoite
             </p>
           </div>
         </button>

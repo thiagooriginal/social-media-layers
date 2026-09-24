@@ -118,6 +118,16 @@ export function VenueCard({
 
         {/* Tags */}
         <div className="mt-3 flex flex-wrap gap-1.5">
+          {venue.hasHydro && (
+            <span className="rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-extrabold text-cyan-300">
+              🛁 Hidro
+            </span>
+          )}
+          {venue.hasPool && (
+            <span className="rounded-md border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[10px] font-extrabold text-blue-300">
+              🏊 Piscina
+            </span>
+          )}
           {venue.hasKidsSpace && (
             <span className="rounded-md border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-extrabold text-amber-300">
               🧸 Espaço Kids
@@ -145,6 +155,8 @@ export function VenueCard({
             className={`flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 text-xs font-bold text-white transition-all active:scale-[0.98] ${
               venue.category === "baladas"
                 ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 shadow-[0_0_20px_-5px_rgba(168,85,247,0.5)] hover:brightness-110"
+                : venue.category === "moteis"
+                ? "bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 shadow-[0_0_20px_-5px_rgba(244,63,94,0.5)] hover:brightness-110"
                 : venue.hasKidsSpace
                 ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-black font-extrabold shadow-[0_0_20px_-5px_rgba(245,158,11,0.5)] hover:brightness-110"
                 : "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] hover:brightness-110"
@@ -153,6 +165,8 @@ export function VenueCard({
             <span>
               {venue.category === "baladas"
                 ? "Ver Balada & Lista VIP"
+                : venue.category === "moteis"
+                ? "Ver Suítes & Valores"
                 : venue.hasKidsSpace
                 ? "Ver Espaço Kids & Reservar"
                 : "Ver Restaurante & Reservar"}

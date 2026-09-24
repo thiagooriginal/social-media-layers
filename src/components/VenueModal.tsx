@@ -64,6 +64,8 @@ export function VenueModal({
     const message =
       venue.category === "baladas"
         ? `Olá! Vi o ${venue.name} no BaladaON e gostaria de colocar nome na Lista VIP / saber das atrações de hoje!`
+        : venue.category === "moteis"
+        ? `Olá! Vi o ${venue.name} no BaladaON e gostaria de informações de suítes, hidro e valores de pernoite para hoje!`
         : `Olá! Vi o ${venue.name} no BaladaON e gostaria de informações para reserva de mesa de hoje!`;
     window.open(
       `https://api.whatsapp.com/send?phone=${venue.whatsapp}&text=${encodeURIComponent(message)}`,
@@ -301,21 +303,31 @@ export function VenueModal({
         {/* Modal Sticky Bottom Action Footer */}
         <div className="sticky bottom-0 border-t border-white/10 bg-[#070a11]/95 px-5 py-4 backdrop-blur-xl">
           <div className="flex gap-2">
-            {/* Primary Action Button (Abre Modal de Lista VIP ou Reserva) */}
+            {/* Primary Action Button (Abre Modal de Lista VIP ou Reserva ou WhatsApp de Suítes) */}
             <button
-              onClick={() => onOpenVipModal(venue)}
+              onClick={() => {
+                if (venue.category === "moteis") {
+                  handleContactWhatsApp();
+                } else {
+                  onOpenVipModal(venue);
+                }
+              }}
               className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black transition-all active:scale-[0.98] ${
                 venue.category === "baladas"
                   ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white shadow-[0_0_25px_-5px_rgba(168,85,247,0.7)] hover:brightness-110"
+                  : venue.category === "moteis"
+                  ? "bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-[0_0_25px_-5px_rgba(244,63,94,0.7)] hover:brightness-110"
                   : venue.hasKidsSpace
                   ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-black font-black shadow-[0_0_25px_-5px_rgba(245,158,11,0.7)] hover:brightness-110"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-[0_0_25px_-5px_rgba(16,185,129,0.7)] hover:brightness-110"
               }`}
             >
-              <span>🎟️</span>
+              <span>{venue.category === "moteis" ? "🏩" : "🎟️"}</span>
               <span>
                 {venue.category === "baladas"
                   ? "Garantir Lista VIP"
+                  : venue.category === "moteis"
+                  ? "Consultar Suítes no WhatsApp"
                   : "Reservar Mesa"}
               </span>
             </button>

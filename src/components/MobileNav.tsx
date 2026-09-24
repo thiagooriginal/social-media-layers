@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, UtensilsCrossed, Baby, Heart, User } from "lucide-react";
+import { Sparkles, UtensilsCrossed, Baby, Heart, User, Flame } from "lucide-react";
 import { MainCategory } from "./CategoryTabs";
 import { UserProfile } from "../services/authService";
 
@@ -21,7 +21,7 @@ export function MobileNav({
   onOpenProfile,
 }: MobileNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden border-t border-white/10 bg-[#070a11]/95 px-2 py-2 backdrop-blur-xl">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden border-t border-white/10 bg-[#070a11]/95 px-1.5 py-1.5 backdrop-blur-xl">
       <div className="grid grid-cols-5 gap-1">
         {/* Baladas */}
         <button
@@ -49,17 +49,17 @@ export function MobileNav({
           <span className="mt-1">Restô</span>
         </button>
 
-        {/* Espaço Kids */}
+        {/* Motéis & Suítes */}
         <button
-          onClick={() => onTabChange("kids")}
+          onClick={() => onTabChange("moteis")}
           className={`flex flex-col items-center justify-center rounded-xl py-1 text-[10px] font-bold transition-all ${
-            activeTab === "kids"
-              ? "text-amber-300 bg-amber-500/15"
+            activeTab === "moteis"
+              ? "text-rose-400 bg-rose-500/15"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          <span className="text-base leading-none">🧸</span>
-          <span className="mt-1">Kids</span>
+          <span className="text-base leading-none">🏩</span>
+          <span className="mt-1">Motéis</span>
         </button>
 
         {/* Salvos */}

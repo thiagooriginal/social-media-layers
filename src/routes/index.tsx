@@ -51,10 +51,13 @@ function IndexPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedCuisine, setSelectedCuisine] = useState("all");
+  const [selectedMotelStyle, setSelectedMotelStyle] = useState("all");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState("all");
   const [onlyOpenToday, setOnlyOpenToday] = useState(false);
   const [onlyVipOrFree, setOnlyVipOrFree] = useState(false);
   const [onlyWithParking, setOnlyWithParking] = useState(false);
+  const [onlyWithHydro, setOnlyWithHydro] = useState(false);
+  const [onlyWithPool, setOnlyWithPool] = useState(false);
 
   // Modal Detail state
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
@@ -117,6 +120,9 @@ function IndexPage() {
     } else {
       setSelectedCuisine("all");
     }
+    setSelectedMotelStyle("all");
+    setOnlyWithHydro(false);
+    setOnlyWithPool(false);
   };
 
   // Counts for tabs
@@ -126,6 +132,10 @@ function IndexPage() {
   );
   const restaurantesCount = useMemo(
     () => venues.filter((v) => v.category === "restaurantes").length,
+    [venues]
+  );
+  const moteisCount = useMemo(
+    () => venues.filter((v) => v.category === "moteis").length,
     [venues]
   );
   const kidsCount = useMemo(
@@ -145,6 +155,8 @@ function IndexPage() {
         if (venue.category !== "baladas") return false;
       } else if (activeTab === "restaurantes") {
         if (venue.category !== "restaurantes") return false;
+      } else if (activeTab === "moteis") {
+        if (venue.category !== "moteis") return false;
       }
 
       // 2. Genre filter (Baladas)
@@ -168,7 +180,24 @@ function IndexPage() {
         }
       }
 
-      // 4. Neighborhood filter
+      // 4. Motel Style filter (Motéis)
+      if (activeTab === "moteis" && selectedMotelStyle !== "all") {
+        if (selectedMotelStyle === "hidro" && !venue.hasHydro) return false;
+        else if (selectedMotelStyle === "piscina" && !venue.hasPool) return false;
+        else if (venue.motelStyle && venue.motelStyle !== selectedMotelStyle) return false;
+      }
+
+      // 5. Hydro toggle (Motéis)
+      if (onlyWithHydro && !venue.hasHydro) {
+        return false;
+      }
+
+      // 6. Pool toggle (Motéis)
+      if (onlyWithPool && !venue.hasPool) {
+        return false;
+      }
+
+      // 7. Neighborhood filter
       if (
         selectedNeighborhood !== "all" &&
         venue.neighborhood !== selectedNeighborhood
@@ -176,22 +205,22 @@ function IndexPage() {
         return false;
       }
 
-      // 5. Open today toggle
+      // 8. Open today toggle
       if (onlyOpenToday && !venue.openToday) {
         return false;
       }
 
-      // 6. VIP / Free entry toggle
+      // 9. VIP / Free entry toggle
       if (onlyVipOrFree && !venue.isWomenFree && !venue.hasVipList) {
         return false;
       }
 
-      // 7. Parking toggle
+      // 10. Parking toggle
       if (onlyWithParking && !venue.hasParking) {
         return false;
       }
 
-      // 8. Search query matching
+      // 11. Search query matching
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = venue.name.toLowerCase().includes(q);
@@ -233,10 +262,13 @@ function IndexPage() {
     favorites,
     selectedGenre,
     selectedCuisine,
+    selectedMotelStyle,
     selectedNeighborhood,
     onlyOpenToday,
     onlyVipOrFree,
     onlyWithParking,
+    onlyWithHydro,
+    onlyWithPool,
     searchQuery,
     userLocation,
   ]);
@@ -245,10 +277,13 @@ function IndexPage() {
     setSearchQuery("");
     setSelectedGenre("all");
     setSelectedCuisine("all");
+    setSelectedMotelStyle("all");
     setSelectedNeighborhood("all");
     setOnlyOpenToday(false);
     setOnlyVipOrFree(false);
     setOnlyWithParking(false);
+    setOnlyWithHydro(false);
+    setOnlyWithPool(false);
   };
 
   return (
@@ -285,8 +320,7 @@ function IndexPage() {
           </h1>
 
           <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
-            Descubra as melhores baladas, shows ao vivo, rodas de samba e restaurantes
-            com espaço kids por perto. Veja a estimativa de Uber e garanta sua Lista VIP!
+            Descubra as melhores baladas, shows ao vivo, restaurantes, espaço kids e motéis com suítes exclusivas por perto. Veja a estimativa de Uber e planeje sua noite!
           </p>
         </div>
       </section>
@@ -297,6 +331,7 @@ function IndexPage() {
         onTabChange={handleTabChange}
         baladasCount={baladasCount}
         restaurantesCount={restaurantesCount}
+        moteisCount={moteisCount}
         kidsCount={kidsCount}
         favoritesCount={favorites.length}
       />
@@ -310,6 +345,8 @@ function IndexPage() {
         onSelectGenre={setSelectedGenre}
         selectedCuisine={selectedCuisine}
         onSelectCuisine={setSelectedCuisine}
+        selectedMotelStyle={selectedMotelStyle}
+        onSelectMotelStyle={setSelectedMotelStyle}
         selectedNeighborhood={selectedNeighborhood}
         onSelectNeighborhood={setSelectedNeighborhood}
         onlyOpenToday={onlyOpenToday}
@@ -318,6 +355,10 @@ function IndexPage() {
         onToggleVipOrFree={() => setOnlyVipOrFree(!onlyVipOrFree)}
         onlyWithParking={onlyWithParking}
         onToggleWithParking={() => setOnlyWithParking(!onlyWithParking)}
+        onlyWithHydro={onlyWithHydro}
+        onToggleWithHydro={() => setOnlyWithHydro(!onlyWithHydro)}
+        onlyWithPool={onlyWithPool}
+        onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
       />
 
       {/* Venues Grid Section */}

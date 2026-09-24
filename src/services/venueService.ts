@@ -24,11 +24,12 @@ export interface ReservationInput {
 }
 
 export interface NewVenueInput {
-  category: "baladas" | "restaurantes";
+  category: "baladas" | "restaurantes" | "moteis";
   name: string;
   tagline: string;
   genre?: "pagode" | "sertanejo" | "funk" | "forro" | "rock" | "eletronica";
   cuisine?: "kids" | "japonesa" | "churrascaria" | "italiano" | "hamburgueria";
+  motelStyle?: "hidro" | "piscina" | "design" | "tematica" | "economica";
   subType: string;
   subTypeEmoji: string;
   neighborhood: string;
@@ -45,6 +46,9 @@ export interface NewVenueInput {
   hasVipList?: boolean;
   isWomenFree?: boolean;
   hasParking?: boolean;
+  hasHydro?: boolean;
+  hasPool?: boolean;
+  hasPrivateGarage?: boolean;
   tags?: string[];
   plan?: "mensal" | "semestral" | "anual";
   planPrice?: number;
@@ -272,6 +276,9 @@ export async function registerVenue(input: NewVenueInput): Promise<{
       hasKidsSpace: Boolean(input.hasKidsSpace),
       isWomenFree: Boolean(input.isWomenFree),
       hasParking: Boolean(input.hasParking),
+      hasHydro: Boolean(input.hasHydro),
+      hasPool: Boolean(input.hasPool),
+      hasPrivateGarage: Boolean(input.hasPrivateGarage),
       whatsapp: input.whatsapp,
       instagram: input.instagram || "",
       highlight: input.highlight || "",

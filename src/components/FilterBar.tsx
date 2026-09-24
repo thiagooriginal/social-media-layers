@@ -1,6 +1,6 @@
 import React from "react";
 import { Search, X, SlidersHorizontal, MapPin, Check } from "lucide-react";
-import { GENRES, CUISINES, NEIGHBORHOODS } from "../data/venues";
+import { GENRES, CUISINES, MOTEL_STYLES, NEIGHBORHOODS } from "../data/venues";
 import { MainCategory } from "./CategoryTabs";
 
 interface FilterBarProps {
@@ -11,6 +11,8 @@ interface FilterBarProps {
   onSelectGenre: (g: string) => void;
   selectedCuisine: string;
   onSelectCuisine: (c: string) => void;
+  selectedMotelStyle: string;
+  onSelectMotelStyle: (s: string) => void;
   selectedNeighborhood: string;
   onSelectNeighborhood: (n: string) => void;
   onlyOpenToday: boolean;
@@ -19,6 +21,10 @@ interface FilterBarProps {
   onToggleVipOrFree: () => void;
   onlyWithParking: boolean;
   onToggleWithParking: () => void;
+  onlyWithHydro?: boolean;
+  onToggleWithHydro?: () => void;
+  onlyWithPool?: boolean;
+  onToggleWithPool?: () => void;
 }
 
 export function FilterBar({
@@ -29,6 +35,8 @@ export function FilterBar({
   onSelectGenre,
   selectedCuisine,
   onSelectCuisine,
+  selectedMotelStyle,
+  onSelectMotelStyle,
   selectedNeighborhood,
   onSelectNeighborhood,
   onlyOpenToday,
@@ -37,9 +45,20 @@ export function FilterBar({
   onToggleVipOrFree,
   onlyWithParking,
   onToggleWithParking,
+  onlyWithHydro,
+  onToggleWithHydro,
+  onlyWithPool,
+  onToggleWithPool,
 }: FilterBarProps) {
   const isBaladas = category === "baladas";
+  const isMoteis = category === "moteis";
   const isRestaurantes = category === "restaurantes" || category === "kids";
+
+  const getPlaceholder = () => {
+    if (isBaladas) return "Buscar por balada, DJ, pagode, funk, bairro...";
+    if (isMoteis) return "Buscar por motel, suíte, hidro, piscina, bairro...";
+    return "Buscar por restaurante, culinária, espaço kids...";
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6">
@@ -54,11 +73,7 @@ export function FilterBar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={
-              isBaladas
-                ? "Buscar por nome, bairro, gênero (ex: pagode, Vila Madalena)..."
-                : "Buscar por restaurante, culinária, espaço kids..."
-            }
+            placeholder={getPlaceholder()}
             className="w-full rounded-2xl border border-white/10 bg-[#0e1422]/90 py-3 pl-10 pr-10 text-sm text-slate-100 placeholder-slate-400 backdrop-blur-md transition-all focus:border-purple-500/80 focus:bg-[#141b2d] focus:outline-none focus:ring-2 focus:ring-purple-500/20"
           />
           {searchQuery && (
@@ -93,9 +108,10 @@ export function FilterBar({
         </div>
       </div>
 
-      {/* Sub-category / Genre Chips */}
+      {/* Sub-category / Style Chips */}
       {category !== "favorites" && (
         <div className="mt-3.5 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {/* Baladas genres */}
           {isBaladas &&
             GENRES.map((g) => {
               const active = selectedGenre === g.id;
@@ -115,6 +131,7 @@ export function FilterBar({
               );
             })}
 
+          {/* Restaurantes cuisines */}
           {isRestaurantes &&
             CUISINES.map((c) => {
               const active = selectedCuisine === c.id;
@@ -133,6 +150,26 @@ export function FilterBar({
                 </button>
               );
             })}
+
+          {/* Motéis styles */}
+          {isMoteis &&
+            MOTEL_STYLES.map((m) => {
+              const active = selectedMotelStyle === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => onSelectMotelStyle(m.id)}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all ${
+                    active
+                      ? m.activeClass
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-white/20 hover:bg-[#121829]"
+                  }`}
+                >
+                  <span>{m.emoji}</span>
+                  <span>{m.name}</span>
+                </button>
+              );
+            })}
         </div>
       )}
 
@@ -148,8 +185,37 @@ export function FilterBar({
           }`}
         >
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Aberto Hoje</span>
+          <span>{isMoteis ? "Aberto 24h" : "Aberto Hoje"}</span>
         </button>
+
+        {/* Motéis Specific Toggles */}
+        {isMoteis && onToggleWithHydro && (
+          <button
+            onClick={onToggleWithHydro}
+            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all ${
+              onlyWithHydro
+                ? "border-cyan-500 bg-cyan-500/15 text-cyan-300 font-bold"
+                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
+            }`}
+          >
+            <span>🛁</span>
+            <span>Com Hidromassagem</span>
+          </button>
+        )}
+
+        {isMoteis && onToggleWithPool && (
+          <button
+            onClick={onToggleWithPool}
+            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all ${
+              onlyWithPool
+                ? "border-blue-500 bg-blue-500/15 text-blue-300 font-bold"
+                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
+            }`}
+          >
+            <span>🏊</span>
+            <span>Com Piscina</span>
+          </button>
+        )}
 
         {/* Mulher VIP / Entrada Franca */}
         {isBaladas && (
@@ -171,12 +237,12 @@ export function FilterBar({
           onClick={onToggleWithParking}
           className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all ${
             onlyWithParking
-              ? "border-cyan-500 bg-cyan-500/15 text-cyan-300 font-bold"
+              ? "border-purple-500 bg-purple-500/15 text-purple-300 font-bold"
               : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
           }`}
         >
           <span>🚗</span>
-          <span>Estacionamento / Valet</span>
+          <span>{isMoteis ? "Garagem Privativa" : "Estacionamento / Valet"}</span>
         </button>
       </div>
     </div>

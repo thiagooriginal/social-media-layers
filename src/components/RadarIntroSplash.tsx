@@ -8,6 +8,7 @@ interface RadarIntroSplashProps {
 // Síntese de áudio realista de sonar sci-fi usando Web Audio API
 function playSonarPing(frequency: number = 880) {
   try {
+    if (typeof window === "undefined") return;
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
@@ -131,10 +132,10 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
       if (soundEnabled) playSonarPing(1200);
     }, 3800);
 
-    // Transição suave para o app (4.6s)
+    // Transição suave para o app (6.5s)
     const t5 = setTimeout(() => {
       handleComplete();
-    }, 4600);
+    }, 6500);
 
     return () => {
       clearTimeout(t0);
@@ -344,7 +345,7 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
           )}
 
           {step >= 4 && (
-            <div className="animate-in zoom-in-95 fade-in duration-300">
+            <div className="animate-in zoom-in-95 fade-in duration-300 flex flex-col items-center">
               <span className="text-xs font-mono font-bold text-emerald-400 tracking-wider flex items-center justify-center gap-1">
                 <Sparkles className="h-3.5 w-3.5" />
                 RADAR 100% SINCRONIZADO!
@@ -352,9 +353,16 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
               <h3 className="mt-1 text-lg sm:text-xl font-black text-white">
                 48 Rolês Prontos para Você Curtir!
               </h3>
-              <p className="text-xs text-cyan-300 mt-0.5 font-medium animate-pulse">
+              <p className="text-xs text-cyan-300 mt-0.5 font-medium">
                 Abrindo o feed com cálculo de rotas e Uber...
               </p>
+              <button
+                onClick={handleComplete}
+                className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-fuchsia-500 to-emerald-400 px-6 py-2.5 text-xs font-black text-white shadow-[0_0_25px_rgba(6,182,212,0.6)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <span>ENTRAR NO APP AGORA</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           )}
         </div>

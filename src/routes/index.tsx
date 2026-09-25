@@ -357,10 +357,17 @@ function IndexPage() {
 
         <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/30 px-3.5 py-1 text-xs font-bold text-cyan-300 backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.25)]">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Radar do Rolê SP • Onde a noite acontece</span>
-            </div>
+            <button
+              onClick={() => setShowRadarIntro(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-950/40 px-4 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
+              title="Clique para ver o Radar Noturno escaneando São Paulo!"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
+              </span>
+              <span>Radar do Rolê SP • Ativar Scanner Noturno</span>
+            </button>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">

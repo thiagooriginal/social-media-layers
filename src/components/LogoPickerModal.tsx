@@ -19,9 +19,9 @@ export function LogoPickerModal({
   const options = [
     {
       id: "soundwave-base",
-      path: "/logo-soundwave.jpg",
-      title: "⭐ Variação 2 (Oficial) - Neon Soundwave + Nome",
-      desc: "Modelo eleito: Pino GPS / Radar neon ciano e magenta com barras de equalizador musical e tipografia 'RADAR DO ROLÊ'.",
+      path: "/logo-radar-neon.svg",
+      title: "⭐ Variação 2 (Oficial) - Neon Soundwave + RADAR DO ROLÊ",
+      desc: "Modelo eleito: Pino GPS / Radar neon ciano e magenta com barras de equalizador musical e tipografia 'RADAR DO ROLÊ' integrada.",
       badge: "Oficial Escolhido",
     },
     {

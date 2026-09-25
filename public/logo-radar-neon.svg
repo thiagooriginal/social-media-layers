@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="neonBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="50%" stop-color="#060913"/>
+      <stop offset="100%" stop-color="#030408"/>
+    </linearGradient>
+
+    <!-- Cyan Neon Gradient -->
+    <linearGradient id="cyanNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Magenta Neon Gradient -->
+    <linearGradient id="magentaNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="50%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#d946ef"/>
+    </linearGradient>
+
+    <!-- Dual Neon Gradient -->
+    <linearGradient id="dualNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="50%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ff007f"/>
+    </linearGradient>
+
+    <!-- Neon Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur1"/>
+      <feGaussianBlur stdDeviation="14" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- App Icon Badge Border & Glass Background -->
+  <rect width="512" height="512" rx="112" fill="url(#neonBg)"/>
+  <rect width="506" height="506" x="3" y="3" rx="109" fill="none" stroke="#00f0ff" stroke-opacity="0.25" stroke-width="2"/>
+  
+  <!-- Outer Neon Glass Rim Glow -->
+  <rect width="512" height="512" rx="112" fill="none" stroke="url(#dualNeon)" stroke-width="4" stroke-opacity="0.5" filter="url(#subtleGlow)"/>
+
+  <!-- Radar Concentric Background Grid Rings -->
+  <circle cx="256" cy="220" r="145" fill="none" stroke="#00f0ff" stroke-opacity="0.12" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <circle cx="256" cy="220" r="105" fill="none" stroke="#ec4899" stroke-opacity="0.15" stroke-width="1.5"/>
+  <circle cx="256" cy="220" r="65" fill="none" stroke="#00f0ff" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="2 4"/>
+
+  <!-- GPS Pin Container with Glow -->
+  <g filter="url(#neonGlow)">
+    <!-- GPS Pin Outer Tube in Glowing Cyan -->
+    <path d="M 256 65 
+             C 170 65, 105 130, 105 215 
+             C 105 310, 240 415, 256 428 
+             C 272 415, 407 310, 407 215 
+             C 407 130, 342 65, 256 65 Z" 
+          fill="#060a14" 
+          fill-opacity="0.75"
+          stroke="url(#cyanNeon)" 
+          stroke-width="14" 
+          stroke-linejoin="round"/>
+
+    <!-- Inner Pin Magenta Halo Line -->
+    <path d="M 256 82 
+             C 182 82, 122 138, 122 215 
+             C 122 296, 240 392, 256 405 
+             C 272 392, 390 296, 390 215 
+             C 390 138, 330 82, 256 82 Z" 
+          fill="none" 
+          stroke="url(#magentaNeon)" 
+          stroke-width="4" 
+          stroke-opacity="0.8"/>
+
+    <!-- Soundwave Equalizer Rhythm Bars in Neon Colors -->
+    <!-- Bar 1 (Left Cyan) -->
+    <rect x="175" y="185" width="10" height="50" rx="5" fill="#00f0ff" fill-opacity="0.7"/>
+    <!-- Bar 2 (Left Mid Cyan) -->
+    <rect x="195" y="150" width="10" height="95" rx="5" fill="#00f0ff" fill-opacity="0.85"/>
+    <!-- Bar 3 (Left Tall Magenta) -->
+    <rect x="215" y="125" width="10" height="135" rx="5" fill="#ec4899" fill-opacity="0.9"/>
+    <!-- Bar 4 (Right Tall Magenta) -->
+    <rect x="287" y="135" width="10" height="120" rx="5" fill="#ec4899" fill-opacity="0.9"/>
+    <!-- Bar 5 (Right Mid Cyan) -->
+    <rect x="307" y="160" width="10" height="85" rx="5" fill="#00f0ff" fill-opacity="0.85"/>
+    <!-- Bar 6 (Right Cyan) -->
+    <rect x="327" y="190" width="10" height="42" rx="5" fill="#00f0ff" fill-opacity="0.7"/>
+
+    <!-- Glowing Question Mark '?' -->
+    <path d="M 228 160 
+             C 228 130, 244 116, 260 116 
+             C 278 116, 294 130, 294 150 
+             C 294 172, 260 185, 260 215 
+             L 260 226" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="16" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- Question Mark Dot -->
+    <circle cx="260" cy="254" r="9" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Typography: RADAR DO ROLÊ -->
+  <text x="256" y="475" 
+        text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="28" 
+        font-weight="900" 
+        letter-spacing="5"
+        filter="url(#subtleGlow)">
+    <tspan fill="#00f0ff">RADAR DO </tspan>
+    <tspan fill="#ff007f">ROLÊ</tspan>
+  </text>
+</svg>

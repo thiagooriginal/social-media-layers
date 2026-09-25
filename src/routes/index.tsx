@@ -37,7 +37,7 @@ function IndexPage() {
 
   // Logo Picker State
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
-  const [currentLogo, setCurrentLogo] = useState("/logo-soundwave.jpg");
+  const [currentLogo, setCurrentLogo] = useState("/logo-radar-neon.svg");
 
   // User Auth State
   const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());

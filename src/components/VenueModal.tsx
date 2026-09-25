@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Navigation,
   BarChart3,
+  Instagram,
 } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
@@ -122,6 +123,19 @@ export function VenueModal({
             </span>
 
             <div className="flex items-center gap-2">
+              {venue.instagram && (
+                <a
+                  href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent(venue.id, "instagram_click", venue.name)}
+                  title={`Abrir Instagram @${venue.instagram.replace(/^@/, "")}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-pink-500/40 bg-gradient-to-tr from-amber-500/90 via-rose-500/90 to-purple-600/90 text-white shadow-[0_0_15px_rgba(244,63,94,0.5)] backdrop-blur-md transition-all hover:scale-110 active:scale-90 cursor-pointer"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+
               <button
                 onClick={() => onToggleFavorite(venue.id)}
                 className={`flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-transform active:scale-90 ${
@@ -220,6 +234,41 @@ export function VenueModal({
               </div>
             </div>
           </div>
+
+          {/* Instagram Official Card */}
+          {venue.instagram && (
+            <a
+              href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent(venue.id, "instagram_click", venue.name)}
+              className="flex items-center justify-between rounded-2xl border border-pink-500/30 bg-gradient-to-r from-purple-950/40 via-pink-950/30 to-[#0e1726] p-3.5 shadow-[0_0_20px_-5px_rgba(236,72,153,0.2)] hover:border-pink-500/60 hover:brightness-105 transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-lg group-hover:scale-105 transition-transform shrink-0">
+                  <Instagram className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-black text-white group-hover:text-pink-300 transition-colors">
+                      @{venue.instagram.replace(/^@/, "")}
+                    </span>
+                    <span className="rounded bg-pink-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-pink-300 border border-pink-500/30">
+                      INSTAGRAM OFICIAL
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                    Ver stories, fotos do ambiente e avisos do dia
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-bold text-pink-300 group-hover:bg-pink-500/20 group-hover:border-pink-400 transition-all shrink-0 ml-2">
+                <span>Acessar</span>
+                <ExternalLink className="h-3 w-3" />
+              </div>
+            </a>
+          )}
 
           {/* Transportation / Uber Card */}
           <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-[#0e1726] to-[#0a0e19] p-4 shadow-[0_0_25px_-5px_rgba(16,185,129,0.2)]">
@@ -357,17 +406,32 @@ export function VenueModal({
             <button
               onClick={handleContactWhatsApp}
               title="Falar no WhatsApp oficial"
-              className="flex h-12 items-center gap-1.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/15 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 transition-colors"
+              className="flex h-12 items-center gap-1.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/15 px-3.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 transition-colors shrink-0"
             >
               <span>💬</span>
               <span className="hidden sm:inline">WhatsApp</span>
             </button>
 
+            {/* Direct Instagram button */}
+            {venue.instagram && (
+              <a
+                href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent(venue.id, "instagram_click", venue.name)}
+                title={`Abrir Instagram @${venue.instagram.replace(/^@/, "")}`}
+                className="flex h-12 items-center gap-1.5 rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-rose-500/20 px-3.5 text-xs font-bold text-pink-300 hover:bg-pink-500/30 transition-all shadow-[0_0_15px_rgba(236,72,153,0.2)] shrink-0 cursor-pointer"
+              >
+                <Instagram className="h-4 w-4 text-pink-400" />
+                <span className="hidden sm:inline">Instagram</span>
+              </a>
+            )}
+
             {/* Share on WhatsApp */}
             <button
               onClick={handleShareWhatsApp}
               title="Compartilhar no WhatsApp com amigos"
-              className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white shrink-0"
             >
               <Share2 className="h-4 w-4" />
             </button>

@@ -87,6 +87,34 @@ function IndexPage() {
   const [userLocation, setUserLocation] = useState<NeighborhoodCoord>(
     NEIGHBORHOODS[0] // Default: Vila Madalena
   );
+  const [isGpsLoading, setIsGpsLoading] = useState(false);
+  const [isGpsActive, setIsGpsActive] = useState(false);
+
+  const handleUseCurrentGps = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      alert("Geolocalização não é suportada neste navegador.");
+      return;
+    }
+    setIsGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsGpsLoading(false);
+        setIsGpsActive(true);
+        const newCoord: NeighborhoodCoord = {
+          name: "📍 Meu GPS Atual (Ao Vivo)",
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setUserLocation(newCoord);
+      },
+      (err) => {
+        setIsGpsLoading(false);
+        console.warn("GPS error:", err);
+        alert("Não foi possível acessar seu GPS. Verifique a permissão de localização do seu navegador.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
+  };
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -568,6 +596,9 @@ function IndexPage() {
         onGoHome={() => handleNavigate("home")}
         onOpenCustomRole={() => handleNavigate("custom-role")}
         isCustomRoleActive={currentScreen === "custom-role"}
+        onUseCurrentGps={handleUseCurrentGps}
+        isGpsLoading={isGpsLoading}
+        isGpsActive={isGpsActive}
       />
 
       {/* ========================================================================= */}

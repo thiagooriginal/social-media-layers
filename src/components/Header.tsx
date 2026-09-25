@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3 } from "lucide-react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
 
@@ -20,6 +20,9 @@ interface HeaderProps {
   onGoHome?: () => void;
   onOpenCustomRole?: () => void;
   isCustomRoleActive?: boolean;
+  onUseCurrentGps?: () => void;
+  isGpsLoading?: boolean;
+  isGpsActive?: boolean;
 }
 
 export function Header({
@@ -40,6 +43,9 @@ export function Header({
   onGoHome,
   onOpenCustomRole,
   isCustomRoleActive,
+  onUseCurrentGps,
+  isGpsLoading,
+  isGpsActive,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
@@ -112,6 +118,34 @@ export function Header({
               <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                 Selecione seu Bairro (para Uber & Distância)
               </div>
+
+              {/* Direct GPS Button */}
+              {onUseCurrentGps && (
+                <div className="p-1 mb-1">
+                  <button
+                    onClick={() => {
+                      onUseCurrentGps();
+                      setIsPickerOpen(false);
+                    }}
+                    disabled={isGpsLoading}
+                    className={`flex w-full items-center justify-center gap-2 rounded-xl border p-2 text-xs font-black transition-all cursor-pointer ${
+                      isGpsActive
+                        ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                        : "border-cyan-500/40 bg-gradient-to-r from-cyan-600/30 to-blue-600/30 text-cyan-300 hover:border-cyan-300 hover:brightness-110 active:scale-95"
+                    }`}
+                  >
+                    <Crosshair className={`h-4 w-4 ${isGpsLoading ? "animate-spin text-cyan-300" : isGpsActive ? "text-emerald-400" : "text-cyan-400"}`} />
+                    <span>
+                      {isGpsLoading
+                        ? "Sintonizando GPS..."
+                        : isGpsActive
+                        ? "📍 GPS Ativo (Ao Vivo)"
+                        : "📍 Usar Meu GPS Atual"}
+                    </span>
+                  </button>
+                </div>
+              )}
+
               <div className="max-h-60 overflow-y-auto space-y-1">
                 {NEIGHBORHOODS.map((n) => (
                   <button
@@ -255,6 +289,32 @@ export function Header({
               Fechar
             </button>
           </div>
+
+          {/* Direct GPS Button on Mobile */}
+          {onUseCurrentGps && (
+            <button
+              onClick={() => {
+                onUseCurrentGps();
+                setIsPickerOpen(false);
+              }}
+              disabled={isGpsLoading}
+              className={`mb-3 flex w-full items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-black transition-all cursor-pointer ${
+                isGpsActive
+                  ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  : "border-cyan-500/40 bg-gradient-to-r from-cyan-600/30 to-blue-600/30 text-cyan-300 hover:border-cyan-300 active:scale-95"
+              }`}
+            >
+              <Crosshair className={`h-4 w-4 ${isGpsLoading ? "animate-spin text-cyan-300" : isGpsActive ? "text-emerald-400" : "text-cyan-400"}`} />
+              <span>
+                {isGpsLoading
+                  ? "Sintonizando seu GPS..."
+                  : isGpsActive
+                  ? "📍 GPS Ativo (Sua Posição Real)"
+                  : "📍 Usar Meu GPS Atual (Ao Vivo)"}
+              </span>
+            </button>
+          )}
+
           <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
             {NEIGHBORHOODS.map((n) => (
               <button

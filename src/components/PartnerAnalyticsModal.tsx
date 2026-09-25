@@ -14,6 +14,14 @@ import {
   ArrowUpRight,
   Download,
   Building2,
+  Instagram,
+  Users,
+  CheckCircle2,
+  Flame,
+  Zap,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 import { Venue } from "../data/venues";
 import {
@@ -40,6 +48,10 @@ export function PartnerAnalyticsModal({
   });
 
   const [period, setPeriod] = useState<"7d" | "30d" | "hoje">("7d");
+  const [activeTab, setActiveTab] = useState<"metrics" | "operations">("metrics");
+  const [liveStatus, setLiveStatus] = useState<string>("Entrada Fluida / Sem Fila");
+  const [isStatusSaved, setIsStatusSaved] = useState<boolean>(false);
+  const [copiedInsta, setCopiedInsta] = useState<boolean>(false);
 
   // Keep selected venue in sync if initialVenueId changes
   React.useEffect(() => {
@@ -135,8 +147,37 @@ export function PartnerAnalyticsModal({
           </div>
         </div>
 
-        {/* Period Selector & Quick Share */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        {/* Tab Switcher: Metrics vs Live Operations */}
+        <div className="mt-4 flex border-b border-white/10">
+          <button
+            onClick={() => setActiveTab("metrics")}
+            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "metrics"
+                ? "border-purple-500 text-purple-300 bg-purple-500/10"
+                : "border-transparent text-slate-400 hover:text-white"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span>Métricas & Insights</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("operations")}
+            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "operations"
+                ? "border-cyan-400 text-cyan-300 bg-cyan-500/10"
+                : "border-transparent text-slate-400 hover:text-white"
+            }`}
+          >
+            <Flame className="h-4 w-4 text-cyan-400" />
+            <span>Gestão da Casa Ao Vivo</span>
+          </button>
+        </div>
+
+        {activeTab === "metrics" ? (
+          <>
+            {/* Period Selector & Quick Share */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex rounded-xl border border-white/10 bg-white/5 p-1 text-xs">
             <button
               onClick={() => setPeriod("7d")}
@@ -344,6 +385,136 @@ export function PartnerAnalyticsModal({
             </div>
           </div>
         </div>
+      </>
+    ) : (
+      /* Live Operations Tab */
+      <div className="mt-5 space-y-5">
+        {/* Status da Fila e Pista */}
+        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Flame className="h-4 w-4 text-cyan-400" />
+              <h4 className="text-sm font-extrabold text-white">Status da Casa & Fila Ao Vivo</h4>
+            </div>
+            {isStatusSaved && (
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 animate-in fade-in">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Atualizado no Radar!
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Defina o status de movimento atual para atrair público em tempo real:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {[
+              { label: "🟢 Entrada Fluida / Sem Fila", desc: "Acesso rápido sem espera" },
+              { label: "🟡 Fila Moderada (15-20 min)", desc: "Fluxo padrão de balada" },
+              { label: "🔴 Pista Cheia / Apenas Fila VIP", desc: "Casa com alta procura hoje" },
+              { label: "🍹 Open Bar / Promoção Ativa", desc: "Destaque de benefício no feed" },
+            ].map((s) => (
+              <button
+                key={s.label}
+                onClick={() => {
+                  setLiveStatus(s.label);
+                  setIsStatusSaved(true);
+                  setTimeout(() => setIsStatusSaved(false), 2500);
+                }}
+                className={`flex flex-col text-left p-3 rounded-xl border transition-all cursor-pointer ${
+                  liveStatus === s.label
+                    ? "border-cyan-500 bg-cyan-950/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                    : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                }`}
+              >
+                <span className="text-xs font-bold text-white">{s.label}</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">{s.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Instagram Oficial do Parceiro */}
+        <div className="rounded-2xl border border-pink-500/30 bg-gradient-to-r from-purple-950/30 via-pink-950/20 to-slate-900/50 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-md">
+                <Instagram className="h-4 w-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-extrabold text-white">Instagram Oficial Vinculado</h4>
+                <span className="text-xs font-bold text-pink-400">
+                  @{currentVenue?.instagram ? currentVenue.instagram.replace(/^@/, "") : "não cadastrado"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {currentVenue?.instagram && (
+                <a
+                  href={`https://instagram.com/${currentVenue.instagram.replace(/^@/, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl border border-pink-500/40 bg-pink-500/20 px-3 py-1.5 text-xs font-bold text-pink-300 hover:bg-pink-500/30 transition-all shadow-[0_0_12px_rgba(236,72,153,0.3)] cursor-pointer"
+                >
+                  <span>Testar Link</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+              <button
+                onClick={() => {
+                  if (currentVenue?.instagram) {
+                    navigator.clipboard.writeText(`https://instagram.com/${currentVenue.instagram.replace(/^@/, "")}`);
+                    setCopiedInsta(true);
+                    setTimeout(() => setCopiedInsta(false), 2000);
+                  }
+                }}
+                className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-slate-300 hover:bg-white/10 cursor-pointer"
+              >
+                {copiedInsta ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copiedInsta ? "Copiado!" : "Copiar"}</span>
+              </button>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Os usuários do Radar do Rolê que clicarem no botão do Instagram no seu card ou modal são direcionados diretamente para o seu perfil oficial.
+          </p>
+        </div>
+
+        {/* Gestão da Lista VIP & Portaria */}
+        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-purple-400" />
+              <h4 className="text-sm font-extrabold text-white">Nomes na Lista VIP Hoje</h4>
+            </div>
+            <span className="rounded-full bg-purple-500/20 border border-purple-500/40 px-2.5 py-0.5 text-xs font-black text-purple-300">
+              {metrics.vipListLeads} Pessoas Inscritas
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Conferência rápida dos convidados que geraram o voucher digital VIP do Radar:
+          </p>
+          <div className="rounded-xl border border-white/5 bg-black/40 p-3 text-xs font-mono text-slate-300 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 pb-1 border-b border-white/5">
+              <span>CÓDIGO / TITULAR</span>
+              <span>STATUS DA ENTRADA</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-cyan-300 font-bold">VIP-498213 • Lucas Mendes (+3 convidados)</span>
+              <span className="text-emerald-400 font-bold">VALIDADO</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-cyan-300 font-bold">VIP-812049 • Camila Rocha (+1 convidado)</span>
+              <span className="text-emerald-400 font-bold">AGUARDANDO CHEGADA</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-cyan-300 font-bold">VIP-309184 • Felipe Santana (+2 convidados)</span>
+              <span className="text-emerald-400 font-bold">AGUARDANDO CHEGADA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">

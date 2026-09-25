@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, MapPin, Heart, Clock, Car, Sparkles, ArrowRight, Baby } from "lucide-react";
+import { Star, MapPin, Heart, Clock, Car, Sparkles, ArrowRight, Baby, Instagram } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
 
@@ -47,21 +47,40 @@ export function VenueCard({
             <span>{venue.subType}</span>
           </span>
 
-          {/* Favorite Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(venue.id);
-            }}
-            aria-label="Salvar favorito"
-            className={`flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition-all active:scale-90 ${
-              isFavorite
-                ? "border-pink-500 bg-pink-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]"
-                : "border-white/20 bg-black/50 text-white hover:border-pink-400 hover:text-pink-400"
-            }`}
-          >
-            <Heart className={`h-4 w-4 ${isFavorite ? "fill-white" : ""}`} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* Direct Instagram Link */}
+            {venue.instagram && (
+              <a
+                href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  trackEvent(venue.id, "instagram_click", venue.name);
+                }}
+                title={`Abrir Instagram @${venue.instagram.replace(/^@/, "")}`}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-pink-500/40 bg-gradient-to-tr from-amber-500/90 via-rose-500/90 to-purple-600/90 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)] backdrop-blur-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+              >
+                <Instagram className="h-4 w-4" />
+              </a>
+            )}
+
+            {/* Favorite Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(venue.id);
+              }}
+              aria-label="Salvar favorito"
+              className={`flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition-all active:scale-90 ${
+                isFavorite
+                  ? "border-pink-500 bg-pink-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]"
+                  : "border-white/20 bg-black/50 text-white hover:border-pink-400 hover:text-pink-400"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${isFavorite ? "fill-white" : ""}`} />
+            </button>
+          </div>
         </div>
 
         {/* Bottom Image Overlay Badges */}
@@ -127,11 +146,28 @@ export function VenueCard({
           </div>
         </div>
 
-        {/* Price & Highlight */}
-        <div className="mt-3 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="font-bold text-amber-300">{venue.entryPrice}</span>
+        {/* Price & Instagram Row */}
+        <div className="mt-3 flex items-center justify-between text-xs gap-2">
+          <div className="flex items-center gap-1.5 text-slate-300 min-w-0">
+            <span className="font-bold text-amber-300 truncate">{venue.entryPrice}</span>
           </div>
+
+          {venue.instagram && (
+            <a
+              href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+                trackEvent(venue.id, "instagram_click", venue.name);
+              }}
+              title={`Abrir perfil do Instagram @${venue.instagram.replace(/^@/, "")}`}
+              className="flex items-center gap-1 text-[11px] font-bold text-pink-400 hover:text-pink-300 transition-colors shrink-0 bg-pink-500/10 px-2 py-0.5 rounded-lg border border-pink-500/20"
+            >
+              <Instagram className="h-3 w-3 text-pink-400 shrink-0" />
+              <span>@{venue.instagram.replace(/^@/, "")}</span>
+            </a>
+          )}
         </div>
 
         {/* Tags */}

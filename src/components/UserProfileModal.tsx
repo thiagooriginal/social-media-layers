@@ -1,6 +1,7 @@
 import React from "react";
 import { X, User, Phone, Mail, Ticket, Sparkles, LogOut, CheckCircle, Calendar, Users, QrCode } from "lucide-react";
 import { UserProfile, getUserVipPasses, logoutUser, UserVipPass } from "../services/authService";
+import { DigitalPassModal } from "./DigitalPassModal";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export function UserProfileModal({
   if (!isOpen || !user) return null;
 
   const vipPasses: UserVipPass[] = getUserVipPasses();
+  const [selectedPass, setSelectedPass] = React.useState<UserVipPass | null>(null);
 
   const handleLogoutClick = () => {
     logoutUser();
@@ -116,9 +118,14 @@ export function UserProfileModal({
                       <Users className="h-3 w-3 text-purple-400" />
                       {pass.guestsCount} {pass.guestsCount === 1 ? "pessoa" : "pessoas"}
                     </span>
-                    <span className="text-purple-300 font-semibold">
-                      Apresentar na Portaria
-                    </span>
+                    
+                    <button
+                      onClick={() => setSelectedPass(pass)}
+                      className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/15 px-3 py-1.5 text-xs font-black text-cyan-300 hover:bg-cyan-500/25 active:scale-95 transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)] cursor-pointer"
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                      <span>Ver QR Code</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -144,6 +151,13 @@ export function UserProfileModal({
           </button>
         </div>
       </div>
+
+      {/* Digital Pass with QR Code Full View */}
+      <DigitalPassModal
+        pass={selectedPass}
+        isOpen={!!selectedPass}
+        onClose={() => setSelectedPass(null)}
+      />
     </div>
   );
 }

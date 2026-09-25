@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { X, CheckCircle, Ticket, Sparkles, Send, ShieldCheck, User, Phone, Users } from "lucide-react";
+import { X, CheckCircle, Ticket, Sparkles, Send, ShieldCheck, User, Phone, Users, QrCode } from "lucide-react";
 import { Venue } from "../data/venues";
 import { submitVipListLead } from "../services/venueService";
-import { getCurrentUser, saveUserVipPass } from "../services/authService";
+import { getCurrentUser, saveUserVipPass, UserVipPass } from "../services/authService";
 import { trackEvent } from "../services/analyticsService";
+import { DigitalPassModal } from "./DigitalPassModal";
 
 interface VipListModalProps {
   venue: Venue | null;
@@ -18,6 +19,8 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedPassCode, setGeneratedPassCode] = useState("");
+  const [createdPass, setCreatedPass] = useState<UserVipPass | null>(null);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,6 +63,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
         entryBenefit: venue.entryPrice,
       });
       setGeneratedPassCode(pass.passCode);
+      setCreatedPass(pass);
 
       setIsSuccess(true);
     } catch (err) {
@@ -254,9 +258,19 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
             </div>
 
             <div className="mt-6 flex flex-col gap-2">
+              {createdPass && (
+                <button
+                  onClick={() => setIsPassModalOpen(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-500/50 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 py-3 text-xs font-black text-white shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all hover:brightness-110 active:scale-98 cursor-pointer"
+                >
+                  <QrCode className="h-4 w-4 text-cyan-300" />
+                  <span>Ver Meu Passe com QR Code da Entrada</span>
+                </button>
+              )}
+
               <button
                 onClick={handleOpenWhatsAppConfirm}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3 text-xs font-black text-white shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all hover:bg-emerald-500 active:scale-98"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600/90 py-2.5 text-xs font-black text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 active:scale-98"
               >
                 <span>Enviar Confirmação no WhatsApp da Balada</span>
                 <Send className="h-3.5 w-3.5" />
@@ -264,7 +278,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
 
               <button
                 onClick={handleResetAndClose}
-                className="rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/10"
+                className="rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 hover:bg-white/10"
               >
                 Voltar para o App
               </button>
@@ -272,6 +286,13 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
           </div>
         )}
       </div>
+
+      {/* Digital Pass Modal */}
+      <DigitalPassModal
+        pass={createdPass}
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+      />
     </div>
   );
 }

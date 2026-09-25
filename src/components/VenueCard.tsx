@@ -66,14 +66,31 @@ export function VenueCard({
 
         {/* Bottom Image Overlay Badges */}
         <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between text-xs">
-          {/* Status */}
-          <span className="flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold backdrop-blur-md text-emerald-300 border border-emerald-500/30">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{venue.openToday ? "Aberto Hoje!" : "Fechado"}</span>
-          </span>
+          {/* Status & After Hours Badge */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-bold backdrop-blur-md text-emerald-300 border border-emerald-500/30">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{venue.openToday ? "Aberto Hoje!" : "Fechado"}</span>
+            </span>
+
+            {(venue.isAfterHours || venue.openHours?.toLowerCase().includes("24 horas") || venue.openHours?.includes("05:") || venue.openHours?.includes("06:") || venue.openHours?.includes("08:")) && (
+              <span className="flex items-center gap-1 rounded-full bg-black/80 px-2 py-1 text-[10px] font-black text-amber-300 backdrop-blur-md border border-amber-500/50 shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+                <span>🌙</span>
+                <span>
+                  {venue.openHours?.toLowerCase().includes("24 horas") || venue.closesAt === "24h"
+                    ? "24 Horas"
+                    : venue.closesAt
+                    ? `Até as ${venue.closesAt}`
+                    : venue.openHours?.includes("08:")
+                    ? "After até 08h"
+                    : "Até 05h+"}
+                </span>
+              </span>
+            )}
+          </div>
 
           {/* Rating */}
-          <span className="flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-extrabold text-amber-300 backdrop-blur-md border border-amber-500/30">
+          <span className="flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-extrabold text-amber-300 backdrop-blur-md border border-amber-500/30 shrink-0">
             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
             <span>{venue.rating.toFixed(1)}</span>
             <span className="text-[10px] text-slate-400 font-normal">({venue.reviewsCount})</span>

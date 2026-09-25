@@ -21,6 +21,8 @@ interface FilterBarProps {
   onToggleVipOrFree: () => void;
   onlyWithParking: boolean;
   onToggleWithParking: () => void;
+  onlyAfterHours?: boolean;
+  onToggleAfterHours?: () => void;
   onlyWithHydro?: boolean;
   onToggleWithHydro?: () => void;
   onlyWithPool?: boolean;
@@ -45,6 +47,8 @@ export function FilterBar({
   onToggleVipOrFree,
   onlyWithParking,
   onToggleWithParking,
+  onlyAfterHours = false,
+  onToggleAfterHours,
   onlyWithHydro,
   onToggleWithHydro,
   onlyWithPool,
@@ -174,11 +178,36 @@ export function FilterBar({
       )}
 
       {/* Secondary Quick Toggles */}
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+        {/* Modo After (Até as 5h+ da manhã / 24h) */}
+        {onToggleAfterHours && (
+          <button
+            onClick={onToggleAfterHours}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-300 ${
+              onlyAfterHours
+                ? "border-amber-400 bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/25 text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.4)] ring-1 ring-amber-400/60 scale-[1.03]"
+                : "border-purple-500/30 bg-purple-950/20 text-purple-200 hover:border-amber-400/50 hover:bg-amber-500/10 hover:text-amber-300"
+            }`}
+            title="Filtrar rolês que vão até as 5h da manhã ou 24 horas"
+          >
+            <span className="text-sm">🌙</span>
+            <span>Modo After (5h+ / 24h)</span>
+            {onlyAfterHours ? (
+              <span className="ml-0.5 rounded-full bg-amber-400/30 px-1.5 py-0.5 text-[9px] font-black text-amber-200 animate-pulse">
+                ATIVO
+              </span>
+            ) : (
+              <span className="ml-0.5 rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-purple-300">
+                Madrugada
+              </span>
+            )}
+          </button>
+        )}
+
         {/* Aberto Hoje */}
         <button
           onClick={onToggleOpenToday}
-          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all ${
+          className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 transition-all ${
             onlyOpenToday
               ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 font-bold"
               : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"

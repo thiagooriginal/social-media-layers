@@ -144,10 +144,24 @@ export function VenueModal({
 
           {/* Title on bottom of Image */}
           <div className="absolute bottom-4 left-5 right-5">
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs flex-wrap">
               <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
                 🟢 {venue.openToday ? "Aberto Hoje" : "Fechado"}
               </span>
+
+              {(venue.isAfterHours || venue.openHours?.toLowerCase().includes("24 horas") || venue.openHours?.includes("05:") || venue.openHours?.includes("06:") || venue.openHours?.includes("08:")) && (
+                <span className="flex items-center gap-1 rounded-full bg-amber-500/25 border border-amber-500/50 px-2.5 py-0.5 font-black text-amber-300 backdrop-blur-md shadow-[0_0_12px_rgba(251,191,36,0.4)]">
+                  <span>🌙</span>
+                  <span>
+                    {venue.openHours?.toLowerCase().includes("24 horas") || venue.closesAt === "24h"
+                      ? "Aberto 24 Horas"
+                      : venue.closesAt
+                      ? `After até as ${venue.closesAt}`
+                      : "After Madrugada"}
+                  </span>
+                </span>
+              )}
+
               <span className="flex items-center gap-1 font-bold text-amber-300 bg-black/60 px-2.5 py-0.5 rounded-full border border-white/10 backdrop-blur-md">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 <span>{venue.rating.toFixed(1)}</span>

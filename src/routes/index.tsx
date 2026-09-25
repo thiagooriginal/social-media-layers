@@ -69,6 +69,13 @@ function IndexPage() {
   const [onlyWithParking, setOnlyWithParking] = useState(false);
   const [onlyWithHydro, setOnlyWithHydro] = useState(false);
   const [onlyWithPool, setOnlyWithPool] = useState(false);
+  const [onlyAfterHours, setOnlyAfterHours] = useState(false);
+
+  // Smart late-night detector: between 02:00 and 06:00 AM
+  const isLateNightTime = useMemo(() => {
+    const hour = new Date().getHours();
+    return hour >= 2 && hour < 6;
+  }, []);
 
   // Modal Detail state
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
@@ -231,7 +238,21 @@ function IndexPage() {
         return false;
       }
 
-      // 11. Search query matching
+      // 11. After Hours toggle (Até as 5h+ da manhã ou 24 Horas)
+      if (onlyAfterHours) {
+        const isLate =
+          venue.isAfterHours ||
+          venue.openHours?.toLowerCase().includes("24 horas") ||
+          venue.openHours?.includes("05:") ||
+          venue.openHours?.includes("06:") ||
+          venue.openHours?.includes("07:") ||
+          venue.openHours?.includes("08:");
+        if (!isLate) {
+          return false;
+        }
+      }
+
+      // 12. Search query matching
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = venue.name.toLowerCase().includes(q);
@@ -280,6 +301,7 @@ function IndexPage() {
     onlyWithParking,
     onlyWithHydro,
     onlyWithPool,
+    onlyAfterHours,
     searchQuery,
     userLocation,
   ]);
@@ -295,6 +317,7 @@ function IndexPage() {
     setOnlyWithParking(false);
     setOnlyWithHydro(false);
     setOnlyWithPool(false);
+    setOnlyAfterHours(false);
   };
 
   return (
@@ -394,7 +417,59 @@ function IndexPage() {
         onToggleWithHydro={() => setOnlyWithHydro(!onlyWithHydro)}
         onlyWithPool={onlyWithPool}
         onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
+        onlyAfterHours={onlyAfterHours}
+        onToggleAfterHours={() => setOnlyAfterHours(!onlyAfterHours)}
       />
+
+      {/* Modo After Active Banner */}
+      {onlyAfterHours && (
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-[#181104]/80 to-amber-950/40 p-4 backdrop-blur-md shadow-[0_0_30px_rgba(251,191,36,0.25)]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-500/40 shadow-inner">
+                🌙
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-amber-300 flex items-center gap-2">
+                  <span>Modo After Ativo (Até as 5h+ da manhã / 24 Horas)</span>
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-200 border border-amber-400/30">
+                    {filteredVenues.length} {filteredVenues.length === 1 ? "local" : "locais"}
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                  Mostrando apenas baladas que vão até o amanhecer (5h a 8h), lanches da madrugada 24h e motéis para esticar a noite.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setOnlyAfterHours(false)}
+              className="self-end sm:self-center shrink-0 rounded-xl border border-amber-500/30 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-amber-200 hover:bg-white/20 transition-all active:scale-95"
+            >
+              ✕ Desativar Modo After
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Smart Late Night Invitation Toast */}
+      {isLateNightTime && !onlyAfterHours && (
+        <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 rounded-2xl border border-purple-500/30 bg-purple-950/40 px-4 py-2.5 backdrop-blur-md">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-base animate-pulse">🌙</span>
+              <span className="text-slate-200 font-medium">
+                Passou das 2h da madrugada em SP! Procurando onde esticar a noite agora?
+              </span>
+            </div>
+            <button
+              onClick={() => setOnlyAfterHours(true)}
+              className="rounded-xl border border-amber-400/50 bg-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-300 hover:bg-amber-500/30 transition-all shrink-0 active:scale-95"
+            >
+              Ativar Modo After (5h+)
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Venues Grid Section */}
       <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
@@ -414,7 +489,8 @@ function IndexPage() {
             selectedNeighborhood !== "all" ||
             onlyOpenToday ||
             onlyVipOrFree ||
-            onlyWithParking) && (
+            onlyWithParking ||
+            onlyAfterHours) && (
             <button
               onClick={handleResetFilters}
               className="flex items-center gap-1 font-bold text-purple-400 hover:text-purple-300"

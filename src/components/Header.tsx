@@ -18,6 +18,8 @@ interface HeaderProps {
   onOpenLogoPicker?: () => void;
   onTriggerRadar?: () => void;
   onGoHome?: () => void;
+  onOpenCustomRole?: () => void;
+  isCustomRoleActive?: boolean;
 }
 
 export function Header({
@@ -36,6 +38,8 @@ export function Header({
   onOpenLogoPicker,
   onTriggerRadar,
   onGoHome,
+  onOpenCustomRole,
+  isCustomRoleActive,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
@@ -145,6 +149,23 @@ export function Header({
               {currentNeighborhood.name}
             </span>
           </button>
+
+          {/* Custom Role / Monte Seu Rolê Matchmaker Button */}
+          {onOpenCustomRole && (
+            <button
+              onClick={onOpenCustomRole}
+              title="Monte seu Rolê Perfeito (Filtre por Sinuca, Narguilé, Ao Vivo, Karaokê...)"
+              className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer ${
+                isCustomRoleActive
+                  ? "border-cyan-400 bg-gradient-to-r from-cyan-600 via-fuchsia-600 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)]"
+                  : "border-cyan-500/40 bg-cyan-950/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.25)]"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5 text-cyan-300 shrink-0" />
+              <span className="hidden sm:inline">Monte Seu Rolê</span>
+              <span className="sm:hidden text-[11px] font-black">Rolê ✨</span>
+            </button>
+          )}
 
           {/* Analytics / Insights Report Button */}
           {onOpenAnalytics && (

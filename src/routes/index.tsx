@@ -6,6 +6,9 @@ import {
   Venue,
   NeighborhoodCoord,
   calculateDistanceKm,
+  ROLE_AMENITIES,
+  RoleAmenityId,
+  RoleAmenity,
 } from "../data/venues";
 import { Header } from "../components/Header";
 import { CategoryTabs, MainCategory } from "../components/CategoryTabs";
@@ -20,6 +23,7 @@ import { UserProfileModal } from "../components/UserProfileModal";
 import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
 import { LogoPickerModal } from "../components/LogoPickerModal";
 import { RadarIntroSplash } from "../components/RadarIntroSplash";
+import { CustomRoleMatchmaker } from "../components/CustomRoleMatchmaker";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import {
@@ -38,6 +42,8 @@ import {
   Moon,
   X,
   TrendingUp,
+  Check,
+  CheckCircle2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -152,6 +158,51 @@ function IndexPage() {
   // Multi-Screen Navigation State (Home Hub vs Dedicated Category Screens)
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("home");
 
+  // Monte Seu Rolê Perfeito (Matchmaker) State
+  const [selectedAmenities, setSelectedAmenities] = useState<RoleAmenityId[]>([]);
+
+  const handleToggleAmenity = (amenityId: RoleAmenityId) => {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenityId)
+        ? prev.filter((id) => id !== amenityId)
+        : [...prev, amenityId]
+    );
+  };
+
+  const handleClearAmenities = () => {
+    setSelectedAmenities([]);
+  };
+
+  const handleSelectCombo = (combo: RoleAmenityId[]) => {
+    setSelectedAmenities(combo);
+  };
+
+  // Strict 100% Match Filter: local precisa ter TODOS os requisitos escolhidos simultaneamente
+  const customRoleMatches = useMemo(() => {
+    if (selectedAmenities.length === 0) return [];
+    return venues.filter((venue) =>
+      selectedAmenities.every((amenity) => venue.amenities?.includes(amenity))
+    );
+  }, [venues, selectedAmenities]);
+
+  // Matches parciais (atendem a maioria dos requisitos) para sugestões caso 0 resultados
+  const customRolePartialMatches = useMemo(() => {
+    if (selectedAmenities.length <= 1) return [];
+    return venues
+      .map((venue) => {
+        const matchCount = selectedAmenities.filter((a) =>
+          venue.amenities?.includes(a)
+        ).length;
+        return { venue, matchCount };
+      })
+      .filter(
+        (item) => item.matchCount > 0 && item.matchCount < selectedAmenities.length
+      )
+      .sort((a, b) => b.matchCount - a.matchCount)
+      .slice(0, 4)
+      .map((item) => item.venue);
+  }, [venues, selectedAmenities]);
+
   // Screen Switcher Handler
   const handleNavigate = (screen: AppScreen) => {
     setCurrentScreen(screen);
@@ -168,6 +219,8 @@ function IndexPage() {
       setOnlyAfterHours(true);
     } else if (screen === "favorites") {
       setActiveTab("favorites");
+      setOnlyAfterHours(false);
+    } else if (screen === "custom-role") {
       setOnlyAfterHours(false);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -508,6 +561,8 @@ function IndexPage() {
         onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
         onTriggerRadar={() => setShowRadarIntro(true)}
         onGoHome={() => handleNavigate("home")}
+        onOpenCustomRole={() => handleNavigate("custom-role")}
+        isCustomRoleActive={currentScreen === "custom-role"}
       />
 
       {/* ========================================================================= */}
@@ -623,8 +678,48 @@ function IndexPage() {
             </section>
           ) : (
             <>
-              {/* 4 Grand Visual Navigation Cards (Menus Principais do App) */}
+              {/* Navigation Cards (Menus Principais do App) */}
               <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+                {/* Destaque Principal: ✨ Monte Seu Rolê Perfeito */}
+                <div className="mb-5">
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("custom-role")}
+                    className="group relative w-full overflow-hidden rounded-3xl border-2 border-fuchsia-500/60 bg-gradient-to-r from-purple-950 via-[#180a2a] to-cyan-950/90 p-5 sm:p-6 text-left transition-all duration-300 hover:scale-[1.01] active:scale-95 hover:border-cyan-400 hover:shadow-[0_12px_45px_rgba(217,70,239,0.4)] cursor-pointer shadow-xl"
+                  >
+                    <div className="absolute top-0 right-0 -mr-12 -mt-12 h-44 w-44 rounded-full bg-gradient-to-br from-fuchsia-600/30 to-cyan-500/20 blur-2xl pointer-events-none" />
+
+                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start sm:items-center gap-4">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-3xl border border-fuchsia-400/50 shadow-[0_0_25px_rgba(217,70,239,0.4)] group-hover:scale-105 group-hover:rotate-3 transition-transform">
+                          ✨
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="rounded-full bg-gradient-to-r from-fuchsia-500/30 to-cyan-500/30 px-2.5 py-0.5 text-[10px] font-extrabold text-cyan-300 border border-cyan-400/40 uppercase tracking-wider">
+                              Filtro Exclusivo • 100% Match
+                            </span>
+                            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-black text-amber-300 border border-amber-500/30">
+                              NOVO
+                            </span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-black text-white mt-1 group-hover:text-cyan-300 transition-colors">
+                            Monte Seu Rolê Perfeito
+                          </h3>
+                          <p className="mt-1 text-xs text-slate-300 max-w-xl leading-relaxed">
+                            Combine suas preferências (ex: 🎱 Sinuca + 💨 Narguilé + 🎸 Ao Vivo + 🎤 Karaokê) e veja apenas os locais que têm <strong className="text-cyan-300">TUDO</strong> junto!
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-5 py-3 text-xs sm:text-sm font-black text-white shadow-lg shadow-fuchsia-600/40 group-hover:from-fuchsia-500 group-hover:to-cyan-500 transition-all">
+                        <span>Montar Agora</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="mb-4 text-center sm:text-left">
                   <h2 className="text-base sm:text-lg font-black text-white flex items-center justify-center sm:justify-start gap-2">
                     <Compass className="h-5 w-5 text-cyan-400" />
@@ -810,6 +905,12 @@ function IndexPage() {
                         <span>Meus Locais Salvos</span>
                       </>
                     )}
+                    {currentScreen === "custom-role" && (
+                      <>
+                        <span className="text-2xl">✨</span>
+                        <span>Monte Seu Rolê Perfeito</span>
+                      </>
+                    )}
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {currentScreen === "baladas" &&
@@ -822,6 +923,8 @@ function IndexPage() {
                       "Locais abertos para virar a noite até as 8h da manhã ou lanches 24h"}
                     {currentScreen === "favorites" &&
                       `${favorites.length} ${favorites.length === 1 ? "local salvo" : "locais salvos"} na sua lista`}
+                    {currentScreen === "custom-role" &&
+                      "Filtro 100% estrito: mostramos apenas os locais que reúnem todas as opções escolhidas"}
                   </p>
                 </div>
               </div>
@@ -835,9 +938,28 @@ function IndexPage() {
             </div>
           </div>
 
-          {/* Category FilterBar */}
-          <FilterBar
-            category={activeTab}
+          {/* ========================================================================= */}
+          {/* TELA DEDICADA: ✨ MONTE SEU ROLÊ PERFEITO (MATCHMAKER PERSONALIZADO)      */}
+          {/* ========================================================================= */}
+          {currentScreen === "custom-role" ? (
+            <CustomRoleMatchmaker
+              venues={venues}
+              userLocation={userLocation}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              onOpenDetails={setActiveVenue}
+              selectedAmenities={selectedAmenities}
+              onToggleAmenity={handleToggleAmenity}
+              onClearAmenities={handleClearAmenities}
+              onSelectCombo={handleSelectCombo}
+              customRoleMatches={customRoleMatches}
+              customRolePartialMatches={customRolePartialMatches}
+            />
+          ) : (
+            <>
+              {/* Category FilterBar */}
+              <FilterBar
+                category={activeTab}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             selectedGenre={selectedGenre}
@@ -999,6 +1121,8 @@ function IndexPage() {
               </div>
             )}
           </main>
+            </>
+          )}
         </div>
       )}
 

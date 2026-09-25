@@ -38,9 +38,44 @@ export interface Venue {
   tags: string[];
   lineup?: string[];
   menuHighlights?: string[];
+  amenities?: RoleAmenityId[];
   plan?: "mensal" | "semestral" | "anual";
   planPrice?: number;
 }
+
+export type RoleAmenityId =
+  | "sinuca"
+  | "narguile"
+  | "karaoke"
+  | "musica_ao_vivo"
+  | "pista_danca"
+  | "drinks"
+  | "chopp"
+  | "petiscos"
+  | "rooftop"
+  | "vip_free"
+  | "after_madrugada";
+
+export interface RoleAmenity {
+  id: RoleAmenityId;
+  name: string;
+  emoji: string;
+  desc: string;
+}
+
+export const ROLE_AMENITIES: RoleAmenity[] = [
+  { id: "sinuca", name: "Mesa de Sinuca", emoji: "🎱", desc: "Mesas de bilhar & snooker oficial" },
+  { id: "narguile", name: "Narguilé / Lounge", emoji: "💨", desc: "Sessões e espaço hookah lounge" },
+  { id: "karaoke", name: "Karaokê", emoji: "🎤", desc: "Palco com microfone ou salas box" },
+  { id: "musica_ao_vivo", name: "Música ao Vivo", emoji: "🎸", desc: "Bandas de rock, sertanejo ou samba" },
+  { id: "pista_danca", name: "Pista de Dança & DJ", emoji: "🪩", desc: "Pista para dançar e curtir o som" },
+  { id: "drinks", name: "Drinques Especiais", emoji: "🍹", desc: "Coquetelaria artesanal, gin & drinks" },
+  { id: "chopp", name: "Chopp Gelado", emoji: "🍺", desc: "Chopp na caneca trincando & cervejas" },
+  { id: "petiscos", name: "Porções & Petiscos", emoji: "🍟", desc: "Comida de boteco, fritas e tábuas" },
+  { id: "rooftop", name: "Rooftop / Ar Livre", emoji: "🌇", desc: "Terraço aberto com vista da cidade" },
+  { id: "vip_free", name: "Lista VIP / Entrada Free", emoji: "🎟️", desc: "Entrada gratuita ou desconto na porta" },
+  { id: "after_madrugada", name: "Madrugada (5h+ / 24h)", emoji: "🌙", desc: "Aberto até o sol raiar ou 24h" },
+];
 
 export interface NeighborhoodCoord {
   name: string;
@@ -225,7 +260,176 @@ export const MOTEL_STYLES = [
 ];
 
 export const VENUES_DATA: Venue[] = [
-  // --- BALADAS ---
+  // --- BALADAS & MATCHMAKER ROLÊ PERFEITO ---
+  {
+    id: "balada-vilamada-snooker",
+    category: "baladas",
+    name: "Vila Madá Lounge, Snooker & Karaokê",
+    tagline: "O rolê completo da Vila Madalena: sinuca profissional, narguilé lounge, karaokê e música ao vivo",
+    genre: "sertanejo",
+    subType: "Snooker, Hookah & Karaokê",
+    subTypeEmoji: "🎱",
+    neighborhood: "Vila Madalena",
+    address: "R. Aspicuelta, 420 - Vila Madalena, São Paulo - SP",
+    coordinates: { lat: -23.5552, lng: -46.6905 },
+    image: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1000&q=80",
+    ],
+    rating: 4.9,
+    reviewsCount: 1870,
+    openToday: true,
+    openHours: "Hoje das 18:00 às 05:00",
+    isAfterHours: true,
+    closesAt: "05:00",
+    priceCategory: "medium",
+    entryPrice: "Mulher VIP até 22h • R$ 30 a R$ 50 após",
+    priceDescription: "Mesas de sinuca com giz e tacos profissionais, espaço narguilé ventilado, karaokê e palco",
+    hasVipList: true,
+    allowsReservation: true,
+    isWomenFree: true,
+    hasParking: true,
+    whatsapp: "5511977112233",
+    instagram: "vilamada.snooker",
+    highlight: "O combo mais procurado da noite: jogue sinuca com narguilé, cante no karaokê e curta banda ao vivo!",
+    tags: ["Mesa de Sinuca", "Espaço Narguilé", "Karaokê com Telão", "Música ao Vivo", "Chopp Gelado"],
+    lineup: [
+      "18:00 - Happy Hour com Sinuca Free & Chopp em Dobro",
+      "21:30 - Voz & Violão (Sertanejo & Pop Rock)",
+      "23:30 - Karaokê Coletivo com Prêmio para o Melhor Cantor",
+      "01:30 - DJ Open Format até as 05h",
+    ],
+    menuHighlights: [
+      "Sessão Premium Hookah com essências importadas",
+      "Torre de Chopp 2.5L trincando com colarinho cremoso",
+      "Tábua de Picanha Fatiada na Chapa com mandioca",
+      "Gin Tropical autoral com Red Bull",
+    ],
+    amenities: [
+      "sinuca",
+      "narguile",
+      "karaoke",
+      "musica_ao_vivo",
+      "pista_danca",
+      "drinks",
+      "chopp",
+      "petiscos",
+      "after_madrugada",
+      "vip_free",
+    ],
+  },
+  {
+    id: "balada-hookah-snooker-tatuape",
+    category: "baladas",
+    name: "Hookah Snooker & Karaokê Club",
+    tagline: "O maior complexo de entretenimento noturno da ZL: 8 mesas de snooker, hookah lounge e karaokê",
+    genre: "sertanejo",
+    subType: "Snooker Club & Hookah Lounge",
+    subTypeEmoji: "💨",
+    neighborhood: "Tatuapé",
+    address: "R. Serra de Japi, 780 - Tatuapé, São Paulo - SP",
+    coordinates: { lat: -23.5412, lng: -46.5721 },
+    image: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1000&q=80",
+    ],
+    rating: 4.8,
+    reviewsCount: 2310,
+    openToday: true,
+    openHours: "Hoje das 17:00 às 05:00",
+    isAfterHours: true,
+    closesAt: "05:00",
+    priceCategory: "medium",
+    entryPrice: "Entrada Franca até 20h • R$ 35 após",
+    priceDescription: "Salão nobre com 8 mesas de sinuca oficiais, lounge climatizado para narguilé e cabines acústicas",
+    hasVipList: true,
+    allowsReservation: true,
+    isWomenFree: true,
+    hasParking: true,
+    whatsapp: "5511988223344",
+    instagram: "hookahsnooker.tatuape",
+    highlight: "8 mesas de snooker, narguilé premium, karaokê e bandas sertanejas e pagode ao vivo",
+    tags: ["Sinuca Oficial", "Narguilé Lounge", "Karaokê Box", "Banda Ao Vivo", "Pista de Dança"],
+    lineup: [
+      "17:00 - Abertura com Torneio Relâmpago de Sinuca",
+      "20:30 - Acústico Voz & Violão no Lounge",
+      "22:30 - Roda de Samba & Pagode com Karaokê",
+      "01:00 - DJ Baile Funk & Eletrônica até 05h",
+    ],
+    menuHighlights: [
+      "Sessão de Narguilé Love 66 / Two Apples",
+      "Balde com 6 Cervejas Long Neck importadas",
+      "Batata Frita Rústica Especial com cheddar e bacon",
+      "Caipirosca de Morango com Saquê",
+    ],
+    amenities: [
+      "sinuca",
+      "narguile",
+      "karaoke",
+      "musica_ao_vivo",
+      "pista_danca",
+      "drinks",
+      "chopp",
+      "petiscos",
+      "after_madrugada",
+      "vip_free",
+    ],
+  },
+  {
+    id: "balada-sigalavaca-karaoke",
+    category: "baladas",
+    name: "Siga La Vaca Karaokê & Snooker Bar",
+    tagline: "Ícone da boemia da Bela Vista com karaokê histórico, mesas de sinuca, chopp e samba ao vivo",
+    genre: "pagode",
+    subType: "Karaokê Bar & Sinuca",
+    subTypeEmoji: "🎤",
+    neighborhood: "Bela Vista",
+    address: "R. Canuto do Val, 97 - Santa Cecília / Bela Vista, São Paulo - SP",
+    coordinates: { lat: -23.5385, lng: -46.6521 },
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1000&q=80",
+    ],
+    rating: 4.8,
+    reviewsCount: 3100,
+    openToday: true,
+    openHours: "Hoje das 18:00 às 05:00",
+    isAfterHours: true,
+    closesAt: "05:00",
+    priceCategory: "medium",
+    entryPrice: "R$ 30 a R$ 45 (Consumação ou Entrada)",
+    priceDescription: "Vários ambientes, mezanino com mesas de bilhar, karaokê em todos os andares e petiscos",
+    hasVipList: true,
+    allowsReservation: true,
+    whatsapp: "5511977334455",
+    instagram: "sigalavacabar",
+    highlight: "Karaokê contagiante com público animado, sinuca no piso superior e música ao vivo",
+    tags: ["Karaokê Clássico", "Mesa de Sinuca", "Música ao Vivo", "Chopp Gelado"],
+    lineup: [
+      "18:00 - Happy hour com microfone liberado",
+      "22:00 - Banda ao Vivo acompanhando o público",
+      "01:30 - DJ Retrô & Pop até as 05h",
+    ],
+    menuHighlights: [
+      "Porção Mista de Pastéis Paulistanos",
+      "Frango a Passarinho com alho torrado crocante",
+      "Torre de Chopp Brahma 3L",
+      "Caipirinha Tradicional de Cachaça da Roça",
+    ],
+    amenities: [
+      "sinuca",
+      "karaoke",
+      "musica_ao_vivo",
+      "pista_danca",
+      "drinks",
+      "chopp",
+      "petiscos",
+      "after_madrugada",
+      "vip_free",
+    ],
+  },
   {
     id: "balada-vilajk",
     category: "baladas",
@@ -260,6 +464,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Show exclusivo ao vivo com dupla sertaneja e DJ residente de Funk",
     tags: ["Mulher VIP", "Camarote Premium", "Valet", "Ar Condicionado"],
     lineup: ["23:00 - Dj Residente (Warmup)", "01:00 - Show Sertanejo Ao Vivo", "03:30 - DJ Funk Open Format"],
+    amenities: ["musica_ao_vivo", "pista_danca", "drinks", "after_madrugada", "vip_free"],
   },
   {
     id: "balada-tatubola",
@@ -293,6 +498,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Roda de samba ao vivo no centro do salão com energia contagiante",
     tags: ["Roda de Samba", "Entrada Franca cedo", "Área Aberta", "Chopp Gelado"],
     lineup: ["19:00 - Happy Hour acústico", "21:00 - Grupo de Pagode 360°", "00:30 - DJ de Brasilidades"],
+    amenities: ["musica_ao_vivo", "drinks", "chopp", "petiscos", "vip_free"],
   },
   {
     id: "balada-seujustino",
@@ -322,6 +528,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Samba raiz e pagode anos 90 e 2000 que todo mundo canta junto",
     tags: ["Quintal Arejado", "Lista VIP com desconto", "Clima de Paquera"],
     lineup: ["20:00 - Abertura com Samba de Raiz", "22:30 - Grupo Convidado", "01:30 - DJ Open Format"],
+    amenities: ["musica_ao_vivo", "rooftop", "drinks", "chopp", "petiscos", "vip_free"],
   },
   {
     id: "balada-villacountry",
@@ -353,6 +560,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Ambiente inspirado no velho oeste com os maiores artistas do Brasil",
     tags: ["Mega Estrutura", "Vários Ambientes", "Estacionamento Próprio"],
     lineup: ["22:00 - Trio Modão", "00:30 - Show Principal", "03:00 - Baladinha Sertaneja"],
+    amenities: ["musica_ao_vivo", "pista_danca", "drinks", "chopp", "petiscos", "after_madrugada", "vip_free"],
   },
   {
     id: "balada-tokyo",
@@ -383,6 +591,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Vista incrível de São Paulo ao som de funk e sucessos dos anos 2000",
     tags: ["Rooftop", "Karaokê Box", "Vista Panorâmica", "Público Jovem"],
     lineup: ["20:00 - Karaokê Coletivo", "23:00 - Pista Pop & Nostalgia", "01:30 - Pancadão Funk Chic"],
+    amenities: ["karaoke", "pista_danca", "rooftop", "drinks", "petiscos", "after_madrugada", "vip_free"],
   },
   {
     id: "balada-dedge",
@@ -414,6 +623,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Pista imersiva premiada mundialmente pela revista DJ Mag",
     tags: ["Top 100 Mundiais", "Pista LED", "Open After", "Som de Alta Fidelidade"],
     lineup: ["23:00 - Deep & Melodic", "02:00 - DJ Convidado Internacional", "05:00 - After Sessions no Terraço"],
+    amenities: ["pista_danca", "drinks", "rooftop", "after_madrugada", "vip_free"],
   },
   {
     id: "balada-morrison",
@@ -442,6 +652,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Dois palcos com bandas covers tributo a Queen, Guns N' Roses e Pearl Jam",
     tags: ["Bandas Ao Vivo", "Chopp Artesanal", "Mesas de Sinuca", "Área Fumantes"],
     lineup: ["21:30 - Banda Acústica no Lounge", "23:30 - Especial Queen & Classic Rock", "02:00 - Tributo Grunge & 90s"],
+    amenities: ["sinuca", "musica_ao_vivo", "pista_danca", "drinks", "chopp", "petiscos", "after_madrugada", "vip_free"],
   },
   {
     id: "balada-cantodaema",
@@ -470,6 +681,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Aula cortesia de forró para iniciantes às 21h antes dos shows começarem",
     tags: ["Aula de Dança Inclusa", "Pista de Madeira", "Petiscos Típicos", "Público Amigável"],
     lineup: ["21:00 - Aula Aberta de Forró", "22:00 - Trio Nordestino Ao Vivo", "00:45 - Grupo Convidado de Xote"],
+    amenities: ["musica_ao_vivo", "pista_danca", "drinks", "chopp", "petiscos", "vip_free"],
   },
 
   // --- RESTAURANTES ---
@@ -642,6 +854,7 @@ export const VENUES_DATA: Venue[] = [
       "Mesa de Antepastos com alcachofras, azeitonas e frios",
       "Filé à Parmegiana clássico gigante",
     ],
+    amenities: ["musica_ao_vivo", "drinks", "petiscos"],
   },
   {
     id: "rest-bullguer",
@@ -674,6 +887,7 @@ export const VENUES_DATA: Venue[] = [
       "Crinkle Fries com páprica picante",
       "Milkshake de Nutella com calda de avelã",
     ],
+    amenities: ["chopp", "petiscos"],
   },
   {
     id: "rest-bellapaulista",
@@ -708,6 +922,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Ponto de encontro oficial da madrugada com o famoso lanche Paulista e pão na chapa",
     tags: ["Aberto 24h", "Pós-Balada", "Lanches da Madrugada", "Valet 24h"],
     menuHighlights: ["Baguete com Mignon e Catupiry", "Beirute Tradicional", "Croissant Recheado", "Café Gourmet"],
+    amenities: ["petiscos", "chopp", "after_madrugada"],
   },
   {
     id: "rest-estadao",
@@ -741,6 +956,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Lendário Sanduíche de Pernil com abacaxi e queijo prato derretido servido 24 horas",
     tags: ["Aberto 24h", "Patrimônio de SP", "Pós-Balada", "Balcão Rápido"],
     menuHighlights: ["Sanduíche de Pernil Completo", "Pernil com Queijo Prato", "Suco Natural", "Cerveja de Garrafa"],
+    amenities: ["petiscos", "chopp", "after_madrugada"],
   },
   {
     id: "rest-galinheiro",
@@ -774,6 +990,7 @@ export const VENUES_DATA: Venue[] = [
     highlight: "Aberto até as 6h da manhã recebendo o público saindo das baladas da Vila Madalena e Pinheiros",
     tags: ["Até 6h da Manhã", "Vila Madalena", "After Balada", "Chopp e Porções"],
     menuHighlights: ["Galeto Desossado na Brasa", "Polenta Frita com Parmesão", "Picanha Aperitivo", "Caipirinhas"],
+    amenities: ["chopp", "petiscos", "rooftop", "after_madrugada"],
   },
 
   // --- MOTÉIS & SUÍTES ---

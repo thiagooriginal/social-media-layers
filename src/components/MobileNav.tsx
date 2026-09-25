@@ -2,7 +2,7 @@ import React from "react";
 import { Home, Sparkles, UtensilsCrossed, Moon, Heart } from "lucide-react";
 import { UserProfile } from "../services/authService";
 
-export type AppScreen = "home" | "baladas" | "restaurantes" | "moteis" | "after" | "favorites";
+export type AppScreen = "home" | "custom-role" | "baladas" | "restaurantes" | "moteis" | "after" | "favorites";
 
 interface MobileNavProps {
   currentScreen: AppScreen;

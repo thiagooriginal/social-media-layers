@@ -15,8 +15,8 @@ interface HeaderProps {
   onOpenAuth: () => void;
   onOpenProfile: () => void;
   onOpenAnalytics?: () => void;
-  currentLogo?: string;
   onOpenLogoPicker?: () => void;
+  onTriggerRadar?: () => void;
 }
 
 export function Header({
@@ -33,6 +33,7 @@ export function Header({
   onOpenAnalytics,
   currentLogo = "/logo-soundwave.jpg",
   onOpenLogoPicker,
+  onTriggerRadar,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
@@ -76,9 +77,21 @@ export function Header({
                 <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
                 <span className="ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
               </h1>
-              <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-purple-300">
-                SP LIVE
-              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTriggerRadar?.();
+                }}
+                className="flex items-center gap-1 rounded-full border border-cyan-500/40 bg-cyan-950/40 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+                title="Clique para ativar a varredura do Radar do Rolê!"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
+                </span>
+                <span>RADAR SP</span>
+              </button>
             </div>
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
               O radar da noite em SP • Baladas, Bares & After

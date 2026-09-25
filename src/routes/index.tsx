@@ -19,6 +19,7 @@ import { AuthModal } from "../components/AuthModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
 import { LogoPickerModal } from "../components/LogoPickerModal";
+import { RadarIntroSplash } from "../components/RadarIntroSplash";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
@@ -28,6 +29,9 @@ export const Route = createFileRoute("/")({
 });
 
 function IndexPage() {
+  // Radar Intro Splash Animation (Executa na abertura e pode ser reaberto pelo botão no topo)
+  const [showRadarIntro, setShowRadarIntro] = useState(true);
+
   // Dynamic Venues State (Supabase + Local fallback)
   const [venues, setVenues] = useState<Venue[]>(VENUES_DATA);
 
@@ -321,6 +325,11 @@ function IndexPage() {
 
   return (
     <div className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-purple-600 selection:text-white w-full max-w-full overflow-x-hidden">
+      {/* Radar Intro Splash Animation (Abertura estilo scanner de satélite) */}
+      {showRadarIntro && (
+        <RadarIntroSplash onFinish={() => setShowRadarIntro(false)} />
+      )}
+
       {/* Header */}
       <Header
         currentNeighborhood={userLocation}
@@ -339,29 +348,30 @@ function IndexPage() {
         }}
         currentLogo={currentLogo}
         onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
+        onTriggerRadar={() => setShowRadarIntro(true)}
       />
 
       {/* Hero Banner Section */}
       <section className="relative overflow-hidden border-b border-white/5 bg-gradient-to-b from-purple-950/20 via-[#0a0f1d] to-[#070a11] py-8 sm:py-12">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-600/10 via-pink-600/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-600/10 via-fuchsia-600/5 to-transparent pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-bold text-purple-300 backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-              <span>São Paulo Hoje • Onde a noite acontece</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/30 px-3.5 py-1 text-xs font-bold text-cyan-300 backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Radar do Rolê SP • Onde a noite acontece</span>
             </div>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
             Sua noite ideal em{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent">
               São Paulo
             </span>
           </h1>
 
           <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
-            Descubra as melhores baladas, shows ao vivo, restaurantes, espaço kids e motéis com suítes exclusivas por perto. Veja a estimativa de Uber e planeje sua noite!
+            O radar oficial da vida noturna: baladas com lista VIP, restaurantes, motéis e modo after (5h+ / 24h) com cálculo de Uber em tempo real!
           </p>
         </div>
       </section>

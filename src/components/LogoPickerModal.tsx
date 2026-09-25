@@ -18,6 +18,34 @@ export function LogoPickerModal({
 
   const options = [
     {
+      id: "sonar-cyan-pink",
+      path: "/logo-sonar-cyan-pink.jpg",
+      title: "🟣 Sonar Noturno Neon (Ciano & Magenta)",
+      desc: "Radar sonar com pino de GPS central, calibração em graus (0° a 360°), raio de 3KM e baladas ativas mapeadas em neon.",
+      badge: "Sonar Noturno SP",
+    },
+    {
+      id: "sonar-classic",
+      path: "/logo-sonar-classic.jpg",
+      title: "🟢 Sonar Tático Clássico (Verde Esmeralda)",
+      desc: "Varredura 360° autêntica de sonar militar com anéis métricos de distância (250m a 2km), pontos cardeais e ecos de detecção.",
+      badge: "Sonar Clássico",
+    },
+    {
+      id: "sonar-flat",
+      path: "/logo-sonar-flat.jpg",
+      title: "🔷 Sonar Minimalista 2D (App Icon Clean)",
+      desc: "Design plano moderno e arrojado: anéis de sonar em ciano, feixe de varredura cônica em magenta e hotspots limpos.",
+      badge: "Sonar Minimalista",
+    },
+    {
+      id: "sonar-pulse",
+      path: "/logo-sonar-pulse.jpg",
+      title: "🌊 Sonar Acústico 3D & Lente de Vidro",
+      desc: "Transdutor e cúpula de sonar com anéis de onda acústica pulsante, feixe de scanner e hotspots multicoloridos da noite.",
+      badge: "Sonar 3D",
+    },
+    {
       id: "concept-vortex",
       path: "/logo-concept-vortex.jpg",
       title: "🌀 Conceito A: Vórtex & Radar Scanner",

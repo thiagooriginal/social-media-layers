@@ -34,7 +34,7 @@ export function Header({
   onOpenAuth,
   onOpenProfile,
   onOpenAnalytics,
-  currentLogo = "/logo-radar-neon.svg",
+  currentLogo = "/logo-official.jpg",
   onOpenLogoPicker,
   onTriggerRadar,
   onGoHome,

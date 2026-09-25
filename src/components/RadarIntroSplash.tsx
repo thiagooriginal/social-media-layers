@@ -167,8 +167,8 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
       {/* Top Bar: Controls */}
       <div className="relative z-10 w-full max-w-4xl flex items-center justify-between px-6 pt-6 sm:pt-8">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-            <Zap className="h-4 w-4 animate-pulse" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/50 bg-[#060810] shadow-[0_0_18px_rgba(6,182,212,0.6)] overflow-hidden">
+            <img src="/logo-official.jpg" alt="Radar do Rolê" className="h-full w-full object-cover" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">

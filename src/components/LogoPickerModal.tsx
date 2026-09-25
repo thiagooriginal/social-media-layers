@@ -18,11 +18,11 @@ export function LogoPickerModal({
 
   const options = [
     {
-      id: "pulse-hologram",
-      path: "/logo-pulse-hologram.jpg",
-      title: "🌌 Sonar Pulse: Skyline SP & HUD Noturno",
-      desc: "Transdutor subwoofer com ondas de choque acústicas, feixe 360° revelando os prédios e baladas de SP, aro de titânio e marca 'RADAR DO ROLÊ'.",
-      badge: "NOVO • Skyline SP",
+      id: "pulse-official",
+      path: "/logo-official.jpg",
+      title: "🌌 Radar do Rolê: Skyline SP & HUD Noturno (OFICIAL)",
+      desc: "Identidade visual oficial: transdutor subwoofer com ondas de choque acústicas, feixe 360° revelando os prédios e baladas de SP, aro de titânio e marca 'RADAR DO ROLÊ'.",
+      badge: "⭐ MARCA OFICIAL",
     },
     {
       id: "pulse-equalizer",

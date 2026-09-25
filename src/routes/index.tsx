@@ -61,9 +61,9 @@ function IndexPage() {
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
   const [currentLogo, setCurrentLogo] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("preferred_logo") || "/logo-pulse-hologram.jpg";
+      return localStorage.getItem("preferred_logo") || "/logo-official.jpg";
     }
-    return "/logo-pulse-hologram.jpg";
+    return "/logo-official.jpg";
   });
 
   // User Auth State

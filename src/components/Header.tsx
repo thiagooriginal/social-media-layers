@@ -17,6 +17,7 @@ interface HeaderProps {
   onOpenAnalytics?: () => void;
   onOpenLogoPicker?: () => void;
   onTriggerRadar?: () => void;
+  onGoHome?: () => void;
 }
 
 export function Header({
@@ -34,6 +35,7 @@ export function Header({
   currentLogo = "/logo-radar-neon.svg",
   onOpenLogoPicker,
   onTriggerRadar,
+  onGoHome,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
@@ -55,9 +57,15 @@ export function Header({
       <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3 w-full">
         {/* Brand / Logo */}
         <div
-          onClick={onTriggerRadar}
+          onClick={() => {
+            if (onGoHome) {
+              onGoHome();
+            } else {
+              onTriggerRadar?.();
+            }
+          }}
           className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer group"
-          title="Clique para ativar a varredura do Radar do Rolê!"
+          title="Clique para ir à Página Inicial ou tocar no RADAR SP!"
         >
           <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/50 bg-[#060810] shadow-[0_0_22px_-2px_rgba(168,85,247,0.7)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.7)] group-hover:scale-105 transition-all">
             <img

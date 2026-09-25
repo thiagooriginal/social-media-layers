@@ -12,7 +12,7 @@ import { CategoryTabs, MainCategory } from "../components/CategoryTabs";
 import { FilterBar } from "../components/FilterBar";
 import { VenueCard } from "../components/VenueCard";
 import { VenueModal } from "../components/VenueModal";
-import { MobileNav } from "../components/MobileNav";
+import { MobileNav, AppScreen } from "../components/MobileNav";
 import { VipListModal } from "../components/VipListModal";
 import { RegisterVenueModal } from "../components/RegisterVenueModal";
 import { AuthModal } from "../components/AuthModal";
@@ -22,7 +22,23 @@ import { LogoPickerModal } from "../components/LogoPickerModal";
 import { RadarIntroSplash } from "../components/RadarIntroSplash";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
-import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
+import {
+  Sparkles,
+  Compass,
+  AlertCircle,
+  RotateCcw,
+  Heart,
+  Search,
+  ArrowLeft,
+  Flame,
+  MapPin,
+  Ticket,
+  ChevronRight,
+  Clock,
+  Moon,
+  X,
+  TrendingUp,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
@@ -133,20 +149,54 @@ function IndexPage() {
     setIsVipModalOpen(true);
   };
 
+  // Multi-Screen Navigation State (Home Hub vs Dedicated Category Screens)
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>("home");
+
+  // Screen Switcher Handler
+  const handleNavigate = (screen: AppScreen) => {
+    setCurrentScreen(screen);
+    if (screen === "baladas") {
+      setActiveTab("baladas");
+      setOnlyAfterHours(false);
+    } else if (screen === "restaurantes") {
+      setActiveTab("restaurantes");
+      setOnlyAfterHours(false);
+    } else if (screen === "moteis") {
+      setActiveTab("moteis");
+      setOnlyAfterHours(false);
+    } else if (screen === "after") {
+      setOnlyAfterHours(true);
+    } else if (screen === "favorites") {
+      setActiveTab("favorites");
+      setOnlyAfterHours(false);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // Reset sub-filters on tab change
   const handleTabChange = (tab: MainCategory) => {
     setActiveTab(tab);
     if (tab === "kids") {
       setSelectedCuisine("kids");
-    } else {
+      setCurrentScreen("restaurantes");
+    } else if (tab === "baladas") {
+      setCurrentScreen("baladas");
       setSelectedCuisine("all");
+    } else if (tab === "restaurantes") {
+      setCurrentScreen("restaurantes");
+      setSelectedCuisine("all");
+    } else if (tab === "moteis") {
+      setCurrentScreen("moteis");
+      setSelectedCuisine("all");
+    } else if (tab === "favorites") {
+      setCurrentScreen("favorites");
     }
     setSelectedMotelStyle("all");
     setOnlyWithHydro(false);
     setOnlyWithPool(false);
   };
 
-  // Counts for tabs
+  // Counts for tabs & menus
   const baladasCount = useMemo(
     () => venues.filter((v) => v.category === "baladas").length,
     [venues]
@@ -163,20 +213,127 @@ function IndexPage() {
     () => venues.filter((v) => v.hasKidsSpace).length,
     [venues]
   );
+  const afterVenuesCount = useMemo(() => {
+    return venues.filter(
+      (v) =>
+        v.isAfterHours ||
+        v.openHours?.toLowerCase().includes("24 horas") ||
+        v.openHours?.includes("05:") ||
+        v.openHours?.includes("06:") ||
+        v.openHours?.includes("07:") ||
+        v.openHours?.includes("08:")
+    ).length;
+  }, [venues]);
+
+  // Home Screen Carousels Data
+  // 1. Trending venues (Highest rating & review count)
+  const trendingVenues = useMemo(() => {
+    return [...venues]
+      .sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount)
+      .slice(0, 8);
+  }, [venues]);
+
+  // 2. Nearby venues (Closest to userLocation)
+  const nearbyVenues = useMemo(() => {
+    return [...venues]
+      .sort((a, b) => {
+        const distA = calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          a.coordinates.lat,
+          a.coordinates.lng
+        );
+        const distB = calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          b.coordinates.lat,
+          b.coordinates.lng
+        );
+        return distA - distB;
+      })
+      .slice(0, 8);
+  }, [venues, userLocation]);
+
+  // 3. Venues with VIP List or Free Entry
+  const vipVenues = useMemo(() => {
+    return venues.filter((v) => v.hasVipList || v.isWomenFree).slice(0, 8);
+  }, [venues]);
+
+  // 4. After-hours venues (5h+ or 24h)
+  const afterVenuesList = useMemo(() => {
+    return venues
+      .filter(
+        (v) =>
+          v.isAfterHours ||
+          v.openHours?.toLowerCase().includes("24 horas") ||
+          v.openHours?.includes("05:") ||
+          v.openHours?.includes("06:") ||
+          v.openHours?.includes("07:") ||
+          v.openHours?.includes("08:")
+      )
+      .slice(0, 8);
+  }, [venues]);
+
+  // Instant Search Results on Home Screen
+  const homeSearchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return venues
+      .filter((venue) => {
+        const matchName = venue.name.toLowerCase().includes(q);
+        const matchNeighborhood = venue.neighborhood.toLowerCase().includes(q);
+        const matchTagline = venue.tagline.toLowerCase().includes(q);
+        const matchSubType = venue.subType.toLowerCase().includes(q);
+        const matchTags = venue.tags.some((t) => t.toLowerCase().includes(q));
+        const matchCategory = venue.category.toLowerCase().includes(q);
+        return (
+          matchName ||
+          matchNeighborhood ||
+          matchTagline ||
+          matchSubType ||
+          matchTags ||
+          matchCategory
+        );
+      })
+      .sort((a, b) => {
+        const distA = calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          a.coordinates.lat,
+          a.coordinates.lng
+        );
+        const distB = calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          b.coordinates.lat,
+          b.coordinates.lng
+        );
+        return distA - distB;
+      });
+  }, [venues, searchQuery, userLocation]);
 
   // Filtered & Distance-Sorted venues
   const filteredVenues = useMemo(() => {
     return venues.filter((venue) => {
-      // 1. Tab category filter
-      if (activeTab === "favorites") {
+      // 1. Tab / Screen category filter
+      if (currentScreen === "after" || onlyAfterHours) {
+        const isLate =
+          venue.isAfterHours ||
+          venue.openHours?.toLowerCase().includes("24 horas") ||
+          venue.openHours?.includes("05:") ||
+          venue.openHours?.includes("06:") ||
+          venue.openHours?.includes("07:") ||
+          venue.openHours?.includes("08:");
+        if (!isLate) return false;
+      } else if (currentScreen === "favorites" || activeTab === "favorites") {
         if (!favorites.includes(venue.id)) return false;
       } else if (activeTab === "kids") {
         if (!venue.hasKidsSpace) return false;
-      } else if (activeTab === "baladas") {
+      } else if (currentScreen === "baladas" || activeTab === "baladas") {
         if (venue.category !== "baladas") return false;
-      } else if (activeTab === "restaurantes") {
+      } else if (currentScreen === "restaurantes" || activeTab === "restaurantes") {
         if (venue.category !== "restaurantes") return false;
-      } else if (activeTab === "moteis") {
+      } else if (currentScreen === "moteis" || activeTab === "moteis") {
         if (venue.category !== "moteis") return false;
       }
 
@@ -293,6 +450,7 @@ function IndexPage() {
     });
   }, [
     venues,
+    currentScreen,
     activeTab,
     favorites,
     selectedGenre,
@@ -335,8 +493,8 @@ function IndexPage() {
         currentNeighborhood={userLocation}
         onSelectNeighborhood={setUserLocation}
         favoritesCount={favorites.length}
-        onOpenFavorites={() => setActiveTab("favorites")}
-        isFavoritesActive={activeTab === "favorites"}
+        onOpenFavorites={() => handleNavigate("favorites")}
+        isFavoritesActive={currentScreen === "favorites"}
         totalVenuesCount={venues.length}
         onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
         user={user}
@@ -349,206 +507,663 @@ function IndexPage() {
         currentLogo={currentLogo}
         onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
         onTriggerRadar={() => setShowRadarIntro(true)}
+        onGoHome={() => handleNavigate("home")}
       />
 
-      {/* Hero Banner Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-gradient-to-b from-purple-950/20 via-[#0a0f1d] to-[#070a11] py-8 sm:py-12">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-600/10 via-fuchsia-600/5 to-transparent pointer-events-none" />
+      {/* ========================================================================= */}
+      {/* TELA 1: HOME HUB (TELA INICIAL COM MENUS VISUAIS E CARROSSÉIS DESLIZÁVEIS) */}
+      {/* ========================================================================= */}
+      {currentScreen === "home" ? (
+        <div className="w-full">
+          {/* Hero Banner Section */}
+          <section className="relative overflow-hidden border-b border-white/5 bg-gradient-to-b from-purple-950/20 via-[#0a0f1d] to-[#070a11] py-8 sm:py-12">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-600/10 via-fuchsia-600/5 to-transparent pointer-events-none" />
 
-        <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-            <button
-              onClick={() => setShowRadarIntro(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-950/40 px-4 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
-              title="Clique para ver o Radar Noturno escaneando São Paulo!"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
-              </span>
-              <span>Radar do Rolê SP • Ativar Scanner Noturno</span>
-            </button>
-          </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Sua noite ideal em{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent">
-              São Paulo
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
-            O radar oficial da vida noturna: baladas com lista VIP, restaurantes, motéis e modo after (5h+ / 24h) com cálculo de Uber em tempo real!
-          </p>
-        </div>
-      </section>
-
-      {/* Main Categories (Tabs) */}
-      <CategoryTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        baladasCount={baladasCount}
-        restaurantesCount={restaurantesCount}
-        moteisCount={moteisCount}
-        kidsCount={kidsCount}
-        favoritesCount={favorites.length}
-      />
-
-      {/* Search & Filters */}
-      <FilterBar
-        category={activeTab}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedGenre={selectedGenre}
-        onSelectGenre={setSelectedGenre}
-        selectedCuisine={selectedCuisine}
-        onSelectCuisine={setSelectedCuisine}
-        selectedMotelStyle={selectedMotelStyle}
-        onSelectMotelStyle={setSelectedMotelStyle}
-        selectedNeighborhood={selectedNeighborhood}
-        onSelectNeighborhood={setSelectedNeighborhood}
-        onlyOpenToday={onlyOpenToday}
-        onToggleOpenToday={() => setOnlyOpenToday(!onlyOpenToday)}
-        onlyVipOrFree={onlyVipOrFree}
-        onToggleVipOrFree={() => setOnlyVipOrFree(!onlyVipOrFree)}
-        onlyWithParking={onlyWithParking}
-        onToggleWithParking={() => setOnlyWithParking(!onlyWithParking)}
-        onlyWithHydro={onlyWithHydro}
-        onToggleWithHydro={() => setOnlyWithHydro(!onlyWithHydro)}
-        onlyWithPool={onlyWithPool}
-        onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
-        onlyAfterHours={onlyAfterHours}
-        onToggleAfterHours={() => setOnlyAfterHours(!onlyAfterHours)}
-      />
-
-      {/* Modo After Active Banner */}
-      {onlyAfterHours && (
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-[#181104]/80 to-amber-950/40 p-4 backdrop-blur-md shadow-[0_0_30px_rgba(251,191,36,0.25)]">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-500/40 shadow-inner">
-                🌙
-              </div>
-              <div>
-                <h4 className="text-sm font-black text-amber-300 flex items-center gap-2">
-                  <span>Modo After Ativo (Até as 5h+ da manhã / 24 Horas)</span>
-                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-200 border border-amber-400/30">
-                    {filteredVenues.length} {filteredVenues.length === 1 ? "local" : "locais"}
+            <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
+              {/* Trigger Radar Pill */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+                <button
+                  onClick={() => setShowRadarIntro(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-950/40 px-4 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
+                  title="Clique para ver o Radar Noturno escaneando São Paulo!"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
                   </span>
-                </h4>
-                <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
-                  Mostrando apenas baladas que vão até o amanhecer (5h a 8h), lanches da madrugada 24h e motéis para esticar a noite.
-                </p>
+                  <span>Radar do Rolê SP • Ativar Scanner Noturno</span>
+                </button>
+              </div>
+
+              <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Sua noite ideal em{" "}
+                <span className="bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent">
+                  São Paulo
+                </span>
+              </h1>
+
+              <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
+                O radar oficial da vida noturna: baladas com lista VIP, restaurantes, motéis e modo after (5h+ / 24h) com cálculo de Uber em tempo real!
+              </p>
+
+              {/* Direct Search Input on Home */}
+              <div className="relative mx-auto mt-6 max-w-2xl">
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <Search className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar balada, bar, motel, estilo musical, bairro..."
+                    className="w-full rounded-2xl border border-white/15 bg-[#0e1422]/90 py-3.5 pl-12 pr-10 text-sm text-slate-100 placeholder-slate-400 backdrop-blur-md transition-all focus:border-cyan-400 focus:bg-[#141b2d] focus:outline-none focus:ring-2 focus:ring-cyan-500/20 shadow-lg"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-            <button
-              onClick={() => setOnlyAfterHours(false)}
-              className="self-end sm:self-center shrink-0 rounded-xl border border-amber-500/30 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-amber-200 hover:bg-white/20 transition-all active:scale-95"
-            >
-              ✕ Desativar Modo After
-            </button>
-          </div>
-        </div>
-      )}
+          </section>
 
-      {/* Smart Late Night Invitation Toast */}
-      {isLateNightTime && !onlyAfterHours && (
-        <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 rounded-2xl border border-purple-500/30 bg-purple-950/40 px-4 py-2.5 backdrop-blur-md">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-base animate-pulse">🌙</span>
-              <span className="text-slate-200 font-medium">
-                Passou das 2h da madrugada em SP! Procurando onde esticar a noite agora?
-              </span>
-            </div>
-            <button
-              onClick={() => setOnlyAfterHours(true)}
-              className="rounded-xl border border-amber-400/50 bg-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-300 hover:bg-amber-500/30 transition-all shrink-0 active:scale-95"
-            >
-              Ativar Modo After (5h+)
-            </button>
-          </div>
-        </div>
-      )}
+          {/* If Search is Active on Home Hub -> Show Live Search Results */}
+          {searchQuery.trim().length > 0 ? (
+            <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white">
+                    Resultados para "{searchQuery}"
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {homeSearchResults.length} {homeSearchResults.length === 1 ? "local encontrado" : "locais encontrados"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-white/10"
+                >
+                  ✕ Limpar busca
+                </button>
+              </div>
 
-      {/* Venues Grid Section */}
-      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-        {/* Results Counter and Location Notice */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-          <div>
-            Mostrando{" "}
-            <span className="font-bold text-white">{filteredVenues.length}</span>{" "}
-            {filteredVenues.length === 1 ? "local encontrado" : "locais encontrados"}{" "}
-            ordenados pelo mais próximo de{" "}
-            <span className="font-bold text-purple-300">{userLocation.name}</span>
-          </div>
+              {homeSearchResults.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {homeSearchResults.map((venue) => (
+                    <VenueCard
+                      key={venue.id}
+                      venue={venue}
+                      userLocation={userLocation}
+                      isFavorite={favorites.includes(venue.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                      onOpenDetails={setActiveVenue}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c101c] px-4 py-16 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-3xl">
+                    🔍
+                  </div>
+                  <h4 className="mt-4 text-lg font-bold text-white">Nenhum resultado encontrado</h4>
+                  <p className="mt-1 text-xs text-slate-400">Tente buscar por outro termo, gênero musical ou bairro.</p>
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="mt-4 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-500"
+                  >
+                    Limpar busca
+                  </button>
+                </div>
+              )}
+            </section>
+          ) : (
+            <>
+              {/* 4 Grand Visual Navigation Cards (Menus Principais do App) */}
+              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    <Compass className="h-5 w-5 text-cyan-400" />
+                    <span>Escolha onde você quer ir hoje</span>
+                  </h2>
+                  <span className="text-xs text-slate-400">Toque no card para abrir</span>
+                </div>
 
-          {(searchQuery ||
-            selectedGenre !== "all" ||
-            selectedCuisine !== "all" ||
-            selectedNeighborhood !== "all" ||
-            onlyOpenToday ||
-            onlyVipOrFree ||
-            onlyWithParking ||
-            onlyAfterHours) && (
-            <button
-              onClick={handleResetFilters}
-              className="flex items-center gap-1 font-bold text-purple-400 hover:text-purple-300"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>Limpar filtros</span>
-            </button>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                  {/* Card 1: Baladas */}
+                  <div
+                    onClick={() => handleNavigate("baladas")}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-950/70 via-purple-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(217,70,239,0.4)] cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl border border-fuchsia-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(217,70,239,0.3)]">
+                        🪩
+                      </div>
+                      <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-1 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30">
+                        {baladasCount} locais
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-fuchsia-300 transition-colors">
+                        Baladas & Festas
+                      </h3>
+                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
+                        Pistas, DJs, Funk, Eletrônica, Sertanejo & Lista VIP
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-fuchsia-400 group-hover:translate-x-1 transition-transform">
+                      <span>Explorar baladas</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+
+                  {/* Card 2: Bares & Gastronomia */}
+                  <div
+                    onClick={() => handleNavigate("restaurantes")}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/70 via-orange-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-[0_10px_30px_-5px_rgba(245,158,11,0.4)] cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                        🍸
+                      </div>
+                      <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-[10px] font-extrabold text-amber-300 border border-amber-500/30">
+                        {restaurantesCount} opções
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors">
+                        Bares & Drinks
+                      </h3>
+                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
+                        Rooftops, Drinks autorais, Botecos, Porções & Família
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform">
+                      <span>Explorar bares</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+
+                  {/* Card 3: Motéis & Suítes */}
+                  <div
+                    onClick={() => handleNavigate("moteis")}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-500/40 bg-gradient-to-br from-rose-950/70 via-pink-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-rose-400 hover:shadow-[0_10px_30px_-5px_rgba(244,63,94,0.4)] cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-2xl border border-rose-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(244,63,94,0.3)]">
+                        🏩
+                      </div>
+                      <span className="rounded-full bg-rose-500/20 px-2.5 py-1 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
+                        {moteisCount} suítes
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-rose-300 transition-colors">
+                        Motéis & Suítes
+                      </h3>
+                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
+                        Hidro, Piscinas Privativas, Pernoite & Discrição Total
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-rose-400 group-hover:translate-x-1 transition-transform">
+                      <span>Ver motéis</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+
+                  {/* Card 4: Modo After */}
+                  <div
+                    onClick={() => handleNavigate("after")}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-br from-cyan-950/70 via-indigo-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(6,182,212,0.4)] cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl border border-cyan-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                        🌙
+                      </div>
+                      <span className="rounded-full bg-cyan-500/20 px-2.5 py-1 text-[10px] font-extrabold text-cyan-300 border border-cyan-500/30">
+                        {afterVenuesCount} abertos
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition-colors">
+                        Modo After (5h+)
+                      </h3>
+                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
+                        Baladas que viram até 8h & Lanches/Padarias 24 Horas
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-cyan-400 group-hover:translate-x-1 transition-transform">
+                      <span>Ativar Modo After</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* CARROSSEL 1: 🔥 Em Alta Hoje em São Paulo */}
+              <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      <Flame className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-white">
+                        Em Alta Hoje em São Paulo
+                      </h3>
+                      <p className="text-[11px] text-slate-400">Os picos mais disputados e bem avaliados da noite</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleNavigate("baladas")}
+                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
+                  >
+                    <span>Ver todas</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
+                  {trendingVenues.map((v) => (
+                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
+                      <VenueCard
+                        venue={v}
+                        userLocation={userLocation}
+                        isFavorite={favorites.includes(v.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        onOpenDetails={setActiveVenue}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* CARROSSEL 2: 📍 Mais Próximos de Você */}
+              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                      <MapPin className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-white">
+                        Mais Próximos de {userLocation.name}
+                      </h3>
+                      <p className="text-[11px] text-slate-400">Opções com Uber rápido a partir do seu local de partida</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleNavigate("baladas")}
+                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
+                  >
+                    <span>Ver feed</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
+                  {nearbyVenues.map((v) => (
+                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
+                      <VenueCard
+                        venue={v}
+                        userLocation={userLocation}
+                        isFavorite={favorites.includes(v.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        onOpenDetails={setActiveVenue}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* CARROSSEL 3: 🎟️ Com Lista VIP & Entrada Free */}
+              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">
+                      <Ticket className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-white">
+                        Listas VIP & Entrada Free
+                      </h3>
+                      <p className="text-[11px] text-slate-400">Garanta seu nome na lista para economizar na balada</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setOnlyVipOrFree(true);
+                      handleNavigate("baladas");
+                    }}
+                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
+                  >
+                    <span>Ver VIPs</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
+                  {vipVenues.map((v) => (
+                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
+                      <VenueCard
+                        venue={v}
+                        userLocation={userLocation}
+                        isFavorite={favorites.includes(v.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        onOpenDetails={setActiveVenue}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* CARROSSEL 4: 🌙 Madrugada & Modo After (5h+ / 24 Horas) */}
+              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      <Moon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-white">
+                        Madrugada & After (5h+ / 24h)
+                      </h3>
+                      <p className="text-[11px] text-slate-400">Picos abertos para curtir até o sol raiar</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleNavigate("after")}
+                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
+                  >
+                    <span>Abrir After</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
+                  {afterVenuesList.map((v) => (
+                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
+                      <VenueCard
+                        venue={v}
+                        userLocation={userLocation}
+                        isFavorite={favorites.includes(v.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        onOpenDetails={setActiveVenue}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
           )}
         </div>
+      ) : (
+        /* ========================================================================= */
+        /* TELAS DEDICADAS (BALADAS, BARES, MOTÉIS, AFTER, FAVORITOS)                 */
+        /* ========================================================================= */
+        <div className="w-full">
+          {/* Top Navigation Bar: Back to Home + Page Title */}
+          <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleNavigate("home")}
+                  className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-200 transition-all hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 active:scale-95 shadow-md"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Voltar ao Início</span>
+                </button>
 
-        {/* Venues Grid */}
-        {filteredVenues.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredVenues.map((venue) => (
-              <VenueCard
-                key={venue.id}
-                venue={venue}
-                userLocation={userLocation}
-                isFavorite={favorites.includes(venue.id)}
-                onToggleFavorite={handleToggleFavorite}
-                onOpenDetails={setActiveVenue}
-              />
-            ))}
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                    {currentScreen === "baladas" && (
+                      <>
+                        <span className="text-2xl">🪩</span>
+                        <span>Baladas & Festas</span>
+                      </>
+                    )}
+                    {currentScreen === "restaurantes" && (
+                      <>
+                        <span className="text-2xl">🍸</span>
+                        <span>Bares & Gastronomia</span>
+                      </>
+                    )}
+                    {currentScreen === "moteis" && (
+                      <>
+                        <span className="text-2xl">🏩</span>
+                        <span>Motéis & Suítes</span>
+                      </>
+                    )}
+                    {currentScreen === "after" && (
+                      <>
+                        <span className="text-2xl">🌙</span>
+                        <span>Modo After (5h+ / 24h)</span>
+                      </>
+                    )}
+                    {currentScreen === "favorites" && (
+                      <>
+                        <span className="text-2xl">❤️</span>
+                        <span>Meus Locais Salvos</span>
+                      </>
+                    )}
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {currentScreen === "baladas" &&
+                      "As pistas mais disputadas, DJs convidados e listas VIP de São Paulo"}
+                    {currentScreen === "restaurantes" &&
+                      "Drinks autorais, rooftops, botecos e alta gastronomia em SP"}
+                    {currentScreen === "moteis" &&
+                      "Privacidade, hidromassagem, piscinas privativas e suítes com pernoite"}
+                    {currentScreen === "after" &&
+                      "Locais abertos para virar a noite até as 8h da manhã ou lanches 24h"}
+                    {currentScreen === "favorites" &&
+                      `${favorites.length} ${favorites.length === 1 ? "local salvo" : "locais salvos"} na sua lista`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Location Reference Badge */}
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full">
+                <MapPin className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Distâncias calculadas de:</span>
+                <span className="font-bold text-slate-200">{userLocation.name}</span>
+              </div>
+            </div>
           </div>
-        ) : (
-          /* Empty State */
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c101c] px-4 py-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-3xl">
-              {activeTab === "favorites" ? "💔" : "🔍"}
+
+          {/* Quick Category Switcher Tabs */}
+          <CategoryTabs
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            baladasCount={baladasCount}
+            restaurantesCount={restaurantesCount}
+            moteisCount={moteisCount}
+            kidsCount={kidsCount}
+            favoritesCount={favorites.length}
+          />
+
+          {/* Category FilterBar */}
+          <FilterBar
+            category={activeTab}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedGenre={selectedGenre}
+            onSelectGenre={setSelectedGenre}
+            selectedCuisine={selectedCuisine}
+            onSelectCuisine={setSelectedCuisine}
+            selectedMotelStyle={selectedMotelStyle}
+            onSelectMotelStyle={setSelectedMotelStyle}
+            selectedNeighborhood={selectedNeighborhood}
+            onSelectNeighborhood={setSelectedNeighborhood}
+            onlyOpenToday={onlyOpenToday}
+            onToggleOpenToday={() => setOnlyOpenToday(!onlyOpenToday)}
+            onlyVipOrFree={onlyVipOrFree}
+            onToggleVipOrFree={() => setOnlyVipOrFree(!onlyVipOrFree)}
+            onlyWithParking={onlyWithParking}
+            onToggleWithParking={() => setOnlyWithParking(!onlyWithParking)}
+            onlyWithHydro={onlyWithHydro}
+            onToggleWithHydro={() => setOnlyWithHydro(!onlyWithHydro)}
+            onlyWithPool={onlyWithPool}
+            onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
+            onlyAfterHours={onlyAfterHours || currentScreen === "after"}
+            onToggleAfterHours={() => setOnlyAfterHours(!onlyAfterHours)}
+          />
+
+          {/* Modo After Active Banner */}
+          {(onlyAfterHours || currentScreen === "after") && (
+            <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-[#181104]/80 to-amber-950/40 p-4 backdrop-blur-md shadow-[0_0_30px_rgba(251,191,36,0.25)]">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-500/40 shadow-inner">
+                    🌙
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-amber-300 flex items-center gap-2">
+                      <span>Modo After Ativo (Até as 5h+ da manhã / 24 Horas)</span>
+                      <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-200 border border-amber-400/30">
+                        {filteredVenues.length} {filteredVenues.length === 1 ? "local" : "locais"}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      Mostrando apenas baladas que vão até o amanhecer (5h a 8h), lanches da madrugada 24h e motéis para esticar a noite.
+                    </p>
+                  </div>
+                </div>
+                {currentScreen === "after" ? (
+                  <button
+                    onClick={() => handleNavigate("home")}
+                    className="self-end sm:self-center shrink-0 rounded-xl border border-amber-500/30 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-amber-200 hover:bg-white/20 transition-all active:scale-95"
+                  >
+                    Voltar ao Início
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setOnlyAfterHours(false)}
+                    className="self-end sm:self-center shrink-0 rounded-xl border border-amber-500/30 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-amber-200 hover:bg-white/20 transition-all active:scale-95"
+                  >
+                    ✕ Desativar Modo After
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Smart Late Night Invitation Toast */}
+          {isLateNightTime && !onlyAfterHours && currentScreen !== "after" && (
+            <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 rounded-2xl border border-purple-500/30 bg-purple-950/40 px-4 py-2.5 backdrop-blur-md">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-base animate-pulse">🌙</span>
+                  <span className="text-slate-200 font-medium">
+                    Passou das 2h da madrugada em SP! Procurando onde esticar a noite agora?
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleNavigate("after")}
+                  className="rounded-xl border border-amber-400/50 bg-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-300 hover:bg-amber-500/30 transition-all shrink-0 active:scale-95"
+                >
+                  Ativar Modo After (5h+)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Dedicated Category Venues Grid Section */}
+          <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+            {/* Results Counter and Location Notice */}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+              <div>
+                Mostrando{" "}
+                <span className="font-bold text-white">{filteredVenues.length}</span>{" "}
+                {filteredVenues.length === 1 ? "local encontrado" : "locais encontrados"}{" "}
+                ordenados pelo mais próximo de{" "}
+                <span className="font-bold text-purple-300">{userLocation.name}</span>
+              </div>
+
+              {(searchQuery ||
+                selectedGenre !== "all" ||
+                selectedCuisine !== "all" ||
+                selectedNeighborhood !== "all" ||
+                onlyOpenToday ||
+                onlyVipOrFree ||
+                onlyWithParking ||
+                onlyAfterHours) && (
+                <button
+                  onClick={handleResetFilters}
+                  className="flex items-center gap-1 font-bold text-purple-400 hover:text-purple-300"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Limpar filtros</span>
+                </button>
+              )}
             </div>
 
-            <h3 className="mt-4 text-lg font-bold text-white">
-              {activeTab === "favorites"
-                ? "Nenhum local salvo ainda"
-                : "Nenhum local encontrado com esses filtros"}
-            </h3>
+            {/* Venues Grid */}
+            {filteredVenues.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredVenues.map((venue) => (
+                  <VenueCard
+                    key={venue.id}
+                    venue={venue}
+                    userLocation={userLocation}
+                    isFavorite={favorites.includes(venue.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                    onOpenDetails={setActiveVenue}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* Empty State */
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c101c] px-4 py-16 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-3xl">
+                  {currentScreen === "favorites" ? "💔" : "🔍"}
+                </div>
 
-            <p className="mt-1 max-w-sm text-xs text-slate-400">
-              {activeTab === "favorites"
-                ? "Clique no ícone de coração nos cards de baladas e restaurantes para salvar e acessá-los rapidamente aqui!"
-                : "Tente remover alguns filtros ou buscar por outro termo para encontrar opções."}
-            </p>
+                <h3 className="mt-4 text-lg font-bold text-white">
+                  {currentScreen === "favorites"
+                    ? "Nenhum local salvo ainda"
+                    : "Nenhum local encontrado com esses filtros"}
+                </h3>
 
-            <button
-              onClick={
-                activeTab === "favorites"
-                  ? () => setActiveTab("baladas")
-                  : handleResetFilters
-              }
-              className="mt-5 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-purple-600/30 transition-all hover:bg-purple-500"
-            >
-              {activeTab === "favorites"
-                ? "Explorar Baladas"
-                : "Limpar todos os filtros"}
-            </button>
-          </div>
-        )}
-      </main>
+                <p className="mt-1 max-w-sm text-xs text-slate-400">
+                  {currentScreen === "favorites"
+                    ? "Clique no ícone de coração nos cards de baladas e restaurantes para salvar e acessá-los rapidamente aqui!"
+                    : "Tente remover alguns filtros ou buscar por outro termo para encontrar opções."}
+                </p>
+
+                <button
+                  onClick={
+                    currentScreen === "favorites"
+                      ? () => handleNavigate("baladas")
+                      : handleResetFilters
+                  }
+                  className="mt-5 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-purple-600/30 transition-all hover:bg-purple-500"
+                >
+                  {currentScreen === "favorites"
+                    ? "Explorar Baladas"
+                    : "Limpar todos os filtros"}
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
+      )}
 
       {/* Detail Modal */}
       <VenueModal
@@ -615,8 +1230,8 @@ function IndexPage() {
 
       {/* Floating Mobile Bottom Navigation */}
       <MobileNav
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
+        currentScreen={currentScreen}
+        onNavigate={handleNavigate}
         favoritesCount={favorites.length}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}

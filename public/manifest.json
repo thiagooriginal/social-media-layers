@@ -1,0 +1,17 @@
+{
+  "name": "Qual o Rolê? - Baladas, Restaurantes e Motéis em SP",
+  "short_name": "Qual o Rolê?",
+  "description": "Descubra as melhores baladas, festas, restaurantes e motéis por perto em São Paulo com estimativa de Uber e lista VIP.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070a11",
+  "theme_color": "#070a11",
+  "icons": [
+    {
+      "src": "/logo-soundwave.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

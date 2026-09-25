@@ -31,7 +31,7 @@ export function Header({
   onOpenAuth,
   onOpenProfile,
   onOpenAnalytics,
-  currentLogo = "/logo-opcao-1.jpg",
+  currentLogo = "/logo-soundwave.jpg",
   onOpenLogoPicker,
 }: HeaderProps) {
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
@@ -56,9 +56,9 @@ export function Header({
         <div
           onClick={onOpenLogoPicker}
           className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer group"
-          title="Clique para ver as opções de logotipo!"
+          title="Clique para ver a Identidade Visual Oficial!"
         >
-          <div className="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/40 bg-black shadow-[0_0_20px_-3px_rgba(168,85,247,0.6)] group-hover:border-purple-400 group-hover:scale-105 transition-all">
+          <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/50 bg-[#060810] shadow-[0_0_22px_-2px_rgba(168,85,247,0.7)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.7)] group-hover:scale-105 transition-all">
             <img
               src={currentLogo}
               alt="Logo Qual o Rolê"
@@ -72,8 +72,9 @@ export function Header({
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-lg sm:text-2xl font-extrabold tracking-tight text-transparent">
-                Qual o <span className="text-purple-400">Rolê?</span>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center leading-none">
+                <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Qual o</span>
+                <span className="ml-1 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê?</span>
               </h1>
               <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-purple-300">
                 SP LIVE

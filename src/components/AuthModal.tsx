@@ -106,7 +106,7 @@ export function AuthModal({
           </div>
           <div>
             <h3 className="text-xl font-black text-white flex items-center gap-1.5">
-              <span>{tab === "register" ? "Criar Conta VIP" : "Acessar BaladaON"}</span>
+              <span>{tab === "register" ? "Criar Conta VIP" : "Acessar Qual o Rolê?"}</span>
             </h3>
             <p className="text-xs text-slate-400">
               {tab === "register"
@@ -255,7 +255,7 @@ export function AuthModal({
               <span>Processando...</span>
             ) : (
               <>
-                <span>{tab === "register" ? "Concluir Cadastro VIP" : "Entrar no BaladaON"}</span>
+                <span>{tab === "register" ? "Concluir Cadastro VIP" : "Entrar no Qual o Rolê?"}</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

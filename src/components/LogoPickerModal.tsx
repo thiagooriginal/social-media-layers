@@ -18,9 +18,16 @@ export function LogoPickerModal({
 
   const options = [
     {
+      id: "soundwave-base",
+      path: "/logo-soundwave.jpg",
+      title: "⭐ Variação 2 (Oficial) - Neon Soundwave + Nome",
+      desc: "Modelo eleito: Pino GPS neon ciano e magenta com barras de equalizador musical, interrogação central e tipografia 'QUAL O ROLÊ?' integrada.",
+      badge: "Oficial Escolhido",
+    },
+    {
       id: "flat-vector",
       path: "/logo-flat-vector.jpg",
-      title: "1. Minimalista Flat Vector (Tech)",
+      title: "1. Minimalista Flat Vector (Tech Moderno)",
       desc: "Design 2D moderno, sem vidro 3D e sem tubos de neon. Estética limpa como Spotify, Uber e Airbnb.",
       badge: "Minimalista 2D",
     },
@@ -44,13 +51,6 @@ export function LogoPickerModal({
       title: "4. Monocromático Urbano (Street Club)",
       desc: "Preto, grafite e branco em altíssimo contraste. Linhas arrojadas, estilo Boiler Room e streetwear.",
       badge: "Streetwear & B&W",
-    },
-    {
-      id: "soundwave-base",
-      path: "/logo-soundwave.jpg",
-      title: "5. Modelo Neon (Referência Inicial)",
-      desc: "O modelo que serviu como base com tubos de neon luminosos e interrogação central.",
-      badge: "Referência Neon",
     },
   ];
 

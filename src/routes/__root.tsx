@@ -77,14 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" },
-      { title: "BaladaON 🪩 | Encontre sua balada e restaurante ideal em SP" },
-      { name: "description", content: "Descubra as melhores baladas, festas e restaurantes com espaço kids por perto em São Paulo com estimativa de Uber e lista VIP." },
-      { name: "author", content: "BaladaON" },
-      { property: "og:title", content: "BaladaON 🪩 | Baladas e Restaurantes em SP" },
-      { property: "og:description", content: "Encontre sua balada ou restaurante ideal em São Paulo hoje à noite." },
+      { title: "Qual o Rolê? 🪩 | Baladas, Restaurantes e Motéis em SP" },
+      { name: "description", content: "Descubra o melhor rolê de São Paulo: baladas com lista VIP, restaurantes incríveis e motéis exclusivos por perto com estimativa de Uber." },
+      { name: "author", content: "Qual o Rolê?" },
+      { property: "og:title", content: "Qual o Rolê? 🪩 | Onde a noite acontece em SP" },
+      { property: "og:description", content: "Baladas, festas, restaurantes e motéis por perto em São Paulo com estimativa de Uber e benefícios VIP." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/logo-soundwave.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@QualORole" },
     ],
     links: [
       {

@@ -19,6 +19,7 @@ import { AuthModal } from "../components/AuthModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
 import { LogoPickerModal } from "../components/LogoPickerModal";
+import { BrandShowcase } from "../components/BrandShowcase";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
@@ -33,7 +34,7 @@ function IndexPage() {
 
   // Logo Picker State
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
-  const [currentLogo, setCurrentLogo] = useState("/logo-opcao-1.jpg");
+  const [currentLogo, setCurrentLogo] = useState("/logo-soundwave.jpg");
 
   // User Auth State
   const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
@@ -334,7 +335,7 @@ function IndexPage() {
               className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/40 bg-purple-500/20 px-3.5 py-1 text-xs font-extrabold text-white backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-purple-500/30 transition-all active:scale-95"
             >
               <span>🎨</span>
-              <span>Ver as 3 Opções de Logo</span>
+              <span>Ver Todos os Estilos de Logo</span>
             </button>
           </div>
 
@@ -348,6 +349,14 @@ function IndexPage() {
           <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
             Descubra as melhores baladas, shows ao vivo, restaurantes, espaço kids e motéis com suítes exclusivas por perto. Veja a estimativa de Uber e planeje sua noite!
           </p>
+
+          {/* Brand Showcase - Variação 2 Logo + Nome Mesclados */}
+          <div className="mt-8">
+            <BrandShowcase
+              currentLogo={currentLogo}
+              onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
+            />
+          </div>
         </div>
       </section>
 
@@ -573,7 +582,7 @@ function IndexPage() {
           </div>
 
           <p className="mt-3 text-[11px] text-slate-600">
-            © {new Date().getFullYear()} BaladaON • Feito com ❤️ para a noite paulistana.
+            © {new Date().getFullYear()} Qual o Rolê? • Onde a noite acontece em São Paulo. Feito com ❤️.
           </p>
         </div>
       </footer>

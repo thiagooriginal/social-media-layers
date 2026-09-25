@@ -624,290 +624,137 @@ function IndexPage() {
           ) : (
             <>
               {/* 4 Grand Visual Navigation Cards (Menus Principais do App) */}
-              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+              <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+                <div className="mb-4 text-center sm:text-left">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center justify-center sm:justify-start gap-2">
                     <Compass className="h-5 w-5 text-cyan-400" />
-                    <span>Escolha onde você quer ir hoje</span>
+                    <span>Menu Principal • Escolha onde ir hoje</span>
                   </h2>
-                  <span className="text-xs text-slate-400">Toque no card para abrir</span>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Toque no menu abaixo para abrir a página completa
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                   {/* Card 1: Baladas */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => handleNavigate("baladas")}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-950/70 via-purple-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(217,70,239,0.4)] cursor-pointer"
+                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/70 via-purple-950/50 to-[#0c101c] p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(217,70,239,0.5)] cursor-pointer w-full shadow-lg"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl border border-fuchsia-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(217,70,239,0.3)]">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-3xl border border-fuchsia-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(217,70,239,0.3)]">
                         🪩
                       </div>
-                      <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-1 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30">
-                        {baladasCount} locais
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base sm:text-lg font-black text-white group-hover:text-fuchsia-300 transition-colors">
+                            Baladas & Festas
+                          </h3>
+                          <span className="rounded-full bg-fuchsia-500/20 px-2 py-0.5 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30">
+                            {baladasCount} locais
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Pistas, DJs, Funk, Eletrônica, Sertanejo & VIP
+                        </p>
+                      </div>
                     </div>
-
-                    <div className="mt-4">
-                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-fuchsia-300 transition-colors">
-                        Baladas & Festas
-                      </h3>
-                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
-                        Pistas, DJs, Funk, Eletrônica, Sertanejo & Lista VIP
-                      </p>
+                    <div className="shrink-0 flex items-center gap-1 rounded-xl bg-fuchsia-600 px-3 py-2 text-xs font-bold text-white shadow-md group-hover:bg-fuchsia-500 transition-colors">
+                      <span>Abrir</span>
+                      <ChevronRight className="h-4 w-4" />
                     </div>
-
-                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-fuchsia-400 group-hover:translate-x-1 transition-transform">
-                      <span>Explorar baladas</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
+                  </button>
 
                   {/* Card 2: Bares & Gastronomia */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => handleNavigate("restaurantes")}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/70 via-orange-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-[0_10px_30px_-5px_rgba(245,158,11,0.4)] cursor-pointer"
+                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-950/70 via-orange-950/50 to-[#0c101c] p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-amber-400 hover:shadow-[0_10px_30px_-5px_rgba(245,158,11,0.5)] cursor-pointer w-full shadow-lg"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-3xl border border-amber-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]">
                         🍸
                       </div>
-                      <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-[10px] font-extrabold text-amber-300 border border-amber-500/30">
-                        {restaurantesCount} opções
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors">
+                            Bares & Gastronomia
+                          </h3>
+                          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-300 border border-amber-500/30">
+                            {restaurantesCount} opções
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Rooftops, Drinks autorais, Botecos & Família
+                        </p>
+                      </div>
                     </div>
-
-                    <div className="mt-4">
-                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors">
-                        Bares & Drinks
-                      </h3>
-                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
-                        Rooftops, Drinks autorais, Botecos, Porções & Família
-                      </p>
+                    <div className="shrink-0 flex items-center gap-1 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white shadow-md group-hover:bg-amber-500 transition-colors">
+                      <span>Abrir</span>
+                      <ChevronRight className="h-4 w-4" />
                     </div>
-
-                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform">
-                      <span>Explorar bares</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
+                  </button>
 
                   {/* Card 3: Motéis & Suítes */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => handleNavigate("moteis")}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-500/40 bg-gradient-to-br from-rose-950/70 via-pink-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-rose-400 hover:shadow-[0_10px_30px_-5px_rgba(244,63,94,0.4)] cursor-pointer"
+                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-rose-500/40 bg-gradient-to-r from-rose-950/70 via-pink-950/50 to-[#0c101c] p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-rose-400 hover:shadow-[0_10px_30px_-5px_rgba(244,63,94,0.5)] cursor-pointer w-full shadow-lg"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-2xl border border-rose-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(244,63,94,0.3)]">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rose-500/20 text-3xl border border-rose-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(244,63,94,0.3)]">
                         🏩
                       </div>
-                      <span className="rounded-full bg-rose-500/20 px-2.5 py-1 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
-                        {moteisCount} suítes
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base sm:text-lg font-black text-white group-hover:text-rose-300 transition-colors">
+                            Motéis & Suítes
+                          </h3>
+                          <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
+                            {moteisCount} suítes
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Hidro, Piscinas Privativas, Pernoite & Luxo
+                        </p>
+                      </div>
                     </div>
-
-                    <div className="mt-4">
-                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-rose-300 transition-colors">
-                        Motéis & Suítes
-                      </h3>
-                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
-                        Hidro, Piscinas Privativas, Pernoite & Discrição Total
-                      </p>
+                    <div className="shrink-0 flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-2 text-xs font-bold text-white shadow-md group-hover:bg-rose-500 transition-colors">
+                      <span>Abrir</span>
+                      <ChevronRight className="h-4 w-4" />
                     </div>
-
-                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-rose-400 group-hover:translate-x-1 transition-transform">
-                      <span>Ver motéis</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
+                  </button>
 
                   {/* Card 4: Modo After */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => handleNavigate("after")}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-br from-cyan-950/70 via-indigo-950/50 to-[#0c101c] p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(6,182,212,0.4)] cursor-pointer"
+                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-indigo-950/50 to-[#0c101c] p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(6,182,212,0.5)] cursor-pointer w-full shadow-lg"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl border border-cyan-500/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(6,182,212,0.3)]">
                         🌙
                       </div>
-                      <span className="rounded-full bg-cyan-500/20 px-2.5 py-1 text-[10px] font-extrabold text-cyan-300 border border-cyan-500/30">
-                        {afterVenuesCount} abertos
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition-colors">
+                            Modo After (5h+ / 24h)
+                          </h3>
+                          <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-extrabold text-cyan-300 border border-cyan-500/30">
+                            {afterVenuesCount} abertos
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Baladas que viram até 8h & Lanches/Padarias 24h
+                        </p>
+                      </div>
                     </div>
-
-                    <div className="mt-4">
-                      <h3 className="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition-colors">
-                        Modo After (5h+)
-                      </h3>
-                      <p className="mt-1 text-[11px] sm:text-xs text-slate-400 line-clamp-2">
-                        Baladas que viram até 8h & Lanches/Padarias 24 Horas
-                      </p>
+                    <div className="shrink-0 flex items-center gap-1 rounded-xl bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-md group-hover:bg-cyan-500 transition-colors">
+                      <span>Abrir</span>
+                      <ChevronRight className="h-4 w-4" />
                     </div>
-
-                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-cyan-400 group-hover:translate-x-1 transition-transform">
-                      <span>Ativar Modo After</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* CARROSSEL 1: 🔥 Em Alta Hoje em São Paulo */}
-              <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                      <Flame className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm sm:text-base font-black text-white">
-                        Em Alta Hoje em São Paulo
-                      </h3>
-                      <p className="text-[11px] text-slate-400">Os picos mais disputados e bem avaliados da noite</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleNavigate("baladas")}
-                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
-                  >
-                    <span>Ver todas</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
                   </button>
-                </div>
-
-                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
-                  {trendingVenues.map((v) => (
-                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
-                      <VenueCard
-                        venue={v}
-                        userLocation={userLocation}
-                        isFavorite={favorites.includes(v.id)}
-                        onToggleFavorite={handleToggleFavorite}
-                        onOpenDetails={setActiveVenue}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* CARROSSEL 2: 📍 Mais Próximos de Você */}
-              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                      <MapPin className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm sm:text-base font-black text-white">
-                        Mais Próximos de {userLocation.name}
-                      </h3>
-                      <p className="text-[11px] text-slate-400">Opções com Uber rápido a partir do seu local de partida</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleNavigate("baladas")}
-                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
-                  >
-                    <span>Ver feed</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
-                  {nearbyVenues.map((v) => (
-                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
-                      <VenueCard
-                        venue={v}
-                        userLocation={userLocation}
-                        isFavorite={favorites.includes(v.id)}
-                        onToggleFavorite={handleToggleFavorite}
-                        onOpenDetails={setActiveVenue}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* CARROSSEL 3: 🎟️ Com Lista VIP & Entrada Free */}
-              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">
-                      <Ticket className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm sm:text-base font-black text-white">
-                        Listas VIP & Entrada Free
-                      </h3>
-                      <p className="text-[11px] text-slate-400">Garanta seu nome na lista para economizar na balada</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setOnlyVipOrFree(true);
-                      handleNavigate("baladas");
-                    }}
-                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
-                  >
-                    <span>Ver VIPs</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
-                  {vipVenues.map((v) => (
-                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
-                      <VenueCard
-                        venue={v}
-                        userLocation={userLocation}
-                        isFavorite={favorites.includes(v.id)}
-                        onToggleFavorite={handleToggleFavorite}
-                        onOpenDetails={setActiveVenue}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* CARROSSEL 4: 🌙 Madrugada & Modo After (5h+ / 24 Horas) */}
-              <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                      <Moon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm sm:text-base font-black text-white">
-                        Madrugada & After (5h+ / 24h)
-                      </h3>
-                      <p className="text-[11px] text-slate-400">Picos abertos para curtir até o sol raiar</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleNavigate("after")}
-                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
-                  >
-                    <span>Abrir After</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 -mx-4 px-4 sm:mx-0 sm:px-1 no-scrollbar scroll-smooth snap-x snap-mandatory">
-                  {afterVenuesList.map((v) => (
-                    <div key={v.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] shrink-0 snap-start">
-                      <VenueCard
-                        venue={v}
-                        userLocation={userLocation}
-                        isFavorite={favorites.includes(v.id)}
-                        onToggleFavorite={handleToggleFavorite}
-                        onOpenDetails={setActiveVenue}
-                      />
-                    </div>
-                  ))}
                 </div>
               </section>
             </>
@@ -923,11 +770,12 @@ function IndexPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => handleNavigate("home")}
-                  className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-200 transition-all hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 active:scale-95 shadow-md"
+                  className="flex items-center gap-2 rounded-2xl bg-purple-600 px-4 py-2.5 text-xs font-black text-white shadow-lg shadow-purple-600/40 hover:bg-purple-500 active:scale-95 transition-all cursor-pointer shrink-0"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Voltar ao Início</span>
+                  <span>← Voltar aos Menus</span>
                 </button>
 
                 <div>
@@ -986,17 +834,6 @@ function IndexPage() {
               </div>
             </div>
           </div>
-
-          {/* Quick Category Switcher Tabs */}
-          <CategoryTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            baladasCount={baladasCount}
-            restaurantesCount={restaurantesCount}
-            moteisCount={moteisCount}
-            kidsCount={kidsCount}
-            favoritesCount={favorites.length}
-          />
 
           {/* Category FilterBar */}
           <FilterBar

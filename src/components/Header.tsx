@@ -80,29 +80,12 @@ export function Header({
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center leading-none">
-                <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
-                <span className="ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
-              </h1>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTriggerRadar?.();
-                }}
-                className="flex items-center gap-1 rounded-full border border-cyan-500/40 bg-cyan-950/40 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_12px_rgba(6,182,212,0.4)]"
-                title="Clique para ativar a varredura do Radar do Rolê!"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
-                </span>
-                <span>RADAR SP</span>
-              </button>
-            </div>
-            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
-              O radar da noite em SP • Baladas, Bares & After
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight flex items-center leading-none">
+              <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
+              <span className="ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
+            </h1>
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate mt-0.5">
+              São Paulo • Guia Noturno
             </p>
           </div>
         </div>
@@ -155,10 +138,10 @@ export function Header({
           {/* Quick neighborhood button for mobile */}
           <button
             onClick={() => setIsPickerOpen(!isPickerOpen)}
-            className="flex md:hidden items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-slate-300"
+            className="flex md:hidden items-center gap-1 rounded-xl border border-purple-500/30 bg-purple-950/40 px-2.5 py-1.5 text-xs text-slate-300 hover:border-purple-400 transition-all shrink-0"
           >
-            <MapPin className="h-3.5 w-3.5 text-purple-400 shrink-0" />
-            <span className="truncate max-w-[70px] xs:max-w-[85px] text-[10px] xs:text-[11px] font-semibold text-purple-300">
+            <MapPin className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+            <span className="truncate max-w-[80px] xs:max-w-[100px] text-[11px] font-bold text-slate-200">
               {currentNeighborhood.name}
             </span>
           </button>
@@ -168,7 +151,7 @@ export function Header({
             <button
               onClick={onOpenAnalytics}
               title="Painel de Relatórios & Desempenho"
-              className="flex items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 h-8 w-8 sm:h-auto sm:w-auto sm:px-2.5 sm:py-2 text-xs font-bold text-slate-300 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white transition-all shadow-sm"
+              className="hidden sm:flex items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 sm:px-2.5 sm:py-2 text-xs font-bold text-slate-300 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white transition-all shadow-sm"
             >
               <BarChart3 className="h-3.5 w-3.5 text-purple-400" />
               <span className="hidden sm:inline">Relatórios</span>

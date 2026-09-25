@@ -19,7 +19,6 @@ import { AuthModal } from "../components/AuthModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { PartnerAnalyticsModal } from "../components/PartnerAnalyticsModal";
 import { LogoPickerModal } from "../components/LogoPickerModal";
-import { BrandShowcase } from "../components/BrandShowcase";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { Sparkles, Compass, AlertCircle, RotateCcw, Heart } from "lucide-react";
@@ -352,14 +351,6 @@ function IndexPage() {
               <Sparkles className="h-3.5 w-3.5 text-purple-400" />
               <span>São Paulo Hoje • Onde a noite acontece</span>
             </div>
-
-            <button
-              onClick={() => setIsLogoPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/40 bg-purple-500/20 px-3.5 py-1 text-xs font-extrabold text-white backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-purple-500/30 transition-all active:scale-95"
-            >
-              <span>🎨</span>
-              <span>Ver Todos os Estilos de Logo</span>
-            </button>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -372,14 +363,6 @@ function IndexPage() {
           <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base text-slate-400 leading-relaxed">
             Descubra as melhores baladas, shows ao vivo, restaurantes, espaço kids e motéis com suítes exclusivas por perto. Veja a estimativa de Uber e planeje sua noite!
           </p>
-
-          {/* Brand Showcase - Variação 2 Logo + Nome Mesclados */}
-          <div className="mt-8">
-            <BrandShowcase
-              currentLogo={currentLogo}
-              onOpenLogoPicker={() => setIsLogoPickerOpen(true)}
-            />
-          </div>
         </div>
       </section>
 

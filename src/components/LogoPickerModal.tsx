@@ -18,39 +18,39 @@ export function LogoPickerModal({
 
   const options = [
     {
-      id: "wave-bars",
-      path: "/logo-wave-bars.jpg",
-      title: "Estilo A: Equalizador Digital LED em Barras",
-      desc: "Barras verticais digitais de LED contornando o ponto de interrogação com letreiro 'Qual o Rolê?'.",
-      badge: "Tech & DJ",
+      id: "flat-vector",
+      path: "/logo-flat-vector.jpg",
+      title: "1. Minimalista Flat Vector (Tech)",
+      desc: "Design 2D moderno, sem vidro 3D e sem tubos de neon. Estética limpa como Spotify, Uber e Airbnb.",
+      badge: "Minimalista 2D",
     },
     {
-      id: "wave-disc",
-      path: "/logo-wave-disc.jpg",
-      title: "Estilo B: Anel de Frequência DJ Circular",
-      desc: "Ondas circulares e graves pulsantes ao redor da interrogação com tipografia 'QUAL O ROLÊ?'.",
-      badge: "Festivais & Baladas",
+      id: "gold-luxury",
+      path: "/logo-gold-luxury.svg",
+      title: "2. Dourado Retrô Speakeasy (Jazz & Club)",
+      desc: "Acabamento em ouro escovado e latão champanhe sobre carvão. Visual boêmio, refinado e clássico.",
+      badge: "Ouro & Retrô",
     },
     {
-      id: "wave-fluid",
-      path: "/logo-wave-fluid.jpg",
-      title: "Estilo C: Fita de Frequência Fluida (Sine Wave)",
-      desc: "Onda sonora orgânica e fluida como uma fita líquida de neon formando a interrogação.",
-      badge: "Minimalista & Elegante",
+      id: "clean-duotone",
+      path: "/logo-clean-duotone.svg",
+      title: "3. Clean Duotone Tech (Estilo iOS)",
+      desc: "Visual de app nativo moderno, contorno em degradê violeta acetinado e interrogação em branco puro.",
+      badge: "Apple & iOS",
     },
     {
-      id: "wave-radial",
-      path: "/logo-wave-radial.jpg",
-      title: "Estilo D: Ondas Radiais / Sonar Acústico",
-      desc: "Ondas sonoras concêntricas propagando pela cidade com ripples no chão e letreiro neon.",
-      badge: "Sonar Noturno",
+      id: "minimal-street",
+      path: "/logo-minimal-street.svg",
+      title: "4. Monocromático Urbano (Street Club)",
+      desc: "Preto, grafite e branco em altíssimo contraste. Linhas arrojadas, estilo Boiler Room e streetwear.",
+      badge: "Streetwear & B&W",
     },
     {
       id: "soundwave-base",
       path: "/logo-soundwave.jpg",
-      title: "Modelo Base: Equalizador Noturno",
-      desc: "A versão que você curtiu: pino de GPS com barras de som e interrogação central.",
-      badge: "Favorito Anterior",
+      title: "5. Modelo Neon (Referência Inicial)",
+      desc: "O modelo que serviu como base com tubos de neon luminosos e interrogação central.",
+      badge: "Referência Neon",
     },
   ];
 
@@ -65,10 +65,10 @@ export function LogoPickerModal({
             </div>
             <div>
               <h2 className="text-lg font-black text-white sm:text-xl">
-                Linha Ondas Sonoras & Equalizador: <span className="text-purple-400">Qual o Rolê?</span>
+                4 Novos Estilos (Sem Efeito Neon): <span className="text-purple-400">Qual o Rolê?</span>
               </h2>
               <p className="text-xs text-slate-400">
-                Explore os 4 novos estilos visuais criados a partir do modelo que você gostou!
+                Mantivemos o Pino GPS + Equalizador + Interrogação, explorando estilos Flat, Dourado, iOS e Street!
               </p>
             </div>
           </div>

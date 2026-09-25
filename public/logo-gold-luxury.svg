@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="goldBg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#161410"/>
+      <stop offset="100%" stop-color="#0a0907"/>
+    </radialGradient>
+    
+    <!-- Gold Foil Metallic Gradient -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE0AD"/>
+      <stop offset="25%" stop-color="#DFAC6C"/>
+      <stop offset="50%" stop-color="#C68B45"/>
+      <stop offset="75%" stop-color="#F2D199"/>
+      <stop offset="100%" stop-color="#A56E2C"/>
+    </linearGradient>
+
+    <!-- Subtle Gold Shadow -->
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#D4AF37" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Card Background -->
+  <rect width="512" height="512" rx="112" fill="url(#goldBg)"/>
+  <rect width="506" height="506" x="3" y="3" rx="109" fill="none" stroke="url(#goldGradient)" stroke-width="2" stroke-opacity="0.3"/>
+
+  <!-- GPS Pin Contour (Clean Art Deco Lines) -->
+  <g filter="url(#goldGlow)">
+    <!-- Outer Pin -->
+    <path d="M 256 70 
+             C 176 70, 116 130, 116 210 
+             C 116 300, 240 400, 256 414 
+             C 272 400, 396 300, 396 210 
+             C 396 130, 336 70, 256 70 Z" 
+          fill="none" 
+          stroke="url(#goldGradient)" 
+          stroke-width="12" 
+          stroke-linejoin="round"/>
+
+    <!-- Inner Circle Border -->
+    <circle cx="256" cy="205" r="95" fill="#12100d" stroke="url(#goldGradient)" stroke-width="4" stroke-opacity="0.5"/>
+
+    <!-- Equalizer Sound Bars (Background of the pin) -->
+    <!-- Bar 1 -->
+    <rect x="195" y="185" width="8" height="40" rx="4" fill="url(#goldGradient)" fill-opacity="0.5"/>
+    <!-- Bar 2 -->
+    <rect x="212" y="165" width="8" height="80" rx="4" fill="url(#goldGradient)" fill-opacity="0.7"/>
+    <!-- Bar 3 -->
+    <rect x="229" y="145" width="8" height="120" rx="4" fill="url(#goldGradient)" fill-opacity="0.9"/>
+    <!-- Bar 4 (Center Right) -->
+    <rect x="275" y="155" width="8" height="100" rx="4" fill="url(#goldGradient)" fill-opacity="0.8"/>
+    <!-- Bar 5 -->
+    <rect x="292" y="175" width="8" height="60" rx="4" fill="url(#goldGradient)" fill-opacity="0.6"/>
+    <!-- Bar 6 -->
+    <rect x="309" y="195" width="8" height="25" rx="4" fill="url(#goldGradient)" fill-opacity="0.4"/>
+
+    <!-- Sophisticated Question Mark '?' Overlay -->
+    <path d="M 230 160 
+             C 230 135, 244 125, 258 125 
+             C 276 125, 290 138, 290 156 
+             C 290 178, 260 188, 260 216 
+             L 260 228" 
+          fill="none" 
+          stroke="url(#goldGradient)" 
+          stroke-width="14" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- Question Mark Dot -->
+    <circle cx="260" cy="254" r="8" fill="url(#goldGradient)"/>
+  </g>
+
+  <!-- Elegant Typographic Name -->
+  <text x="256" y="468" 
+        text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="26" 
+        font-weight="800" 
+        letter-spacing="5" 
+        fill="url(#goldGradient)">
+    QUAL O ROLÊ?
+  </text>
+</svg>

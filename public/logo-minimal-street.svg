@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Matte Charcoal Dark Background -->
+    <linearGradient id="streetBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141416"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </linearGradient>
+
+    <!-- Silver Accent Gradient -->
+    <linearGradient id="silverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#A1A1AA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card Background -->
+  <rect width="512" height="512" rx="112" fill="url(#streetBg)"/>
+  <rect width="506" height="506" x="3" y="3" rx="109" fill="none" stroke="#27272A" stroke-width="2"/>
+
+  <!-- High-Contrast Bold Geometric GPS Pin -->
+  <g>
+    <!-- Outer Bold Pin -->
+    <path d="M 256 60 
+             C 165 60, 95 130, 95 218 
+             C 95 315, 238 424, 256 438 
+             C 274 424, 417 315, 417 218 
+             C 417 130, 347 60, 256 60 Z" 
+          fill="#18181B" 
+          stroke="url(#silverGradient)" 
+          stroke-width="14" 
+          stroke-linejoin="round"/>
+
+    <!-- Sharp Monochromatic Sound Wave Bars -->
+    <!-- Bar 1 -->
+    <rect x="175" y="195" width="12" height="40" rx="6" fill="#52525B"/>
+    <!-- Bar 2 -->
+    <rect x="197" y="165" width="12" height="85" rx="6" fill="#71717A"/>
+    <!-- Bar 3 -->
+    <rect x="219" y="135" width="12" height="135" rx="6" fill="#A1A1AA"/>
+    <!-- Bar 4 (Center Right) -->
+    <rect x="281" y="150" width="12" height="110" rx="6" fill="#D4D4D8"/>
+    <!-- Bar 5 -->
+    <rect x="303" y="175" width="12" height="70" rx="6" fill="#71717A"/>
+    <!-- Bar 6 -->
+    <rect x="325" y="200" width="12" height="30" rx="6" fill="#52525B"/>
+
+    <!-- Bold Minimalist Question Mark '?' -->
+    <path d="M 224 165 
+             C 224 130, 242 115, 258 115 
+             C 280 115, 298 130, 298 152 
+             C 298 178, 258 190, 258 222 
+             L 258 234" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="18" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- Question Mark Dot -->
+    <circle cx="258" cy="265" r="10" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Modern Street Typography -->
+  <text x="256" y="482" 
+        text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="28" 
+        font-weight="900" 
+        letter-spacing="6" 
+        fill="#FFFFFF">
+    QUAL O ROLÊ?
+  </text>
+</svg>

@@ -50,7 +50,7 @@ export function BrandShowcase({
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white">
-              Qual o Rolê? • Logo + Nome Integrados
+              Radar do Rolê • Logo + Nome Integrados
             </h2>
           </div>
         </div>
@@ -161,7 +161,7 @@ export function BrandShowcase({
                 Ícone Oficial de Aplicativo (iOS / Android / PWA)
               </span>
               <p className="text-xs text-slate-400 mt-1">
-                Visual com o nome "QUAL O ROLÊ?" gravado em neon diretamente na base do ícone.
+                Visual com o nome "RADAR DO ROLÊ" gravado em neon diretamente na base do ícone.
               </p>
             </div>
           </div>
@@ -176,7 +176,7 @@ export function BrandShowcase({
               <div className="relative h-16 w-16 rounded-2xl overflow-hidden border border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.7)]">
                 <img src={currentLogo} alt="App Icon" className="h-full w-full object-cover" />
               </div>
-              <p className="mt-2 text-[11px] font-black text-white tracking-tight">Qual o Rolê?</p>
+              <p className="mt-2 text-[11px] font-black text-white tracking-tight">Radar do Rolê</p>
               <div className="mt-4 flex gap-1 text-[9px] text-amber-400">
                 {"★★★★★"} <span className="text-slate-400">(4.9)</span>
               </div>

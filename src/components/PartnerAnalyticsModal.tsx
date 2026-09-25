@@ -71,7 +71,7 @@ export function PartnerAnalyticsModal({
 
   const handleShareSummaryWhatsApp = () => {
     const text = encodeURIComponent(
-      `📊 *Relatório de Desempenho - Qual o Rolê? Insights*\n` +
+      `📊 *Relatório de Desempenho - Radar do Rolê Insights*\n` +
       `🏢 *Estabelecimento:* ${currentVenue?.name}\n\n` +
       `👁️ *Visualizações no Feed:* ${metrics.impressionsFeed.toLocaleString("pt-BR")}\n` +
       `👆 *Cliques no Perfil:* ${metrics.profileClicks.toLocaleString("pt-BR")}\n` +
@@ -112,7 +112,7 @@ export function PartnerAnalyticsModal({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Métricas de alcance, cliques e conversão no Qual o Rolê?
+                Métricas de alcance, cliques e conversão no Radar do Rolê
               </p>
             </div>
           </div>
@@ -337,7 +337,7 @@ export function PartnerAnalyticsModal({
               💡
             </span>
             <div>
-              <p className="font-extrabold text-white">Insight Inteligente do Qual o Rolê?:</p>
+              <p className="font-extrabold text-white">Insight Inteligente do Radar do Rolê:</p>
               <p className="mt-0.5 text-slate-300 leading-relaxed">
                 Seu maior pico de acessos acontece entre as <strong>20h30 e 23h45</strong> de Sexta e Sábado. Estabelecimentos com <strong>Lista VIP e botões de WhatsApp ativos</strong> convertem até <strong>3.2x mais clientes</strong> para a noite.
               </p>

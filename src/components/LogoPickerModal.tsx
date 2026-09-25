@@ -21,7 +21,7 @@ export function LogoPickerModal({
       id: "soundwave-base",
       path: "/logo-soundwave.jpg",
       title: "⭐ Variação 2 (Oficial) - Neon Soundwave + Nome",
-      desc: "Modelo eleito: Pino GPS neon ciano e magenta com barras de equalizador musical, interrogação central e tipografia 'QUAL O ROLÊ?' integrada.",
+      desc: "Modelo eleito: Pino GPS / Radar neon ciano e magenta com barras de equalizador musical e tipografia 'RADAR DO ROLÊ'.",
       badge: "Oficial Escolhido",
     },
     {
@@ -65,7 +65,7 @@ export function LogoPickerModal({
             </div>
             <div>
               <h2 className="text-lg font-black text-white sm:text-xl">
-                4 Novos Estilos (Sem Efeito Neon): <span className="text-purple-400">Qual o Rolê?</span>
+                4 Novos Estilos (Sem Efeito Neon): <span className="text-purple-400">Radar do Rolê</span>
               </h2>
               <p className="text-xs text-slate-400">
                 Mantivemos o Pino GPS + Equalizador + Interrogação, explorando estilos Flat, Dourado, iOS e Street!

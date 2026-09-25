@@ -174,8 +174,8 @@ export function RegisterVenueModal({
   const handleOpenWhatsAppActivation = () => {
     if (!createdVenue) return;
     const msg = encodeURIComponent(
-      `Olá equipe Qual o Rolê! 👋\n\n` +
-      `Acabei de cadastrar o estabelecimento *${createdVenue.name}* no app Qual o Rolê!\n\n` +
+      `Olá equipe Radar do Rolê! 👋\n\n` +
+      `Acabei de cadastrar o estabelecimento *${createdVenue.name}* no app Radar do Rolê!\n\n` +
       `📍 *Bairro:* ${createdVenue.neighborhood}\n` +
       `💎 *Plano Escolhido:* ${currentPlanObj.name} (R$ ${currentPlanObj.price}/mês)\n` +
       `📱 *Contato:* ${createdVenue.whatsapp}\n\n` +
@@ -267,7 +267,7 @@ export function RegisterVenueModal({
                 onClick={handleResetAndClose}
                 className="rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-semibold text-slate-300 hover:bg-white/10"
               >
-                Ver Estabelecimento no Qual o Rolê?
+                Ver Estabelecimento no Radar do Rolê
               </button>
             </div>
           </div>
@@ -282,7 +282,7 @@ export function RegisterVenueModal({
               <div>
                 <h3 className="text-xl font-black text-white">Cadastrar Estabelecimento</h3>
                 <p className="text-xs text-slate-400">
-                  Anuncie sua balada ou restaurante no Qual o Rolê? e atraia novos clientes
+                  Anuncie sua balada ou restaurante no Radar do Rolê e atraia novos clientes
                 </p>
               </div>
             </div>

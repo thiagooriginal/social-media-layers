@@ -80,6 +80,6 @@
         font-weight="900" 
         letter-spacing="3" 
         fill="#FFFFFF">
-    Qual o <tspan fill="url(#techGradient)">Rolê?</tspan>
+    Radar do <tspan fill="url(#techGradient)">Rolê</tspan>
   </text>
 </svg>

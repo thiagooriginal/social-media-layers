@@ -72,7 +72,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
 
   const handleOpenWhatsAppConfirm = () => {
     const text = encodeURIComponent(
-      `Olá! Acabei de me cadastrar na Lista VIP do *${venue.name}* pelo Qual o Rolê?!\n\n` +
+      `Olá! Acabei de me cadastrar na Lista VIP do *${venue.name}* pelo Radar do Rolê!\n\n` +
         `👤 *Nome:* ${userName}\n` +
         `📱 *WhatsApp:* ${userWhatsapp}\n` +
         `👥 *Quantidade:* ${guestsCount} ${guestsCount === 1 ? "pessoa" : "pessoas"}\n` +
@@ -231,7 +231,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
             <div className="mt-5 rounded-2xl border border-dashed border-purple-500/50 bg-purple-950/20 p-4 text-left">
               <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
-                  Passe VIP Digital {generatedPassCode ? `• ${generatedPassCode}` : "• Qual o Rolê?"}
+                  Passe VIP Digital {generatedPassCode ? `• ${generatedPassCode}` : "• Radar do Rolê"}
                 </span>
                 <span className="text-[10px] font-extrabold text-emerald-400">ATIVO</span>
               </div>

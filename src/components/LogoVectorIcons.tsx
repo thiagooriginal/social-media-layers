@@ -63,7 +63,7 @@ export function GoldLuxuryLogo({ className = "w-full h-full" }: { className?: st
         letterSpacing="5"
         fill="url(#goldMetallic)"
       >
-        QUAL O ROLÊ?
+        RADAR DO ROLÊ
       </text>
     </svg>
   );
@@ -130,7 +130,7 @@ export function CleanDuotoneLogo({ className = "w-full h-full" }: { className?: 
         letterSpacing="3"
         fill="#FFFFFF"
       >
-        Qual o <tspan fill="url(#duoVioletPink)">Rolê?</tspan>
+        Radar do <tspan fill="url(#duoVioletPink)">Rolê</tspan>
       </text>
     </svg>
   );
@@ -189,7 +189,7 @@ export function MinimalStreetLogo({ className = "w-full h-full" }: { className?:
         letterSpacing="6"
         fill="#FFFFFF"
       >
-        QUAL O ROLÊ?
+        RADAR DO ROLÊ
       </text>
     </svg>
   );
@@ -243,7 +243,7 @@ export function FlatVectorLogo({ className = "w-full h-full" }: { className?: st
         letterSpacing="4"
         fill="#FFFFFF"
       >
-        QUAL O ROLÊ?
+        RADAR DO ROLÊ
       </text>
     </svg>
   );

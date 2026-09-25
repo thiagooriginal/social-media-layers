@@ -69,10 +69,10 @@ export function VenueModal({
     trackEvent(venue.id, "click_whatsapp", venue.name);
     const message =
       venue.category === "baladas"
-        ? `Olá! Vi o ${venue.name} no Qual o Rolê? e gostaria de colocar nome na Lista VIP / saber das atrações de hoje!`
+        ? `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de colocar nome na Lista VIP / saber das atrações de hoje!`
         : venue.category === "moteis"
-        ? `Olá! Vi o ${venue.name} no Qual o Rolê? e gostaria de informações de suítes, hidro e valores de pernoite para hoje!`
-        : `Olá! Vi o ${venue.name} no Qual o Rolê? e gostaria de informações para reserva de mesa de hoje!`;
+        ? `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de informações de suítes, hidro e valores de pernoite para hoje!`
+        : `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de informações para reserva de mesa de hoje!`;
     window.open(
       `https://api.whatsapp.com/send?phone=${venue.whatsapp}&text=${encodeURIComponent(message)}`,
       "_blank"

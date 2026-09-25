@@ -77,15 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" },
-      { title: "Qual o Rolê? 🪩 | Baladas, Restaurantes e Motéis em SP" },
-      { name: "description", content: "Descubra o melhor rolê de São Paulo: baladas com lista VIP, restaurantes incríveis e motéis exclusivos por perto com estimativa de Uber." },
-      { name: "author", content: "Qual o Rolê?" },
-      { property: "og:title", content: "Qual o Rolê? 🪩 | Onde a noite acontece em SP" },
-      { property: "og:description", content: "Baladas, festas, restaurantes e motéis por perto em São Paulo com estimativa de Uber e benefícios VIP." },
+      { title: "Radar do Rolê 📡 | Baladas, Restaurantes e Motéis em SP" },
+      { name: "description", content: "Radar do Rolê: O radar oficial da vida noturna de São Paulo. Baladas, bares, motéis exclusivos e modo after (5h+) com estimativa de Uber em tempo real." },
+      { name: "author", content: "Radar do Rolê" },
+      { property: "og:title", content: "Radar do Rolê 📡 | O radar da vida noturna em SP" },
+      { property: "og:description", content: "Descubra baladas, festas, bares e afters perto de você em São Paulo com estimativa de Uber e benefícios VIP no Radar do Rolê." },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/logo-soundwave.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@QualORole" },
+      { name: "twitter:site", content: "@RadarDoRole" },
     ],
     links: [
       {

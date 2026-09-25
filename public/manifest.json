@@ -1,7 +1,7 @@
 {
-  "name": "Qual o Rolê? - Baladas, Restaurantes e Motéis em SP",
-  "short_name": "Qual o Rolê?",
-  "description": "Descubra as melhores baladas, festas, restaurantes e motéis por perto em São Paulo com estimativa de Uber e lista VIP.",
+  "name": "Radar do Rolê - Baladas, Bares e Afters em SP",
+  "short_name": "Radar do Rolê",
+  "description": "Radar do Rolê: O radar oficial da vida noturna de São Paulo. Encontre baladas, festas, bares e afters perto de você com estimativa de Uber e lista VIP.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#070a11",

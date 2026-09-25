@@ -39,8 +39,8 @@ export function Header({
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: "Qual o Rolê? - Encontre sua balada, restaurante ou motel ideal em SP",
-        text: "Descubra as melhores baladas, restaurantes e motéis por perto com lista VIP e estimativa de Uber!",
+        title: "Radar do Rolê - O radar da vida noturna em SP",
+        text: "Descubra as melhores baladas, bares e afters por perto com o Radar do Rolê!",
         url: window.location.href,
       }).catch(() => {});
     } else {
@@ -61,7 +61,7 @@ export function Header({
           <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/50 bg-[#060810] shadow-[0_0_22px_-2px_rgba(168,85,247,0.7)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.7)] group-hover:scale-105 transition-all">
             <img
               src={currentLogo}
-              alt="Logo Qual o Rolê"
+              alt="Logo Radar do Rolê"
               className="h-full w-full object-cover"
             />
             <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
@@ -73,15 +73,15 @@ export function Header({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center leading-none">
-                <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Qual o</span>
-                <span className="ml-1 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê?</span>
+                <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
+                <span className="ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
               </h1>
               <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-purple-300">
                 SP LIVE
               </span>
             </div>
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
-              Baladas, Restaurantes & Motéis por perto
+              O radar da noite em SP • Baladas, Bares & After
             </p>
           </div>
         </div>

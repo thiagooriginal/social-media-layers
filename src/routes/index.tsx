@@ -610,13 +610,13 @@ function IndexPage() {
       <footer className="mt-20 border-t border-white/10 bg-[#05070d] py-8 text-center text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-300">
-            <img src={currentLogo} alt="Logo Qual o Rolê" className="h-6 w-6 rounded-lg object-cover border border-purple-500/30" />
-            <span>Qual o Rolê?</span>
+            <img src={currentLogo} alt="Logo Radar do Rolê" className="h-6 w-6 rounded-lg object-cover border border-purple-500/30" />
+            <span>Radar do Rolê</span>
             <span className="text-purple-400">•</span>
             <span>São Paulo</span>
           </div>
           <p className="mt-2">
-            Encontre sua balada, restaurante ou motel ideal com lista VIP e estimativa de corrida.
+            O radar oficial da vida noturna em São Paulo com lista VIP, modo after e estimativa de corrida.
           </p>
 
           <div className="mt-3 flex items-center justify-center gap-4 text-xs font-medium">
@@ -641,7 +641,7 @@ function IndexPage() {
           </div>
 
           <p className="mt-3 text-[11px] text-slate-600">
-            © {new Date().getFullYear()} Qual o Rolê? • Onde a noite acontece em São Paulo. Feito com ❤️.
+            © {new Date().getFullYear()} Radar do Rolê • Onde a noite acontece em São Paulo. Feito com ❤️.
           </p>
         </div>
       </footer>

@@ -18,39 +18,39 @@ export function LogoPickerModal({
 
   const options = [
     {
-      id: "cocktail",
-      path: "/logo-cocktail.jpg",
-      title: "1. Taça de Cocktail & Drinks",
-      desc: "Taça de drink neon fundida ao ponto de interrogação '?', perfeita para restaurantes, bares e festas.",
-      badge: "Drinks & Restô",
+      id: "wave-bars",
+      path: "/logo-wave-bars.jpg",
+      title: "Estilo A: Equalizador Digital LED em Barras",
+      desc: "Barras verticais digitais de LED contornando o ponto de interrogação com letreiro 'Qual o Rolê?'.",
+      badge: "Tech & DJ",
     },
     {
-      id: "soundwave",
+      id: "wave-disc",
+      path: "/logo-wave-disc.jpg",
+      title: "Estilo B: Anel de Frequência DJ Circular",
+      desc: "Ondas circulares e graves pulsantes ao redor da interrogação com tipografia 'QUAL O ROLÊ?'.",
+      badge: "Festivais & Baladas",
+    },
+    {
+      id: "wave-fluid",
+      path: "/logo-wave-fluid.jpg",
+      title: "Estilo C: Fita de Frequência Fluida (Sine Wave)",
+      desc: "Onda sonora orgânica e fluida como uma fita líquida de neon formando a interrogação.",
+      badge: "Minimalista & Elegante",
+    },
+    {
+      id: "wave-radial",
+      path: "/logo-wave-radial.jpg",
+      title: "Estilo D: Ondas Radiais / Sonar Acústico",
+      desc: "Ondas sonoras concêntricas propagando pela cidade com ripples no chão e letreiro neon.",
+      badge: "Sonar Noturno",
+    },
+    {
+      id: "soundwave-base",
       path: "/logo-soundwave.jpg",
-      title: "2. Equalizador & Ondas Sonoras",
-      desc: "Barras de som e frequências musicais pulsando no centro com o '?' e letreiro 'QUAL O ROLÊ?'.",
-      badge: "Música & Baladas",
-    },
-    {
-      id: "flame",
-      path: "/logo-flame.jpg",
-      title: "3. Chama / Fogo Noturno",
-      desc: "Chama de alta energia representando noites quentes, pistas animadas e after/motéis.",
-      badge: "Alta Energia & Vibe",
-    },
-    {
-      id: "sparkle",
-      path: "/logo-sparkle.jpg",
-      title: "4. Estrela VIP & Bússola",
-      desc: "Estrela facetada de brilho noturno com o '?', estilo sofisticado para listas VIP e gastronomia.",
-      badge: "VIP & Luxo",
-    },
-    {
-      id: "globo",
-      path: "/logo-opcao-1.jpg",
-      title: "5. Globo Espelhado (Original)",
-      desc: "O modelo inicial com o globo espelhado de balada dentro do pino de GPS e interrogação.",
-      badge: "Clássico",
+      title: "Modelo Base: Equalizador Noturno",
+      desc: "A versão que você curtiu: pino de GPS com barras de som e interrogação central.",
+      badge: "Favorito Anterior",
     },
   ];
 
@@ -65,10 +65,10 @@ export function LogoPickerModal({
             </div>
             <div>
               <h2 className="text-lg font-black text-white sm:text-xl">
-                Modelos Centrais no Pino GPS: <span className="text-purple-400">Qual o Rolê?</span>
+                Linha Ondas Sonoras & Equalizador: <span className="text-purple-400">Qual o Rolê?</span>
               </h2>
               <p className="text-xs text-slate-400">
-                Mantivemos a base da Opção 1 e criamos novas ideias para o elemento central!
+                Explore os 4 novos estilos visuais criados a partir do modelo que você gostou!
               </p>
             </div>
           </div>

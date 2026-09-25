@@ -59,7 +59,12 @@ function IndexPage() {
 
   // Logo Picker State
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
-  const [currentLogo, setCurrentLogo] = useState("/logo-radar-neon.svg");
+  const [currentLogo, setCurrentLogo] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("preferred_logo") || "/logo-pulse-hologram.jpg";
+    }
+    return "/logo-pulse-hologram.jpg";
+  });
 
   // User Auth State
   const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
@@ -1186,7 +1191,12 @@ function IndexPage() {
         isOpen={isLogoPickerOpen}
         onClose={() => setIsLogoPickerOpen(false)}
         selectedLogo={currentLogo}
-        onSelectLogo={(logo) => setCurrentLogo(logo)}
+        onSelectLogo={(logo) => {
+          setCurrentLogo(logo);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("preferred_logo", logo);
+          }
+        }}
       />
 
       {/* Floating Mobile Bottom Navigation */}

@@ -18,6 +18,41 @@ export function LogoPickerModal({
 
   const options = [
     {
+      id: "pulse-hologram",
+      path: "/logo-pulse-hologram.jpg",
+      title: "🌌 Sonar Pulse: Skyline SP & HUD Noturno",
+      desc: "Transdutor subwoofer com ondas de choque acústicas, feixe 360° revelando os prédios e baladas de SP, aro de titânio e marca 'RADAR DO ROLÊ'.",
+      badge: "NOVO • Skyline SP",
+    },
+    {
+      id: "pulse-equalizer",
+      path: "/logo-pulse-equalizer.jpg",
+      title: "🎵 Sonar Pulse: Frequências & Equalizer 360°",
+      desc: "Anéis concêntricos formados por barras de frequências musicais do beat, feixe ciano de alta precisão e hotspots VIP da noite.",
+      badge: "NOVO • Equalizer",
+    },
+    {
+      id: "pulse-app-badge",
+      path: "/logo-pulse-app-badge.jpg",
+      title: "📱 Sonar Pulse: App Store Icon Squircle",
+      desc: "Formato de ícone oficial iOS/Android em vidro 3D e metal escovado, anéis ultravioleta de som e tipografia 'RADAR DO ROLÊ'.",
+      badge: "NOVO • App Icon",
+    },
+    {
+      id: "pulse-cyan-magenta",
+      path: "/logo-pulse-cyan-magenta.jpg",
+      title: "⚡ Sonar Pulse: Ciano & Magenta Neon",
+      desc: "Evolução do Audio Pulse calibrada para a paleta oficial neon do app, com lente de cúpula de vidro e anéis sonoros dinâmicos.",
+      badge: "NOVO • Neon Oficial",
+    },
+    {
+      id: "sonar-pulse",
+      path: "/logo-sonar-pulse.jpg",
+      title: "🌊 Sonar Audio Pulse (Base Escolhida)",
+      desc: "O modelo escolhido por você: transdutor acústico central, cúpula de vidro, ondas sonoras de pressão e feixe rotativo.",
+      badge: "BASE ELEITA",
+    },
+    {
       id: "sonar-cyan-pink",
       path: "/logo-sonar-cyan-pink.jpg",
       title: "🟣 Sonar Noturno Neon (Ciano & Magenta)",
@@ -37,13 +72,6 @@ export function LogoPickerModal({
       title: "🔷 Sonar Minimalista 2D (App Icon Clean)",
       desc: "Design plano moderno e arrojado: anéis de sonar em ciano, feixe de varredura cônica em magenta e hotspots limpos.",
       badge: "Sonar Minimalista",
-    },
-    {
-      id: "sonar-pulse",
-      path: "/logo-sonar-pulse.jpg",
-      title: "🌊 Sonar Acústico 3D & Lente de Vidro",
-      desc: "Transdutor e cúpula de sonar com anéis de onda acústica pulsante, feixe de scanner e hotspots multicoloridos da noite.",
-      badge: "Sonar 3D",
     },
     {
       id: "concept-vortex",

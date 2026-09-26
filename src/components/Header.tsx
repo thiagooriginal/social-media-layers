@@ -201,6 +201,17 @@ export function Header({
             </button>
           )}
 
+          {/* Switch to Projeto 2: Event-First Mobile */}
+          <a
+            href="/projeto2"
+            title="Experimentar Projeto 2: Modelo Event-First Mobile (O que tem hoje?)"
+            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-300 hover:border-cyan-400 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] active:scale-95"
+          >
+            <span className="text-sm">🚀</span>
+            <span className="hidden sm:inline">Projeto 2</span>
+            <span className="sm:hidden text-[10px] font-bold">P2 🚀</span>
+          </a>
+
           {/* Analytics / Insights Report Button */}
           {onOpenAnalytics && (
             <button

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Star,
@@ -16,6 +16,8 @@ import {
   Navigation,
   BarChart3,
   Instagram,
+  Flame,
+  CheckCircle2,
 } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
@@ -40,6 +42,29 @@ export function VenueModal({
   onOpenAnalytics,
 }: VenueModalProps) {
   const [copied, setCopied] = useState(false);
+  const [hasConfirmedEuVou, setHasConfirmedEuVou] = useState(false);
+  const [attendeesCount, setAttendeesCount] = useState(250);
+
+  useEffect(() => {
+    if (!venue) return;
+    const isGoing = typeof window !== "undefined" && localStorage.getItem(`role_eu_vou_${venue.id}`) === "true";
+    setHasConfirmedEuVou(isGoing);
+    setAttendeesCount(Math.round((venue.reviewsCount || 100) * 0.22 + 120 + (isGoing ? 1 : 0)));
+  }, [venue]);
+
+  const handleToggleEuVou = () => {
+    if (!venue) return;
+    const key = `role_eu_vou_${venue.id}`;
+    if (hasConfirmedEuVou) {
+      localStorage.removeItem(key);
+      setHasConfirmedEuVou(false);
+      setAttendeesCount((c) => Math.max(0, c - 1));
+    } else {
+      localStorage.setItem(key, "true");
+      setHasConfirmedEuVou(true);
+      setAttendeesCount((c) => c + 1);
+    }
+  };
 
   if (!venue) return null;
 
@@ -270,6 +295,43 @@ export function VenueModal({
             </a>
           )}
 
+          {/* Confirmação de Presença "Eu Vou" (Baladas) */}
+          {venue.category === "baladas" && (
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-rose-950/40 via-purple-950/30 to-[#0e1726] border border-rose-500/30 shadow-[0_0_20px_-5px_rgba(244,63,94,0.3)]">
+              <div>
+                <div className="flex items-center gap-1.5 text-rose-400 font-extrabold text-xs sm:text-sm">
+                  <Flame className="w-4 h-4 fill-rose-500 text-rose-500 animate-bounce" />
+                  <span>{attendeesCount} pessoas confirmadas hoje</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {hasConfirmedEuVou ? "Você confirmou presença nesta noite!" : "Confirme sua presença no radar deste rolê"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleToggleEuVou}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 ${
+                  hasConfirmedEuVou
+                    ? "bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                    : "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:brightness-110"
+                }`}
+              >
+                {hasConfirmedEuVou ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Confirmado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Flame className="w-3.5 h-3.5 fill-white" />
+                    <span>Eu Vou</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Transportation / Uber Card */}
           <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-[#0e1726] to-[#0a0e19] p-4 shadow-[0_0_25px_-5px_rgba(16,185,129,0.2)]">
             <div className="flex items-center justify-between">
@@ -313,18 +375,31 @@ export function VenueModal({
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Lineup & Atrações de Hoje</span>
               </h4>
-              <div className="mt-2 space-y-2">
-                {venue.lineup.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-2.5 text-xs font-medium text-slate-200"
-                  >
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-purple-500/20 text-[10px] font-black text-purple-300">
-                      {idx + 1}
-                    </span>
-                    <span>{item}</span>
-                  </div>
-                ))}
+              <div className="mt-2.5 space-y-2">
+                {venue.lineup.map((item, idx) => {
+                  const parts = item.split(" - ");
+                  const hasTime = parts.length > 1;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-purple-500/20 bg-purple-950/20 p-2.5 text-xs text-slate-200 hover:border-purple-500/40 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-purple-500/30 text-[10px] font-black text-purple-300">
+                          {idx + 1}
+                        </span>
+                        <span className="font-semibold text-slate-100 truncate">
+                          {hasTime ? parts[1] : item}
+                        </span>
+                      </div>
+                      {hasTime && (
+                        <span className="shrink-0 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-cyan-300 border border-cyan-500/30">
+                          {parts[0]}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

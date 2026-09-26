@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, MapPin, Heart, Clock, Car, Sparkles, ArrowRight, Baby, Instagram } from "lucide-react";
+import { Star, MapPin, Heart, Clock, Car, Sparkles, ArrowRight, Baby, Instagram, Flame } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
 
@@ -140,11 +140,34 @@ export function VenueCard({
             <span className="text-purple-300 font-bold">{distanceKm} km</span>
           </div>
 
-          <div className="flex items-center gap-1 font-bold text-emerald-400">
+          <a
+            href={`https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(venue.address)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              trackEvent(venue.id, "click_uber", venue.name);
+            }}
+            title="Pedir Uber com destino para cá"
+            className="flex items-center gap-1 font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/60 px-2 py-0.5 rounded-lg border border-emerald-500/30 transition-all cursor-pointer"
+          >
             <Car className="h-3.5 w-3.5 text-emerald-400" />
-            <span>~ R$ {uberEstimate.uberX}</span>
-          </div>
+            <span>Uber ~R$ {uberEstimate.uberX}</span>
+          </a>
         </div>
+
+        {/* Attendance Counter & Eu Vou Badge (Baladas) */}
+        {venue.category === "baladas" && (
+          <div className="mt-2.5 flex items-center justify-between text-xs px-1">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-rose-400">
+              <Flame className="w-3.5 h-3.5 fill-rose-500 text-rose-500 animate-pulse" />
+              <span>{Math.round(venue.reviewsCount * 0.22 + 120)} confirmados hoje</span>
+            </div>
+            <span className="text-[10px] text-amber-300/90 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+              🔥 Bombando
+            </span>
+          </div>
+        )}
 
         {/* Price & Instagram Row */}
         <div className="mt-3 flex items-center justify-between text-xs gap-2">

@@ -128,6 +128,8 @@ function IndexPage() {
   const [onlyWithHydro, setOnlyWithHydro] = useState(false);
   const [onlyWithPool, setOnlyWithPool] = useState(false);
   const [onlyAfterHours, setOnlyAfterHours] = useState(false);
+  const [onlyTrending, setOnlyTrending] = useState(false);
+  const [onlySnookerHookah, setOnlySnookerHookah] = useState(false);
 
   // Smart late-night detector: between 02:00 and 06:00 AM
   const isLateNightTime = useMemo(() => {
@@ -517,6 +519,21 @@ function IndexPage() {
         }
       }
 
+      // 13. Trending filter (Bombando hoje)
+      if (onlyTrending) {
+        const isTrending = venue.rating >= 4.8 || venue.reviewsCount >= 1800;
+        if (!isTrending) return false;
+      }
+
+      // 14. Snooker / Hookah filter
+      if (onlySnookerHookah) {
+        const hasSnookerOrHookah =
+          venue.amenities?.includes("sinuca") ||
+          venue.amenities?.includes("narguile") ||
+          venue.tags.some((t) => t.toLowerCase().includes("sinuca") || t.toLowerCase().includes("narguilé"));
+        if (!hasSnookerOrHookah) return false;
+      }
+
       return true;
     }).sort((a, b) => {
       // Sort by closest distance to userLocation
@@ -549,6 +566,8 @@ function IndexPage() {
     onlyWithHydro,
     onlyWithPool,
     onlyAfterHours,
+    onlyTrending,
+    onlySnookerHookah,
     searchQuery,
     userLocation,
   ]);
@@ -565,6 +584,8 @@ function IndexPage() {
     setOnlyWithHydro(false);
     setOnlyWithPool(false);
     setOnlyAfterHours(false);
+    setOnlyTrending(false);
+    setOnlySnookerHookah(false);
   };
 
   return (
@@ -1018,6 +1039,12 @@ function IndexPage() {
             onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
             onlyAfterHours={onlyAfterHours || currentScreen === "after"}
             onToggleAfterHours={() => setOnlyAfterHours(!onlyAfterHours)}
+            onlyTrending={onlyTrending}
+            onToggleTrending={() => setOnlyTrending(!onlyTrending)}
+            onlySnookerHookah={onlySnookerHookah}
+            onToggleSnookerHookah={() => setOnlySnookerHookah(!onlySnookerHookah)}
+            onUseCurrentGps={handleUseCurrentGps}
+            isGpsActive={isGpsActive}
           />
 
           {/* Modo After Active Banner */}
@@ -1098,7 +1125,9 @@ function IndexPage() {
                 onlyOpenToday ||
                 onlyVipOrFree ||
                 onlyWithParking ||
-                onlyAfterHours) && (
+                onlyAfterHours ||
+                onlyTrending ||
+                onlySnookerHookah) && (
                 <button
                   onClick={handleResetFilters}
                   className="flex items-center gap-1 font-bold text-purple-400 hover:text-purple-300"
@@ -1108,6 +1137,54 @@ function IndexPage() {
                 </button>
               )}
             </div>
+
+            {/* 🔥 Bombando Hoje em SP: Highlight Section */}
+            {(currentScreen === "baladas" || activeTab === "baladas") && !searchQuery && selectedGenre === "all" && !onlyAfterHours && (
+              <div className="mb-6 rounded-3xl border border-rose-500/30 bg-gradient-to-r from-rose-950/40 via-[#0e1726]/80 to-purple-950/40 p-4 sm:p-5 shadow-[0_0_25px_rgba(244,63,94,0.15)]">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2.5 w-2.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                    <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-rose-300">
+                      Bombando Hoje na Noite Paulistana
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-slate-400 hidden sm:inline">
+                    Casas com maior volume de confirmações hoje
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {trendingVenues.slice(0, 3).map((v) => (
+                    <div
+                      key={`trending-${v.id}`}
+                      onClick={() => setActiveVenue(v)}
+                      className="group relative flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 p-2.5 hover:border-rose-500/50 hover:bg-rose-950/20 transition-all cursor-pointer"
+                    >
+                      <img
+                        src={v.image}
+                        alt={v.name}
+                        className="h-14 w-14 rounded-xl object-cover group-hover:scale-105 transition-transform shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1 text-[10px] text-rose-400 font-bold">
+                          <Flame className="w-3 h-3 fill-rose-500 text-rose-500" />
+                          <span>{Math.round(v.reviewsCount * 0.22 + 120)} confirmados</span>
+                        </div>
+                        <p className="text-xs font-bold text-white truncate group-hover:text-rose-200 transition-colors">
+                          {v.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {v.neighborhood} • {v.subType}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Venues Grid */}
             {filteredVenues.length > 0 ? (

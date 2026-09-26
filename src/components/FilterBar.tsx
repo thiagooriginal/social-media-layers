@@ -27,6 +27,12 @@ interface FilterBarProps {
   onToggleWithHydro?: () => void;
   onlyWithPool?: boolean;
   onToggleWithPool?: () => void;
+  onlyTrending?: boolean;
+  onToggleTrending?: () => void;
+  onlySnookerHookah?: boolean;
+  onToggleSnookerHookah?: () => void;
+  onUseCurrentGps?: () => void;
+  isGpsActive?: boolean;
 }
 
 export function FilterBar({
@@ -53,6 +59,12 @@ export function FilterBar({
   onToggleWithHydro,
   onlyWithPool,
   onToggleWithPool,
+  onlyTrending = false,
+  onToggleTrending,
+  onlySnookerHookah = false,
+  onToggleSnookerHookah,
+  onUseCurrentGps,
+  isGpsActive = false,
 }: FilterBarProps) {
   const isBaladas = category === "baladas";
   const isMoteis = category === "moteis";
@@ -112,9 +124,94 @@ export function FilterBar({
         </div>
       </div>
 
+      {/* ⚡ 1-Tap Quick Filters: QUAL O ROLÊ HOJE? */}
+      {category !== "favorites" && (
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {/* Bombando Agora */}
+          {onToggleTrending && (
+            <button
+              type="button"
+              onClick={onToggleTrending}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                onlyTrending
+                  ? "border-rose-500 bg-rose-500/25 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.4)]"
+                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-rose-500/40 hover:text-white"
+              }`}
+            >
+              <span className="text-rose-400">🔥</span>
+              <span>Bombando Hoje</span>
+            </button>
+          )}
+
+          {/* Perto de Você (GPS) */}
+          {onUseCurrentGps && (
+            <button
+              type="button"
+              onClick={onUseCurrentGps}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                isGpsActive
+                  ? "border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-cyan-500/40 hover:text-white"
+              }`}
+            >
+              <span className="text-cyan-400">📍</span>
+              <span>{isGpsActive ? "GPS Ao Vivo" : "Perto de Você"}</span>
+            </button>
+          )}
+
+          {/* Entrada Free / VIP */}
+          {onToggleVipOrFree && (
+            <button
+              type="button"
+              onClick={onToggleVipOrFree}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                onlyVipOrFree
+                  ? "border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+              }`}
+            >
+              <span className="text-emerald-400">🎟️</span>
+              <span>Entrada Free / VIP</span>
+            </button>
+          )}
+
+          {/* Modo After (5h+ / 24h) */}
+          {onToggleAfterHours && (
+            <button
+              type="button"
+              onClick={onToggleAfterHours}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                onlyAfterHours
+                  ? "border-amber-400 bg-amber-500/20 text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-amber-500/40 hover:text-white"
+              }`}
+            >
+              <span>🌙</span>
+              <span>After (5h+ / 24h)</span>
+            </button>
+          )}
+
+          {/* Sinuca & Hookah */}
+          {onToggleSnookerHookah && (
+            <button
+              type="button"
+              onClick={onToggleSnookerHookah}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
+                onlySnookerHookah
+                  ? "border-teal-400 bg-teal-500/20 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.4)]"
+                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-teal-500/40 hover:text-white"
+              }`}
+            >
+              <span>🎱</span>
+              <span>Sinuca & Narguilé</span>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Sub-category / Style Chips */}
       {category !== "favorites" && (
-        <div className="mt-3.5 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {/* Baladas genres */}
           {isBaladas &&
             GENRES.map((g) => {

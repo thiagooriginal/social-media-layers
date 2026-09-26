@@ -1045,6 +1045,7 @@ function IndexPage() {
             onToggleSnookerHookah={() => setOnlySnookerHookah(!onlySnookerHookah)}
             onUseCurrentGps={handleUseCurrentGps}
             isGpsActive={isGpsActive}
+            onOpenCustomRole={() => handleNavigate("custom-role")}
           />
 
           {/* Modo After Active Banner */}
@@ -1138,51 +1139,45 @@ function IndexPage() {
               )}
             </div>
 
-            {/* 🔥 Bombando Hoje em SP: Highlight Section */}
-            {(currentScreen === "baladas" || activeTab === "baladas") && !searchQuery && selectedGenre === "all" && !onlyAfterHours && (
-              <div className="mb-6 rounded-3xl border border-rose-500/30 bg-gradient-to-r from-rose-950/40 via-[#0e1726]/80 to-purple-950/40 p-4 sm:p-5 shadow-[0_0_25px_rgba(244,63,94,0.15)]">
-                <div className="flex items-center justify-between mb-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-2.5 w-2.5 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-                    </span>
-                    <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-rose-300">
-                      Bombando Hoje na Noite Paulistana
-                    </h3>
-                  </div>
-                  <span className="text-[11px] text-slate-400 hidden sm:inline">
-                    Casas com maior volume de confirmações hoje
-                  </span>
-                </div>
+            {/* ✨ Personalize o Seu Rolê (Matchmaker Direct Banner) */}
+            {!searchQuery && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => handleNavigate("custom-role")}
+                  className="group relative w-full overflow-hidden rounded-3xl border-2 border-fuchsia-500/50 bg-gradient-to-r from-purple-950/80 via-[#180a2a] to-cyan-950/80 p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.01] active:scale-95 hover:border-cyan-400 hover:shadow-[0_12px_40px_rgba(217,70,239,0.35)] cursor-pointer shadow-xl"
+                >
+                  <div className="absolute top-0 right-0 -mr-10 -mt-10 h-36 w-36 rounded-full bg-gradient-to-br from-fuchsia-600/30 to-cyan-500/20 blur-2xl pointer-events-none" />
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {trendingVenues.slice(0, 3).map((v) => (
-                    <div
-                      key={`trending-${v.id}`}
-                      onClick={() => setActiveVenue(v)}
-                      className="group relative flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 p-2.5 hover:border-rose-500/50 hover:bg-rose-950/20 transition-all cursor-pointer"
-                    >
-                      <img
-                        src={v.image}
-                        alt={v.name}
-                        className="h-14 w-14 rounded-xl object-cover group-hover:scale-105 transition-transform shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1 text-[10px] text-rose-400 font-bold">
-                          <Flame className="w-3 h-3 fill-rose-500 text-rose-500" />
-                          <span>{Math.round(v.reviewsCount * 0.22 + 120)} confirmados</span>
+                  <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start sm:items-center gap-3.5">
+                      <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-2xl sm:text-3xl border border-fuchsia-400/50 shadow-[0_0_20px_rgba(217,70,239,0.4)] group-hover:scale-105 group-hover:rotate-6 transition-transform">
+                        ✨
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="rounded-full bg-gradient-to-r from-fuchsia-500/30 to-cyan-500/30 px-2 py-0.5 text-[9px] font-extrabold text-cyan-300 border border-cyan-400/40 uppercase tracking-wider">
+                            Filtro Exclusivo • 100% Match
+                          </span>
+                          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-black text-amber-300 border border-amber-500/30">
+                            PERSONALIZAR
+                          </span>
                         </div>
-                        <p className="text-xs font-bold text-white truncate group-hover:text-rose-200 transition-colors">
-                          {v.name}
-                        </p>
-                        <p className="text-[10px] text-slate-400 truncate">
-                          {v.neighborhood} • {v.subType}
+                        <h3 className="text-base sm:text-lg font-black text-white mt-1 group-hover:text-cyan-300 transition-colors">
+                          Personalize o Seu Rolê
+                        </h3>
+                        <p className="mt-0.5 text-xs text-slate-300 max-w-xl leading-relaxed">
+                          Combine suas preferências (ex: 🎱 Sinuca + 💨 Narguilé + 🎸 Ao Vivo + 🪩 Pista de Dança) e veja apenas quem tem tudo junto!
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="shrink-0 self-end sm:self-center flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-4 py-2.5 text-xs sm:text-sm font-black text-white shadow-lg shadow-fuchsia-600/40 group-hover:from-fuchsia-500 group-hover:to-cyan-500 transition-all">
+                      <span>Personalizar Agora</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                </button>
               </div>
             )}
 

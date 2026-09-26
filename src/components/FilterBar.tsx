@@ -33,6 +33,7 @@ interface FilterBarProps {
   onToggleSnookerHookah?: () => void;
   onUseCurrentGps?: () => void;
   isGpsActive?: boolean;
+  onOpenCustomRole?: () => void;
 }
 
 export function FilterBar({
@@ -65,6 +66,7 @@ export function FilterBar({
   onToggleSnookerHookah,
   onUseCurrentGps,
   isGpsActive = false,
+  onOpenCustomRole,
 }: FilterBarProps) {
   const isBaladas = category === "baladas";
   const isMoteis = category === "moteis";
@@ -127,22 +129,20 @@ export function FilterBar({
       {/* ⚡ 1-Tap Quick Filters: QUAL O ROLÊ HOJE? */}
       {category !== "favorites" && (
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {/* Bombando Agora */}
-          {onToggleTrending && (
+          {/* ✨ Personalize o Seu Rolê */}
+          {onOpenCustomRole && (
             <button
               type="button"
-              onClick={onToggleTrending}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all ${
-                onlyTrending
-                  ? "border-rose-500 bg-rose-500/25 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.4)]"
-                  : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-rose-500/40 hover:text-white"
-              }`}
+              onClick={onOpenCustomRole}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-fuchsia-500/50 bg-gradient-to-r from-fuchsia-600/30 via-purple-600/25 to-cyan-600/30 px-3.5 py-1.5 text-xs font-extrabold text-cyan-200 hover:border-cyan-400 hover:text-white shadow-[0_0_15px_rgba(217,70,239,0.35)] transition-all cursor-pointer active:scale-95"
             >
-              <span className="text-rose-400">🔥</span>
-              <span>Bombando Hoje</span>
+              <span>✨</span>
+              <span>Personalize Seu Rolê</span>
+              <span className="rounded bg-fuchsia-500/30 px-1 py-0.2 text-[8px] font-black text-fuchsia-200 uppercase">
+                Match
+              </span>
             </button>
           )}
-
           {/* Perto de Você (GPS) */}
           {onUseCurrentGps && (
             <button

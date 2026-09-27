@@ -1279,6 +1279,11 @@ function IndexPage() {
         onClose={() => setIsProfileModalOpen(false)}
         user={user}
         onLogout={() => setUser(null)}
+        onOpenAnalytics={() => {
+          setAnalyticsVenueId(undefined);
+          setIsAnalyticsOpen(true);
+        }}
+        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
       />
 
       {/* Partner Performance & Insights Modal (Instagram style metrics) */}

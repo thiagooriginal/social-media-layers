@@ -1,5 +1,5 @@
 import React from "react";
-import { X, User, Phone, Mail, Ticket, Sparkles, LogOut, CheckCircle, Calendar, Users, QrCode } from "lucide-react";
+import { X, User, Phone, Mail, Ticket, Sparkles, LogOut, CheckCircle, Calendar, Users, QrCode, BarChart3, Plus, Building2 } from "lucide-react";
 import { UserProfile, getUserVipPasses, logoutUser, UserVipPass } from "../services/authService";
 import { DigitalPassModal } from "./DigitalPassModal";
 
@@ -9,6 +9,8 @@ interface UserProfileModalProps {
   user: UserProfile | null;
   onLogout: () => void;
   onOpenVenueVip?: (venueId: string) => void;
+  onOpenAnalytics?: () => void;
+  onOpenRegisterModal?: () => void;
 }
 
 export function UserProfileModal({
@@ -16,6 +18,8 @@ export function UserProfileModal({
   onClose,
   user,
   onLogout,
+  onOpenAnalytics,
+  onOpenRegisterModal,
 }: UserProfileModalProps) {
   if (!isOpen || !user) return null;
 
@@ -43,28 +47,83 @@ export function UserProfileModal({
 
         {/* User Profile Card */}
         <div className="flex items-center gap-4 border-b border-white/10 pb-5">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 text-2xl font-black text-white shadow-[0_0_25px_rgba(168,85,247,0.5)]">
-            {user.name.charAt(0).toUpperCase()}
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 text-2xl font-black text-white shadow-[0_0_25px_rgba(168,85,247,0.5)] shrink-0">
+            {user.role === "partner" ? "🏢" : user.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-lg font-black text-white truncate">{user.name}</h3>
-              <span className="rounded-full bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 text-[10px] font-extrabold text-purple-300">
-                VIP
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${
+                  user.role === "partner"
+                    ? "bg-cyan-500/20 border-cyan-400 text-cyan-300"
+                    : "bg-purple-500/20 border-purple-500/40 text-purple-300"
+                }`}
+              >
+                {user.role === "partner" ? "🏢 Parceiro / Estabelecimento" : "VIP"}
               </span>
             </div>
+
+            {user.businessName && (
+              <p className="text-xs font-bold text-cyan-300 truncate mt-0.5">
+                🏛️ {user.businessName} {user.neighborhood ? `• ${user.neighborhood}` : ""}
+              </p>
+            )}
+
             <p className="text-xs text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-              <Mail className="h-3 w-3 text-slate-500" />
-              <span>{user.email}</span>
+              <Mail className="h-3 w-3 text-slate-500 shrink-0" />
+              <span className="truncate">{user.email}</span>
             </p>
             {user.whatsapp && (
               <p className="text-xs text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-                <Phone className="h-3 w-3 text-slate-500" />
+                <Phone className="h-3 w-3 text-slate-500 shrink-0" />
                 <span>{user.whatsapp}</span>
               </p>
             )}
           </div>
         </div>
+
+        {/* Partner Management Tools (Only for Established Partners) */}
+        {user.role === "partner" && (
+          <div className="mt-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-purple-950/20 to-black/40 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="h-4 w-4 text-cyan-400" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300">
+                Painel do Estabelecimento Parceiro
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {onOpenAnalytics && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenAnalytics();
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/15 p-2.5 text-xs font-black text-cyan-300 hover:bg-cyan-500/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Ver Métricas & Leads</span>
+                </button>
+              )}
+
+              {onOpenRegisterModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenRegisterModal();
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-purple-500/40 bg-purple-500/15 p-2.5 text-xs font-black text-purple-300 hover:bg-purple-500/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Cadastrar Local / Evento</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Passes Section */}
         <div className="mt-6">

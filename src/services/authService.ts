@@ -1,3 +1,5 @@
+import { supabase } from "../integrations/supabase/client";
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -5,6 +7,9 @@ export interface UserProfile {
   whatsapp: string;
   avatarUrl?: string;
   role: "user" | "partner" | "admin";
+  businessName?: string;
+  venueCategory?: "baladas" | "restaurantes" | "moteis";
+  neighborhood?: string;
   createdAt: string;
 }
 
@@ -49,22 +54,57 @@ function notifyAuthChange(user: UserProfile | null) {
   listeners.forEach((fn) => fn(user));
 }
 
-export async function loginUser(email: string, _password?: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+export async function loginUser(
+  email: string,
+  _password?: string
+): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  const cleanEmail = email.toLowerCase().trim();
   try {
-    // Check if we have a locally stored user or create one
+    // 1. Try to fetch profile from Supabase
+    const { data: dbProfiles, error: dbError } = await (supabase as any)
+      .from("profiles")
+      .select("*")
+      .eq("email", cleanEmail)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    const dbProfile = dbProfiles && dbProfiles.length > 0 ? dbProfiles[0] : null;
+
+    if (dbProfile && !dbError) {
+      const user: UserProfile = {
+        id: dbProfile.id,
+        name: dbProfile.name,
+        email: dbProfile.email,
+        whatsapp: dbProfile.whatsapp,
+        role: dbProfile.role || "user",
+        businessName: dbProfile.business_name || undefined,
+        venueCategory: dbProfile.venue_category || undefined,
+        neighborhood: dbProfile.neighborhood || undefined,
+        createdAt: dbProfile.created_at,
+      };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+      }
+      notifyAuthChange(user);
+      return { success: true, user };
+    }
+
+    // 2. Fallback to local storage or create mock profile for testing
     let user = getCurrentUser();
-    if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
+    if (!user || user.email.toLowerCase() !== cleanEmail) {
       user = {
         id: "usr_" + Math.random().toString(36).substring(2, 9),
-        name: email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        email,
+        name: cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        email: cleanEmail,
         whatsapp: "(11) 98765-4321",
         role: "user",
         createdAt: new Date().toISOString(),
       };
     }
 
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    }
     notifyAuthChange(user);
     return { success: true, user };
   } catch (err: any) {
@@ -77,18 +117,59 @@ export async function registerUser(data: {
   email: string;
   whatsapp: string;
   password?: string;
+  role?: "user" | "partner" | "admin";
+  businessName?: string;
+  venueCategory?: "baladas" | "restaurantes" | "moteis";
+  neighborhood?: string;
 }): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  const cleanEmail = data.email.toLowerCase().trim();
   try {
+    const userRole = data.role || "user";
+    let newUserId = "usr_" + Math.random().toString(36).substring(2, 9);
+
+    // 1. Try to persist into Supabase profiles
+    try {
+      const { data: dbData, error: dbError } = await (supabase as any)
+        .from("profiles")
+        .insert([
+          {
+            name: data.name.trim(),
+            email: cleanEmail,
+            whatsapp: data.whatsapp.trim(),
+            role: userRole,
+            business_name: data.businessName?.trim() || null,
+            venue_category: data.venueCategory || null,
+            neighborhood: data.neighborhood?.trim() || null,
+          },
+        ])
+        .select()
+        .single();
+
+      if (dbData && !dbError) {
+        newUserId = dbData.id;
+      } else if (dbError) {
+        console.warn("Supabase profile save notice:", dbError.message);
+      }
+    } catch (e) {
+      console.warn("Could not save to Supabase profiles:", e);
+    }
+
+    // 2. Set current active user profile
     const user: UserProfile = {
-      id: "usr_" + Math.random().toString(36).substring(2, 9),
-      name: data.name,
-      email: data.email,
-      whatsapp: data.whatsapp,
-      role: "user",
+      id: newUserId,
+      name: data.name.trim(),
+      email: cleanEmail,
+      whatsapp: data.whatsapp.trim(),
+      role: userRole,
+      businessName: data.businessName?.trim(),
+      venueCategory: data.venueCategory,
+      neighborhood: data.neighborhood?.trim(),
       createdAt: new Date().toISOString(),
     };
 
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    }
     notifyAuthChange(user);
     return { success: true, user };
   } catch (err: any) {

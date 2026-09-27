@@ -1349,6 +1349,15 @@ function IndexPage() {
               <span>✨</span>
               <span>Cadastrar meu local</span>
             </button>
+            <span className="text-slate-700">•</span>
+            <a
+              href="/admin"
+              className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold transition-colors"
+              title="Acesso exclusivo para administradores"
+            >
+              <span>👑</span>
+              <span>Acesso Master</span>
+            </a>
           </div>
 
           <p className="mt-3 text-[11px] text-slate-600">

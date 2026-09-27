@@ -96,6 +96,7 @@ export async function getVenues(): Promise<Venue[]> {
       tagline: item.tagline || "",
       genre: item.genre,
       cuisine: item.cuisine,
+      motelStyle: item.motel_style || item.motelStyle,
       subType: item.sub_type || item.subType || "Geral",
       subTypeEmoji: item.sub_type_emoji || item.subTypeEmoji || "✨",
       neighborhood: item.neighborhood,
@@ -119,12 +120,21 @@ export async function getVenues(): Promise<Venue[]> {
       isOpenBar: Boolean(item.is_open_bar),
       isWomenFree: Boolean(item.is_women_free),
       hasParking: Boolean(item.has_parking),
+      hasHydro: Boolean(item.has_hydro),
+      hasPool: Boolean(item.has_pool),
+      hasPrivateGarage: Boolean(item.has_private_garage),
+      periodHours: item.period_hours,
+      isAfterHours: Boolean(item.is_after_hours),
+      closesAt: item.closes_at,
       whatsapp: item.whatsapp,
       instagram: item.instagram || "",
       highlight: item.highlight || "",
       tags: item.tags || [],
       lineup: item.lineup || [],
       menuHighlights: item.menu_highlights || [],
+      amenities: item.amenities || [],
+      plan: item.plan,
+      planPrice: item.plan_price,
     }));
 
     return [...custom, ...mappedVenues];
@@ -232,6 +242,10 @@ export async function registerVenue(input: NewVenueInput): Promise<{
       image: input.image,
       open_hours: input.openHours,
       entry_price: input.entryPrice,
+      motel_style: input.motelStyle || null,
+      has_hydro: Boolean(input.hasHydro),
+      has_pool: Boolean(input.hasPool),
+      has_private_garage: Boolean(input.hasPrivateGarage),
       whatsapp: input.whatsapp,
       instagram: input.instagram || "",
       highlight: input.highlight || "",
@@ -257,6 +271,7 @@ export async function registerVenue(input: NewVenueInput): Promise<{
       tagline: input.tagline,
       genre: input.genre,
       cuisine: input.cuisine,
+      motelStyle: input.motelStyle,
       subType: input.subType,
       subTypeEmoji: input.subTypeEmoji,
       neighborhood: input.neighborhood,
@@ -292,5 +307,32 @@ export async function registerVenue(input: NewVenueInput): Promise<{
     return { success: true, venue: createdVenue };
   } catch (err: any) {
     return { success: false, error: err?.message || "Erro ao cadastrar local" };
+  }
+}
+
+// 5. Record Event Attendance ("🔥 Eu Vou")
+export async function recordEventAttendance(params: {
+  venueId: string;
+  eventId?: string;
+  userName?: string;
+  userWhatsapp?: string;
+}): Promise<boolean> {
+  try {
+    const { error } = await (supabase as any).from("event_confirmations").insert([
+      {
+        venue_id: params.venueId,
+        event_id: params.eventId || null,
+        user_name: params.userName || "Anônimo",
+        user_whatsapp: params.userWhatsapp || null,
+      },
+    ]);
+    if (error) {
+      console.warn("Could not save attendance to Supabase:", error.message);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn("Attendance record fallback to local:", e);
+    return false;
   }
 }

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
+import { recordEventAttendance } from "../services/venueService";
 
 interface VenueModalProps {
   venue: Venue | null;
@@ -63,6 +64,7 @@ export function VenueModal({
       localStorage.setItem(key, "true");
       setHasConfirmedEuVou(true);
       setAttendeesCount((c) => c + 1);
+      recordEventAttendance({ venueId: venue.id });
     }
   };
 

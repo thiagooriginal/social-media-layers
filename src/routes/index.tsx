@@ -747,42 +747,37 @@ function IndexPage() {
             <>
               {/* Navigation Cards (Menus Principais do App) */}
               <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-                {/* Destaque Principal: ✨ Monte Seu Rolê Perfeito */}
-                <div className="mb-5">
+                {/* Botão Compacto: ✨ Monte Seu Rolê Perfeito */}
+                <div className="mb-4">
                   <button
                     type="button"
                     onClick={() => handleNavigate("custom-role")}
-                    className="group relative w-full overflow-hidden rounded-3xl border-2 border-fuchsia-500/60 bg-gradient-to-r from-purple-950 via-[#180a2a] to-cyan-950/90 p-5 sm:p-6 text-left transition-all duration-300 hover:scale-[1.01] active:scale-95 hover:border-cyan-400 hover:shadow-[0_12px_45px_rgba(217,70,239,0.4)] cursor-pointer shadow-xl"
+                    className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-fuchsia-500/50 bg-gradient-to-r from-purple-950/80 via-[#180a2a]/90 to-cyan-950/80 p-3 sm:p-3.5 text-left transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_6px_25px_rgba(217,70,239,0.35)] active:scale-[0.99] cursor-pointer shadow-lg"
                   >
-                    <div className="absolute top-0 right-0 -mr-12 -mt-12 h-44 w-44 rounded-full bg-gradient-to-br from-fuchsia-600/30 to-cyan-500/20 blur-2xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-gradient-to-br from-fuchsia-600/20 to-cyan-500/10 blur-xl pointer-events-none" />
 
-                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start sm:items-center gap-4">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-3xl border border-fuchsia-400/50 shadow-[0_0_25px_rgba(217,70,239,0.4)] group-hover:scale-105 group-hover:rotate-3 transition-transform">
-                          ✨
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="rounded-full bg-gradient-to-r from-fuchsia-500/30 to-cyan-500/30 px-2.5 py-0.5 text-[10px] font-extrabold text-cyan-300 border border-cyan-400/40 uppercase tracking-wider">
-                              Filtro Exclusivo • 100% Match
-                            </span>
-                            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-black text-amber-300 border border-amber-500/30">
-                              NOVO
-                            </span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-black text-white mt-1 group-hover:text-cyan-300 transition-colors">
+                    <div className="relative flex items-center gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-xl border border-fuchsia-400/50 shadow-[0_0_15px_rgba(217,70,239,0.3)] group-hover:scale-105 group-hover:rotate-6 transition-transform">
+                        ✨
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-cyan-300 transition-colors truncate">
                             Monte Seu Rolê Perfeito
                           </h3>
-                          <p className="mt-1 text-xs text-slate-300 max-w-xl leading-relaxed">
-                            Combine suas preferências (ex: 🎱 Sinuca + 💨 Narguilé + 🎸 Ao Vivo + 🎤 Karaokê) e veja apenas os locais que têm <strong className="text-cyan-300">TUDO</strong> junto!
-                          </p>
+                          <span className="shrink-0 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[9px] font-extrabold text-cyan-300 border border-cyan-400/30">
+                            100% MATCH
+                          </span>
                         </div>
+                        <p className="text-[11px] sm:text-xs text-slate-300 truncate mt-0.5">
+                          Sinuca + Narguilé + Ao Vivo + Karaokê e mais
+                        </p>
                       </div>
+                    </div>
 
-                      <div className="shrink-0 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-5 py-3 text-xs sm:text-sm font-black text-white shadow-lg shadow-fuchsia-600/40 group-hover:from-fuchsia-500 group-hover:to-cyan-500 transition-all">
-                        <span>Montar Agora</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </div>
+                    <div className="relative shrink-0 flex items-center gap-1 rounded-xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-3.5 py-2 text-xs font-black text-white shadow-md group-hover:from-fuchsia-500 group-hover:to-cyan-500 transition-all ml-2">
+                      <span>Montar</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </div>
                   </button>
                 </div>

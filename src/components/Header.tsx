@@ -74,27 +74,27 @@ export function Header({
               onTriggerRadar?.();
             }
           }}
-          className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer group"
+          className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer group"
           title="Clique para ir à Página Inicial ou tocar no RADAR SP!"
         >
-          <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/50 bg-[#060810] shadow-[0_0_22px_-2px_rgba(168,85,247,0.7)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.7)] group-hover:scale-105 transition-all">
+          <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-purple-500/50 bg-[#060810] shadow-[0_0_22px_-2px_rgba(168,85,247,0.7)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,240,255,0.7)] group-hover:scale-105 transition-all">
             <img
               src={currentLogo}
               alt="Logo Radar do Rolê"
               className="h-full w-full object-cover"
             />
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 border border-[#070a11]"></span>
+              <span className="relative inline-flex h-full w-full rounded-full bg-emerald-500 border border-[#070a11]"></span>
             </span>
           </div>
 
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-black tracking-tight flex items-center leading-none">
+          <div className="shrink-0">
+            <h1 className="text-base sm:text-2xl font-black tracking-tight flex items-center leading-none whitespace-nowrap">
               <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
-              <span className="ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
+              <span className="ml-1 sm:ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
             </h1>
-            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate mt-0.5">
+            <p className="hidden xs:block text-[10px] sm:text-[11px] font-medium text-slate-400 truncate mt-0.5 whitespace-nowrap">
               São Paulo • Guia Noturno
             </p>
           </div>
@@ -172,45 +172,34 @@ export function Header({
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Quick neighborhood button for mobile */}
           <button
             onClick={() => setIsPickerOpen(!isPickerOpen)}
-            className="flex md:hidden items-center gap-1 rounded-xl border border-purple-500/30 bg-purple-950/40 px-2.5 py-1.5 text-xs text-slate-300 hover:border-purple-400 transition-all shrink-0"
+            className="flex md:hidden items-center gap-1 rounded-xl border border-purple-500/30 bg-purple-950/40 px-2 py-1.5 text-xs text-slate-300 hover:border-purple-400 transition-all shrink-0"
+            title="Mudar Bairro"
           >
-            <MapPin className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-            <span className="truncate max-w-[80px] xs:max-w-[100px] text-[11px] font-bold text-slate-200">
+            <MapPin className="h-3 w-3 text-cyan-400 shrink-0" />
+            <span className="truncate max-w-[68px] xs:max-w-[90px] text-[11px] font-bold text-slate-200">
               {currentNeighborhood.name}
             </span>
           </button>
 
-          {/* Custom Role / Monte Seu Rolê Matchmaker Button */}
+          {/* Custom Role / Monte Seu Rolê Matchmaker Button (Desktop Only) */}
           {onOpenCustomRole && (
             <button
               onClick={onOpenCustomRole}
               title="Monte seu Rolê Perfeito (Filtre por Sinuca, Narguilé, Ao Vivo, Karaokê...)"
-              className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer ${
+              className={`hidden md:flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer ${
                 isCustomRoleActive
                   ? "border-cyan-400 bg-gradient-to-r from-cyan-600 via-fuchsia-600 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.6)]"
                   : "border-cyan-500/40 bg-cyan-950/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.25)]"
               }`}
             >
               <Sparkles className="h-3.5 w-3.5 text-cyan-300 shrink-0" />
-              <span className="hidden sm:inline">Monte Seu Rolê</span>
-              <span className="sm:hidden text-[11px] font-black">Rolê ✨</span>
+              <span>Monte Seu Rolê</span>
             </button>
           )}
-
-          {/* Switch to Projeto 2: Event-First Mobile */}
-          <a
-            href="/projeto2"
-            title="Experimentar Projeto 2: Modelo Event-First Mobile (O que tem hoje?)"
-            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-300 hover:border-cyan-400 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] active:scale-95"
-          >
-            <span className="text-sm">🚀</span>
-            <span className="hidden sm:inline">Projeto 2</span>
-            <span className="sm:hidden text-[10px] font-bold">P2 🚀</span>
-          </a>
 
           {/* Analytics / Insights Report Button */}
           {onOpenAnalytics && (
@@ -228,7 +217,7 @@ export function Header({
           <a
             href="/parceiro"
             title="Portal de Estabelecimentos e Donos de Baladas"
-            className="flex items-center gap-1 rounded-xl border border-purple-500/40 bg-purple-500/15 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)]"
+            className="flex items-center gap-1 rounded-xl border border-purple-500/40 bg-purple-500/15 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)] shrink-0"
           >
             <span className="text-purple-400 font-extrabold">+</span>
             <span className="hidden lg:inline">Cadastrar Local</span>
@@ -239,7 +228,7 @@ export function Header({
           {user ? (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.3)] active:scale-95"
+              className="flex items-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.3)] active:scale-95 shrink-0"
               title="Meu Perfil"
             >
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-[11px] font-black text-white shrink-0">
@@ -250,7 +239,7 @@ export function Header({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-slate-200 transition-all hover:border-purple-400/50 hover:bg-white/10 hover:text-white active:scale-95"
+              className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-slate-200 transition-all hover:border-purple-400/50 hover:bg-white/10 hover:text-white active:scale-95 shrink-0"
               title="Entrar na Conta"
             >
               <UserIcon className="h-3.5 w-3.5 text-purple-400 shrink-0" />

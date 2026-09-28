@@ -224,15 +224,16 @@ export function Header({
             </button>
           )}
 
-          {/* Register Venue / Anuncie Button */}
-          <button
-            onClick={onOpenRegisterModal}
+          {/* Register Venue / Portal de Parceiros */}
+          <a
+            href="/parceiro"
+            title="Portal de Estabelecimentos e Donos de Baladas"
             className="flex items-center gap-1 rounded-xl border border-purple-500/40 bg-purple-500/15 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-purple-200 transition-all hover:border-purple-400 hover:bg-purple-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(168,85,247,0.4)]"
           >
             <span className="text-purple-400 font-extrabold">+</span>
             <span className="hidden lg:inline">Cadastrar Local</span>
-            <span className="lg:hidden text-[11px]">Anuncie</span>
-          </button>
+            <span className="lg:hidden text-[11px]">Parceiro</span>
+          </a>
 
           {/* User Account / Profile */}
           {user ? (

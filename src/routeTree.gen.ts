@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as Projeto2RouteImport } from './routes/projeto2'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParceiroRoute = ParceiroRouteImport.update({
+  id: '/parceiro',
+  path: '/parceiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Projeto2Route = Projeto2RouteImport.update({
   id: '/projeto2',
   path: '/projeto2',
@@ -32,30 +38,34 @@ const Projeto2Route = Projeto2RouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/projeto2'
+  fullPaths: '/' | '/admin' | '/parceiro' | '/projeto2'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/projeto2'
-  id: '__root__' | '/' | '/admin' | '/projeto2'
+  to: '/' | '/admin' | '/parceiro' | '/projeto2'
+  id: '__root__' | '/' | '/admin' | '/parceiro' | '/projeto2'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ParceiroRoute: typeof ParceiroRoute
   Projeto2Route: typeof Projeto2Route
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parceiro': {
+      id: '/parceiro'
+      path: '/parceiro'
+      fullPath: '/parceiro'
+      preLoaderRoute: typeof ParceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projeto2': {
       id: '/projeto2'
       path: '/projeto2'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ParceiroRoute: ParceiroRoute,
   Projeto2Route: Projeto2Route,
 }
 export const routeTree = rootRouteImport

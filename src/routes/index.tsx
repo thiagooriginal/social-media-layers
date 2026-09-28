@@ -592,7 +592,17 @@ function IndexPage() {
     <div className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-purple-600 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Radar Intro Splash Animation (Abertura estilo scanner de satélite) */}
       {showRadarIntro && (
-        <RadarIntroSplash onFinish={() => setShowRadarIntro(false)} />
+        <RadarIntroSplash
+          onFinish={() => {
+            setShowRadarIntro(false);
+            if (!user) {
+              const dismissed = typeof window !== "undefined" && sessionStorage.getItem("has_seen_login_prompt");
+              if (!dismissed) {
+                setIsAuthModalOpen(true);
+              }
+            }
+          }}
+        />
       )}
 
       {/* Header */}
@@ -1269,7 +1279,12 @@ function IndexPage() {
       {/* Auth / Login / Signup Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("has_seen_login_prompt", "true");
+          }
+        }}
         onSuccess={(loggedUser) => setUser(loggedUser)}
       />
 

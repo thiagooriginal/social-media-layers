@@ -744,7 +744,8 @@ html.light textarea::placeholder {
 }
 
 /* ========================================================================== */
-/* TIPOGRAFIA E CONTRASTE DE CORES NO TEMA CLARO                              */
+/* TIPOGRAFIA, CONTRASTE E LEGIBILIDADE NO TEMA CLARO                         */
+/* Nenhuma letra fica apagada, desbotada ou ilegível no fundo claro           */
 /* ========================================================================== */
 
 html.light h1,
@@ -753,49 +754,273 @@ html.light h3,
 html.light h4,
 html.light h5,
 html.light h6 {
-  color: #0f172a;
+  color: #0f172a !important;
 }
 
 html.light p {
-  color: #475569;
-}
-
-html.light .text-slate-100,
-html.light .text-slate-200 {
   color: #1e293b !important;
 }
 
+/* Fim dos textos cinzas apagados: contraste máximo no fundo claro */
+html.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200 {
+  color: #0f172a !important;
+  font-weight: 600;
+}
+
 html.light .text-slate-300 {
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
 html.light .text-slate-400 {
-  color: #64748b !important;
+  color: #334155 !important;
+  font-weight: 500;
 }
 
 html.light .text-slate-500 {
-  color: #94a3b8 !important;
+  color: #475569 !important;
+  font-weight: 500;
 }
 
-/* Cores de destaque textuais com excelente legibilidade */
-html.light .text-cyan-400 { color: #0284c7 !important; }
-html.light .text-cyan-300 { color: #0369a1 !important; }
-html.light .text-cyan-200 { color: #0e7490 !important; }
-html.light .text-fuchsia-400 { color: #c026d3 !important; }
-html.light .text-fuchsia-300 { color: #a21caf !important; }
-html.light .text-fuchsia-200 { color: #86198f !important; }
-html.light .text-purple-400 { color: #9333ea !important; }
-html.light .text-purple-300 { color: #7e22ce !important; }
-html.light .text-emerald-400 { color: #059669 !important; }
-html.light .text-emerald-300 { color: #047857 !important; }
-html.light .text-amber-400 { color: #d97706 !important; }
-html.light .text-amber-300 { color: #b45309 !important; }
-html.light .text-rose-400 { color: #e11d48 !important; }
-html.light .text-rose-300 { color: #be123c !important; }
+html.light .text-slate-600 {
+  color: #334155 !important;
+}
+
+html.light .text-gray-400,
+html.light .text-zinc-400 {
+  color: #334155 !important;
+}
+
+/* ========================================================================== */
+/* CORES DE DESTAQUE TEXTUAIS DE ALTO CONTRASTE (FIM DOS TONS CLAROS NO BRANCO)*/
+/* ========================================================================== */
+
+/* Cyan: de neon pastel para ciano profundo e oceânico (contraste > 5.5:1) */
+html.light .text-cyan-100,
+html.light .text-cyan-200,
+html.light .text-cyan-300 {
+  color: #0e7490 !important;
+  font-weight: 700;
+}
+html.light .text-cyan-400,
+html.light .text-cyan-500 {
+  color: #0369a1 !important;
+  font-weight: 700;
+}
+
+/* Fuchsia / Magenta: de rosa pastel para fúcsia/amora escuro e nítido */
+html.light .text-fuchsia-100,
+html.light .text-fuchsia-200,
+html.light .text-fuchsia-300 {
+  color: #86198f !important;
+  font-weight: 700;
+}
+html.light .text-fuchsia-400,
+html.light .text-fuchsia-500 {
+  color: #a21caf !important;
+  font-weight: 700;
+}
+
+/* Purple / Violeta: púrpura nobre com alto contraste */
+html.light .text-purple-100,
+html.light .text-purple-200,
+html.light .text-purple-300 {
+  color: #6b21a8 !important;
+  font-weight: 700;
+}
+html.light .text-purple-400,
+html.light .text-purple-500 {
+  color: #7e22ce !important;
+  font-weight: 700;
+}
+
+/* Rose / Red: vermelho rubi de alta legibilidade */
+html.light .text-rose-100,
+html.light .text-rose-200,
+html.light .text-rose-300 {
+  color: #9f1239 !important;
+  font-weight: 700;
+}
+html.light .text-rose-400,
+html.light .text-rose-500 {
+  color: #be123c !important;
+  font-weight: 700;
+}
+
+/* Pink: rosa forte */
+html.light .text-pink-100,
+html.light .text-pink-200,
+html.light .text-pink-300 {
+  color: #9d174d !important;
+  font-weight: 700;
+}
+html.light .text-pink-400,
+html.light .text-pink-500 {
+  color: #be185d !important;
+  font-weight: 700;
+}
+
+/* Amber / Laranja / Valores de preços: âmbar escuro / caramelo (fim do amarelo apagado) */
+html.light .text-amber-100,
+html.light .text-amber-200,
+html.light .text-amber-300 {
+  color: #92400e !important;
+  font-weight: 700;
+}
+html.light .text-amber-400,
+html.light .text-amber-500 {
+  color: #b45309 !important;
+  font-weight: 700;
+}
+html.light .text-orange-300,
+html.light .text-orange-400 {
+  color: #9a3412 !important;
+  font-weight: 700;
+}
+
+/* Emerald / Verde: verde floresta profundo */
+html.light .text-emerald-100,
+html.light .text-emerald-200,
+html.light .text-emerald-300 {
+  color: #065f46 !important;
+  font-weight: 700;
+}
+html.light .text-emerald-400,
+html.light .text-emerald-500 {
+  color: #047857 !important;
+  font-weight: 700;
+}
+
+/* Blue & Indigo: azul escuro e índigo profundo */
+html.light .text-blue-300,
+html.light .text-blue-400,
+html.light .text-blue-500 {
+  color: #1e40af !important;
+  font-weight: 700;
+}
+html.light .text-indigo-300,
+html.light .text-indigo-400,
+html.light .text-indigo-500 {
+  color: #3730a3 !important;
+  font-weight: 700;
+}
+
+/* Teal: cerceta escura */
+html.light .text-teal-300,
+html.light .text-teal-400 {
+  color: #115e59 !important;
+  font-weight: 700;
+}
+
+/* ========================================================================== */
+/* TEXTOS EM GRADIENTE (BG-CLIP-TEXT) COM ALTO CONTRASTE                      */
+/* ========================================================================== */
+
+html.light [class*="bg-clip-text"] {
+  background-image: linear-gradient(135deg, #0284c7 0%, #c026d3 50%, #0369a1 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* ========================================================================== */
+/* BADGES E TAGS TRANSLÚCIDAS: FUNDO PASTEL COM TEXTO ESCURO NÍTIDO          */
+/* ========================================================================== */
+
+html.light [class*="bg-cyan-500/"] {
+  background-color: #ecfeff !important;
+  border-color: #67e8f9 !important;
+  color: #0e7490 !important;
+  font-weight: 700;
+}
+html.light [class*="bg-cyan-500/"] * {
+  color: #0e7490 !important;
+}
+
+html.light [class*="bg-fuchsia-500/"] {
+  background-color: #fdf4ff !important;
+  border-color: #f0abfc !important;
+  color: #86198f !important;
+  font-weight: 700;
+}
+html.light [class*="bg-fuchsia-500/"] * {
+  color: #86198f !important;
+}
+
+html.light [class*="bg-rose-500/"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+  font-weight: 700;
+}
+html.light [class*="bg-rose-500/"] * {
+  color: #9f1239 !important;
+}
+
+html.light [class*="bg-purple-500/"] {
+  background-color: #faf5ff !important;
+  border-color: #d8b4fe !important;
+  color: #6b21a8 !important;
+  font-weight: 700;
+}
+html.light [class*="bg-purple-500/"] * {
+  color: #6b21a8 !important;
+}
+
+html.light [class*="bg-amber-500/"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+  font-weight: 700;
+}
+html.light [class*="bg-amber-500/"] * {
+  color: #92400e !important;
+}
+
+html.light [class*="bg-emerald-500/"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+  font-weight: 700;
+}
+html.light [class*="bg-emerald-500/"] * {
+  color: #065f46 !important;
+}
+
+html.light [class*="bg-pink-500/"] {
+  background-color: #fdf2f8 !important;
+  border-color: #fbcfe8 !important;
+  color: #9d174d !important;
+  font-weight: 700;
+}
+html.light [class*="bg-pink-500/"] * {
+  color: #9d174d !important;
+}
+
+/* Tags neutras em cinza claro */
+html.light .bg-white\/5,
+html.light .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html.light .bg-white\/5 *,
+html.light .bg-white\/10 * {
+  color: #1e293b !important;
+}
 
 /* Inverte .text-white apenas em texto comum em superfícies brancas/claras */
 html.light .text-white {
   color: #0f172a !important;
+}
+
+/* Placeholders de inputs bem nítidos */
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #475569 !important;
 }
 
 /* ========================================================================== */
@@ -851,6 +1076,7 @@ html.light .keep-white * {
 html.light [class*="shadow-[0_0_"] {
   box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.08) !important;
 }
+
 
 
 

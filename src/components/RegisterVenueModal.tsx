@@ -1,7 +1,31 @@
 import React, { useState } from "react";
-import { X, Plus, Sparkles, Building2, MapPin, Image, Check, AlertCircle, CheckCircle2, MessageCircle, Crown } from "lucide-react";
+import {
+  X,
+  Plus,
+  Sparkles,
+  Building2,
+  MapPin,
+  Image,
+  Check,
+  AlertCircle,
+  CheckCircle2,
+  MessageCircle,
+  Crown,
+  Calendar,
+  CreditCard,
+  QrCode,
+  Zap,
+} from "lucide-react";
 import { NEIGHBORHOODS, GENRES, CUISINES, Venue } from "../data/venues";
 import { registerVenue, NewVenueInput } from "../services/venueService";
+import {
+  createSubscription,
+  DueDay,
+  OFFICIAL_PLAN_NAME,
+  OFFICIAL_PLAN_PRICE,
+  OFFICIAL_PIX_KEY,
+  SAAS_PLANS,
+} from "../services/saasBillingService";
 
 interface RegisterVenueModalProps {
   isOpen: boolean;
@@ -36,67 +60,15 @@ export function RegisterVenueModal({
   const [hasPool, setHasPool] = useState(false);
   const [hasPrivateGarage, setHasPrivateGarage] = useState(true);
 
-  // Plans Selection State
-  const [selectedPlan, setSelectedPlan] = useState<"mensal" | "semestral" | "anual">("semestral");
+  // SaaS Recurring Billing State (R$ 59,00/mês, Dia 10/20/30, Cartão/Pix)
+  const [dueDay, setDueDay] = useState<DueDay>(10);
+  const [paymentMethod, setPaymentMethod] = useState<"credit_card" | "pix">("credit_card");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [createdVenue, setCreatedVenue] = useState<Venue | null>(null);
 
   if (!isOpen) return null;
-
-  const PLANS = [
-    {
-      id: "mensal" as const,
-      name: "Mensal",
-      price: "79,00",
-      numericPrice: 79,
-      period: "/mês",
-      billingText: "Cobrança mensal flexível",
-      badge: null,
-      highlight: false,
-      features: [
-        "Perfil completo no app",
-        "Botão direto pro WhatsApp",
-        "Cálculo de Uber para o local",
-        "Sem fidelidade, cancele quando quiser",
-      ],
-    },
-    {
-      id: "semestral" as const,
-      name: "Semestral",
-      price: "59,00",
-      numericPrice: 59,
-      period: "/mês",
-      billingText: "R$ 354 a cada 6 meses (Economize R$ 120)",
-      badge: "MAIS ESCOLHIDO 🔥",
-      highlight: true,
-      features: [
-        "Tudo do Plano Mensal",
-        "Destaque de bairro nas buscas",
-        "Emissão de Lista VIP digital e reservas",
-        "Selo de Parceiro Verificado",
-      ],
-    },
-    {
-      id: "anual" as const,
-      name: "Anual",
-      price: "39,00",
-      numericPrice: 39,
-      period: "/mês",
-      billingText: "R$ 468 anual (Economize R$ 480 • 50% OFF)",
-      badge: "MELHOR VALOR 👑",
-      highlight: false,
-      features: [
-        "Tudo do Plano Semestral",
-        "Topo prioritário no app",
-        "Banner no carrossel principal",
-        "Consultor VIP via WhatsApp dedicado",
-      ],
-    },
-  ];
-
-  const currentPlanObj = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,14 +128,26 @@ export function RegisterVenueModal({
       hasPool: category === "moteis" ? hasPool : false,
       hasPrivateGarage: category === "moteis" ? hasPrivateGarage : false,
       tags: [subTypeName, neighborhood, category === "moteis" ? "Suítes" : hasVipList ? "Lista VIP" : "Reserva"],
-      plan: selectedPlan,
-      planPrice: currentPlanObj.numericPrice,
+      plan: "mensal",
+      planPrice: OFFICIAL_PLAN_PRICE,
     };
 
     const res = await registerVenue(payload);
     setIsSubmitting(false);
 
     if (res.success && res.venue) {
+      // Registra automaticamente a assinatura recorrente com o dia de vencimento escolhido
+      createSubscription({
+        venueId: res.venue.id,
+        venueName: res.venue.name,
+        ownerName: name + " (Gestão)",
+        ownerEmail: "gestao@" + res.venue.id + ".com.br",
+        ownerWhatsapp: whatsapp.replace(/\D/g, ""),
+        planId: "mensal",
+        paymentMethod,
+        dueDay,
+      });
+
       onVenueCreated(res.venue);
       setCreatedVenue(res.venue);
     } else {
@@ -173,13 +157,16 @@ export function RegisterVenueModal({
 
   const handleOpenWhatsAppActivation = () => {
     if (!createdVenue) return;
+    const paymentLabel = paymentMethod === "credit_card" ? "Cartão de Crédito Recorrente" : "Pix Recorrente";
     const msg = encodeURIComponent(
       `Olá equipe Radar do Rolê! 👋\n\n` +
       `Acabei de cadastrar o estabelecimento *${createdVenue.name}* no app Radar do Rolê!\n\n` +
       `📍 *Bairro:* ${createdVenue.neighborhood}\n` +
-      `💎 *Plano Escolhido:* ${currentPlanObj.name} (R$ ${currentPlanObj.price}/mês)\n` +
-      `📱 *Contato:* ${createdVenue.whatsapp}\n\n` +
-      `Gostaria de confirmar a ativação do meu destaque e receber o link de pagamento!`
+      `💎 *Plano:* ${OFFICIAL_PLAN_NAME} (R$ ${OFFICIAL_PLAN_PRICE},00/mês)\n` +
+      `📅 *Dia de Vencimento:* Todo dia ${dueDay}\n` +
+      `💳 *Forma de Pagamento:* ${paymentLabel}\n` +
+      `📱 *WhatsApp da Casa:* ${createdVenue.whatsapp}\n\n` +
+      `Gostaria de confirmar a ativação do meu destaque e da Lista VIP!`
     );
     window.open(`https://api.whatsapp.com/send?phone=5511999990000&text=${msg}`, "_blank");
     handleResetAndClose();
@@ -195,13 +182,16 @@ export function RegisterVenueModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 transition-all">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 transition-all">
       <div className="absolute inset-0" onClick={handleResetAndClose} />
 
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/15 bg-[#0a0e19] p-6 text-slate-100 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/15 bg-[#0a0e19] p-6 text-slate-100 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200"
+      >
         <button
           onClick={handleResetAndClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -217,37 +207,57 @@ export function RegisterVenueModal({
               Local Cadastrado com Sucesso!
             </h3>
             <p className="mt-1 text-sm text-slate-300">
-              <strong className="text-purple-300">{createdVenue.name}</strong> já foi incluído no sistema.
+              <strong className="text-purple-300">{createdVenue.name}</strong> foi registrado e sua assinatura já está configurada.
             </p>
 
             {/* Plan chosen card */}
-            <div className="mx-auto mt-6 max-w-md rounded-2xl border border-purple-500/40 bg-purple-500/10 p-5 text-left">
+            <div className="mx-auto mt-6 max-w-md rounded-2xl border border-purple-500/40 bg-purple-500/10 p-5 text-left space-y-3">
               <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
                 <span className="text-xs uppercase font-extrabold tracking-wider text-purple-300">
-                  Plano Selecionado
+                  Assinatura Recorrente Ativa
                 </span>
-                <span className="rounded-full bg-purple-500/30 px-2.5 py-0.5 text-xs font-black text-purple-200">
-                  {currentPlanObj.name}
+                <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-xs font-black text-emerald-300">
+                  R$ {OFFICIAL_PLAN_PRICE},00/MÊS
                 </span>
               </div>
 
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white">
-                  R$ {currentPlanObj.price}
-                </span>
-                <span className="text-xs text-slate-400">{currentPlanObj.period}</span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 block">Plano Oficial:</span>
+                  <span className="text-base font-black text-white">{OFFICIAL_PLAN_NAME}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-slate-400 block">Dia de Vencimento:</span>
+                  <span className="text-sm font-black text-cyan-300">Todo dia {dueDay}</span>
+                </div>
               </div>
-              <p className="mt-1 text-xs text-slate-400">
-                {currentPlanObj.billingText}
-              </p>
 
-              <div className="mt-4 space-y-1.5 text-xs text-slate-300">
-                {currentPlanObj.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-purple-400 shrink-0" />
-                    <span>{feat}</span>
-                  </div>
-                ))}
+              <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Forma de Pagamento:</span>
+                  <strong className="text-white">
+                    {paymentMethod === "credit_card" ? "💳 Cartão de Crédito Recorrente" : "⚡ Pix Recorrente"}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Chave Pix da Plataforma:</span>
+                  <strong className="text-emerald-300 font-mono text-[11px]">{OFFICIAL_PIX_KEY}</strong>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-300 pt-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <span>Destaque e card garantido no app do Radar</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <span>Lista VIP digital ilimitada com emissão de QR Code</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <span>Avisos automáticos de vencimento e confirmação no WhatsApp</span>
+                </div>
               </div>
             </div>
 
@@ -256,16 +266,16 @@ export function RegisterVenueModal({
               <button
                 type="button"
                 onClick={handleOpenWhatsAppActivation}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black py-3.5 text-sm font-black shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all active:scale-98"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black py-3.5 text-sm font-black shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all active:scale-98 cursor-pointer"
               >
                 <MessageCircle className="h-5 w-5 fill-black" />
-                <span>Ativar Destaque no WhatsApp</span>
+                <span>Confirmar Ativação no WhatsApp</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-semibold text-slate-300 hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-semibold text-slate-300 hover:bg-white/10 cursor-pointer"
               >
                 Ver Estabelecimento no Radar do Rolê
               </button>
@@ -596,79 +606,148 @@ export function RegisterVenueModal({
                 )}
               </div>
 
-              {/* PLANOS DE ASSINATURA */}
-              <div className="pt-2 border-t border-white/10">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block font-black text-white text-sm flex items-center gap-1.5">
-                    <Crown className="h-4 w-4 text-amber-400" />
-                    <span>Escolha o Plano do Estabelecimento</span>
-                  </label>
-                  <span className="text-[11px] text-purple-300 font-semibold">
-                    Ativação rápida
-                  </span>
+              {/* PLANO DE ASSINATURA UNIFICADO & CONFIGURAÇÃO RECORRENTE */}
+              <div className="pt-2 border-t border-white/10 space-y-4">
+                {/* 1. Card do Plano Oficial */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block font-black text-white text-sm flex items-center gap-1.5">
+                      <Crown className="h-4 w-4 text-amber-400" />
+                      <span>Plano de Parceria Oficial</span>
+                    </label>
+                    <span className="text-[10px] font-black text-emerald-300 uppercase bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                      Plano Ativo • R$ 59/mês
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-purple-500/40 bg-purple-500/10 p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-500/20 pb-3">
+                      <div>
+                        <h4 className="text-sm font-black text-white">{OFFICIAL_PLAN_NAME}</h4>
+                        <p className="text-[11px] text-purple-300">
+                          Assinatura mensal recorrente com cancelamento flexível a qualquer momento
+                        </p>
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-black text-emerald-400">R$ {OFFICIAL_PLAN_PRICE},00</span>
+                        <span className="text-xs text-slate-400">/mês</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-300 pt-3">
+                      <div className="flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        <span>Destaque exclusivo no mapa de SP</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        <span>Lista VIP com voucher e QR Code</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        <span>Botão direto pro WhatsApp da casa</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        <span>Scanner de portaria por câmera</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                  {PLANS.map((plan) => {
-                    const isSelected = selectedPlan === plan.id;
-                    return (
-                      <div
-                        key={plan.id}
-                        onClick={() => setSelectedPlan(plan.id)}
-                        className={`relative cursor-pointer rounded-2xl border p-3.5 transition-all flex flex-col justify-between ${
-                          isSelected
-                            ? "border-purple-500 bg-purple-500/15 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500"
-                            : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
-                        }`}
-                      >
-                        {plan.badge && (
-                          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-0.5 text-[9px] font-black uppercase text-white shadow">
-                            {plan.badge}
-                          </div>
-                        )}
+                {/* 2. Seleção da Data de Pagamento (Dia 10, Dia 20 ou Dia 30) */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>Data de Pagamento Mensal</span>
+                    </label>
+                    <span className="text-[11px] text-cyan-300 font-bold">
+                      Vencimento todo mês
+                    </span>
+                  </div>
 
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-extrabold text-white text-sm">
-                              {plan.name}
-                            </span>
-                            <div
-                              className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                                isSelected
-                                  ? "border-purple-400 bg-purple-500 text-white"
-                                  : "border-slate-500"
-                              }`}
-                            >
-                              {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {([10, 20, 30] as DueDay[]).map((day) => {
+                      const isSelected = dueDay === day;
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => setDueDay(day)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-cyan-400 bg-cyan-950/40 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400"
+                              : "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10"
+                          }`}
+                        >
+                          <span className="text-lg font-black">{day}</span>
+                          <span className="text-[10px] font-bold text-slate-400 mt-0.5">Todo Dia {day}</span>
+                          {isSelected && (
+                            <div className="mt-1 flex items-center gap-1 text-[9px] font-black text-cyan-300">
+                              <Check className="h-2.5 w-2.5 stroke-[3]" />
+                              <span>Ativo</span>
                             </div>
-                          </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                          <div className="mt-2">
-                            <span className="text-xl font-black text-white">
-                              R$ {plan.price}
-                            </span>
-                            <span className="text-[10px] text-slate-400">
-                              {" "}
-                              {plan.period}
-                            </span>
-                          </div>
-
-                          <p className="mt-1 text-[10px] text-slate-400 leading-tight">
-                            {plan.billingText}
-                          </p>
-                        </div>
-
-                        <ul className="mt-3 space-y-1 text-[10px] text-slate-300 border-t border-white/10 pt-2">
-                          {plan.features.slice(0, 3).map((f, i) => (
-                            <li key={i} className="flex items-center gap-1.5">
-                              <span className="text-purple-400 font-bold">•</span>
-                              <span className="truncate">{f}</span>
-                            </li>
-                          ))}
-                        </ul>
+                {/* 3. Forma de Pagamento Recorrente */}
+                <div>
+                  <label className="text-xs font-black uppercase tracking-wider text-slate-300 block mb-2">
+                    Forma de Cobrança Recorrente
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("credit_card")}
+                      className={`flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all cursor-pointer ${
+                        paymentMethod === "credit_card"
+                          ? "border-purple-400 bg-purple-950/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-400"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400">
+                        <CreditCard className="h-4 w-4" />
                       </div>
-                    );
-                  })}
+                      <div>
+                        <span className="text-xs font-black text-white block">Cartão de Crédito Recorrente</span>
+                        <span className="text-[10px] text-purple-300 block">Cobrança automática todo dia {dueDay}</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("pix")}
+                      className={`flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all cursor-pointer ${
+                        paymentMethod === "pix"
+                          ? "border-emerald-400 bg-emerald-950/40 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
+                        <QrCode className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-black text-white block">Pix Recorrente</span>
+                        <span className="text-[10px] text-emerald-300 block">Aviso automático no WhatsApp todo dia {dueDay}</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Termos de Parceria & Responsabilidade Civil e Consumerista */}
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-[11px] text-slate-300 space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300 text-xs">
+                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                    <span>Termos de Parceria Comercial (SaaS)</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    O estabelecimento cadastrado declara e assume integral responsabilidade civil, administrativa e consumerista pela veracidade dos dados, eventos, preços de entrada e cumprimento de benefícios de Lista VIP aos usuários da plataforma.
+                  </p>
                 </div>
               </div>
 
@@ -677,14 +756,14 @@ export function RegisterVenueModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 py-3.5 text-sm font-black text-white shadow-[0_0_30px_-5px_rgba(168,85,247,0.7)] hover:brightness-110 active:scale-98 disabled:opacity-50 transition-all"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 py-3.5 text-sm font-black text-white shadow-[0_0_30px_-5px_rgba(168,85,247,0.7)] hover:brightness-110 active:scale-98 disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {isSubmitting ? (
                     <span>Salvando estabelecimento...</span>
                   ) : (
                     <>
                       <span>
-                        Cadastrar no Plano {currentPlanObj.name} (R$ {currentPlanObj.price}/mês)
+                        Cadastrar no {OFFICIAL_PLAN_NAME} • R$ {OFFICIAL_PLAN_PRICE},00/mês (Dia {dueDay})
                       </span>
                       <Sparkles className="h-4 w-4" />
                     </>

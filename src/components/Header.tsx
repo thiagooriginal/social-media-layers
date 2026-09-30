@@ -1,7 +1,9 @@
 import React from "react";
-import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair } from "lucide-react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
+import { useTheme } from "../services/themeService";
+import { toast } from "sonner";
 
 interface HeaderProps {
   currentNeighborhood: NeighborhoodCoord;
@@ -25,6 +27,7 @@ interface HeaderProps {
   isGpsLoading?: boolean;
   isGpsActive?: boolean;
   onOpenNeighborhoodModal?: () => void;
+  onOpenThemeModal?: () => void;
 }
 
 export function Header({
@@ -49,7 +52,9 @@ export function Header({
   isGpsLoading,
   isGpsActive,
   onOpenNeighborhoodModal,
+  onOpenThemeModal,
 }: HeaderProps) {
+  const { theme, toggleTheme } = useTheme();
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
   const [isSuperScanning, setIsSuperScanning] = React.useState(false);
   const [showScanToast, setShowScanToast] = React.useState(false);
@@ -375,6 +380,47 @@ export function Header({
               <span className="text-[11px] sm:text-xs">Entrar</span>
             </button>
           )}
+
+          {/* Theme Switcher Button (Escuro Original vs Claro) */}
+          <button
+            onClick={() => {
+              const next = toggleTheme();
+              if (next === "light") {
+                toast.success("☀️ Tema Claro Ativado!", {
+                  description: "Interface em modo claro. Toque novamente para voltar ao escuro original.",
+                  duration: 2500,
+                });
+              } else {
+                toast.success("🌙 Tema Escuro Original Mantido!", {
+                  description: "Visual noturno clássico de balada ativo.",
+                  duration: 2500,
+                });
+              }
+            }}
+            onDoubleClick={() => onOpenThemeModal?.()}
+            title={
+              theme === "dark"
+                ? "Tema: Escuro Original (Toque para ativar Tema Claro)"
+                : "Tema: Claro (Toque para voltar ao Tema Escuro Original)"
+            }
+            className={`flex items-center gap-1 sm:gap-1.5 rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-black transition-all cursor-pointer select-none active:scale-95 shrink-0 ${
+              theme === "dark"
+                ? "border-cyan-500/30 bg-white/5 text-cyan-300 hover:border-cyan-400 hover:bg-white/10 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                : "border-amber-400/80 bg-amber-50 text-amber-800 hover:bg-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+            }`}
+          >
+            {theme === "dark" ? (
+              <>
+                <Moon className="h-3.5 w-3.5 text-cyan-400" />
+                <span className="hidden xs:inline text-[11px] font-bold">Escuro</span>
+              </>
+            ) : (
+              <>
+                <Sun className="h-3.5 w-3.5 text-amber-500" />
+                <span className="hidden xs:inline text-[11px] font-bold text-amber-800">Claro</span>
+              </>
+            )}
+          </button>
 
           {/* Share - Desktop only */}
           <button

@@ -120,6 +120,17 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `
               (function() {
                 try {
+                  var savedTheme = localStorage.getItem('radar_theme') || 'dark';
+                  if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                  } else {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch(e) {}
+
+                try {
                   localStorage.removeItem('radar_session_entered');
                   sessionStorage.removeItem('radar_session_entered');
                   if (document.documentElement) {

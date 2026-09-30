@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "../services/themeService";
 
 interface RadarIntroSplashProps {
   onFinish: () => void;
@@ -76,6 +78,7 @@ const RADAR_TARGETS: RadarTarget[] = [
 ];
 
 export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
+  const { theme, toggleTheme } = useTheme();
   const [isClosing, setIsClosing] = useState<boolean>(false);
   const [discoveredCount, setDiscoveredCount] = useState<number>(0);
   const [statusMessage, setStatusMessage] = useState<string>("Sincronizando satélite...");
@@ -229,6 +232,32 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
           animation: radarTargetPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
         }
       `}</style>
+
+      {/* Top Floating Theme Switcher right on the opening radar splash */}
+      <div className="absolute top-3 right-3 z-30">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black backdrop-blur-md transition-all cursor-pointer shadow-lg active:scale-95 ${
+            theme === "dark"
+              ? "border-cyan-500/40 bg-black/60 text-cyan-300 hover:border-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+              : "border-amber-400/80 bg-white/90 text-amber-800 hover:bg-white shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+          }`}
+          title="Alternar Tema do App (Escuro Original / Claro)"
+        >
+          {theme === "dark" ? (
+            <>
+              <Moon className="h-3 w-3 text-cyan-400" />
+              <span>🌙 Escuro</span>
+            </>
+          ) : (
+            <>
+              <Sun className="h-3 w-3 text-amber-500" />
+              <span>☀️ Claro</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {/* TOP STATUS HUD: Radar Telemetry */}
       <div className="relative z-20 flex flex-col items-center gap-1.5 pt-2 xs:pt-4">

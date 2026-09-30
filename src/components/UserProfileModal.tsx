@@ -21,6 +21,8 @@ import {
   MapPin,
   Loader2,
   AlertCircle,
+  Moon,
+  Sun,
 } from "lucide-react";
 import {
   UserProfile,
@@ -37,6 +39,8 @@ import {
   BiometricRegistration,
 } from "../services/biometricService";
 import { DigitalPassModal } from "./DigitalPassModal";
+import { useTheme } from "../services/themeService";
+import { toast } from "sonner";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -58,6 +62,7 @@ export function UserProfileModal({
 }: UserProfileModalProps) {
   if (!isOpen || !user) return null;
 
+  const { theme, setTheme } = useTheme();
   const vipPasses: UserVipPass[] = getUserVipPasses();
   const [selectedPass, setSelectedPass] = React.useState<UserVipPass | null>(null);
   const [biometricData, setBiometricData] = React.useState<BiometricRegistration | null>(() => getStoredBiometrics());
@@ -395,6 +400,63 @@ export function UserProfileModal({
             </div>
           </div>
         )}
+
+        {/* Theme Settings Section (Aparência do App) */}
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {theme === "dark" ? (
+                <Moon className="h-4 w-4 text-cyan-400" />
+              ) : (
+                <Sun className="h-4 w-4 text-amber-500" />
+              )}
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-200">
+                Aparência do Aplicativo
+              </h4>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400">
+              {theme === "dark" ? "🌙 Escuro Original" : "☀️ Tema Claro"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTheme("dark");
+                toast.success("🌙 Tema Escuro Original Ativado!", {
+                  description: "Visual noturno padrão de balada ativo.",
+                });
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-bold transition-all cursor-pointer ${
+                theme === "dark"
+                  ? "border-cyan-400 bg-cyan-950/50 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.3)] font-black"
+                  : "border-white/10 bg-black/20 text-slate-400 hover:text-white"
+              }`}
+            >
+              <Moon className="h-4 w-4 text-cyan-400" />
+              <span>Escuro Original</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTheme("light");
+                toast.success("☀️ Tema Claro Ativado!", {
+                  description: "Interface com alta visibilidade para o dia.",
+                });
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-bold transition-all cursor-pointer ${
+                theme === "light"
+                  ? "border-amber-500 bg-amber-50 text-amber-800 shadow-[0_0_15px_rgba(245,158,11,0.3)] font-black"
+                  : "border-white/10 bg-black/20 text-slate-400 hover:text-white"
+              }`}
+            >
+              <Sun className="h-4 w-4 text-amber-500" />
+              <span>Tema Claro</span>
+            </button>
+          </div>
+        </div>
 
         {/* Passes Section */}
         <div className="mt-6">

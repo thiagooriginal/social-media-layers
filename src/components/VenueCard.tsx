@@ -59,10 +59,17 @@ export function VenueCard({
 
         {/* Top Badges */}
         <div className="absolute left-3.5 right-3.5 top-3.5 flex items-center justify-between">
-          <span className="flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md pointer-events-none">
-            <span>{venue.subTypeEmoji}</span>
-            <span>{venue.subType}</span>
-          </span>
+          <div className="flex items-center gap-1.5 pointer-events-none">
+            <span className="flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+              <span>{venue.subTypeEmoji}</span>
+              <span>{venue.subType}</span>
+            </span>
+            {(venue.category === "moteis" || venue.category === "baladas" || venue.isAfterHours) && (
+              <span className="rounded-full bg-rose-950/80 border border-rose-500/40 px-2 py-0.5 text-[10px] font-black text-rose-300 backdrop-blur-md shadow-sm">
+                🔞 +18
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-1.5 z-10">
             {/* Direct Instagram Link */}

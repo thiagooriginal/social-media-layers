@@ -110,6 +110,7 @@ function IndexPage() {
   const [vipModalVenue, setVipModalVenue] = useState<Venue | null>(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [legalModalTab, setLegalModalTab] = useState<"termos" | "privacidade" | "listavip" | "parceiros">("termos");
+  const [isAgeGateForceOpen, setIsAgeGateForceOpen] = useState(false);
 
   // Navigation & Category Tab state (Persistido entre abas)
   const [activeTab, setActiveTab] = useState<MainCategory>(() => initialNav.activeTab || "baladas");
@@ -1269,9 +1270,14 @@ function IndexPage() {
                     </div>
 
                     <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
-                      <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30 whitespace-nowrap shadow-sm">
-                        {baladasCount} locais
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="rounded bg-rose-500/20 text-rose-300 font-mono text-[9px] px-1.5 py-0.5 font-black border border-rose-500/30">
+                          🔞 +18
+                        </span>
+                        <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30 whitespace-nowrap shadow-sm">
+                          {baladasCount} locais
+                        </span>
+                      </div>
                       <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:bg-fuchsia-500 transition-colors">
                         <span>Abrir</span>
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -1331,9 +1337,14 @@ function IndexPage() {
                     </div>
 
                     <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
-                      <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30 whitespace-nowrap shadow-sm">
-                        {moteisCount} suítes
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="rounded bg-rose-500/20 text-rose-300 font-mono text-[9px] px-1.5 py-0.5 font-black border border-rose-500/30">
+                          🔞 +18
+                        </span>
+                        <span className="rounded-full bg-fuchsia-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-300 border border-fuchsia-500/30 whitespace-nowrap shadow-sm">
+                          {moteisCount} suítes
+                        </span>
+                      </div>
                       <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:bg-fuchsia-500 transition-colors">
                         <span>Abrir</span>
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -1362,9 +1373,14 @@ function IndexPage() {
                     </div>
 
                     <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
-                      <span className="rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-cyan-300 border border-cyan-500/30 whitespace-nowrap shadow-sm">
-                        {afterVenuesCount} abertos
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="rounded bg-rose-500/20 text-rose-300 font-mono text-[9px] px-1.5 py-0.5 font-black border border-rose-500/30">
+                          🔞 +18
+                        </span>
+                        <span className="rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-cyan-300 border border-cyan-500/30 whitespace-nowrap shadow-sm">
+                          {afterVenuesCount} abertos
+                        </span>
+                      </div>
                       <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-cyan-600 to-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:from-cyan-500 group-hover:to-fuchsia-500 transition-all">
                         <span>Abrir</span>
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -1835,6 +1851,16 @@ function IndexPage() {
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-400 border-t border-white/5 pt-4">
             <button
               type="button"
+              onClick={() => setIsAgeGateForceOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2.5 py-0.5 text-[11px] font-black transition-colors cursor-pointer"
+              title="Abrir tela de verificação de maioridade (+18 ECA)"
+            >
+              <span>🔞</span>
+              <span>Verificação +18 (ECA)</span>
+            </button>
+            <span className="text-slate-700">•</span>
+            <button
+              type="button"
               onClick={() => {
                 setLegalModalTab("termos");
                 setIsLegalModalOpen(true);
@@ -1906,7 +1932,10 @@ function IndexPage() {
 
       {/* Age Gate Modal (+18 Verification) */}
       <AgeGateModal
+        forceOpen={isAgeGateForceOpen}
+        onCloseManual={() => setIsAgeGateForceOpen(false)}
         onOpenTerms={() => {
+          setIsAgeGateForceOpen(false);
           setLegalModalTab("termos");
           setIsLegalModalOpen(true);
         }}

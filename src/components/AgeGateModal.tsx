@@ -3,28 +3,36 @@ import { ShieldAlert, CheckCircle2, XCircle, FileText, AlertTriangle } from "luc
 
 interface AgeGateModalProps {
   onOpenTerms?: () => void;
+  forceOpen?: boolean;
+  onCloseManual?: () => void;
 }
 
 const STORAGE_KEY_AGE = "radardorole_age_verified_v1";
 
-export function AgeGateModal({ onOpenTerms }: AgeGateModalProps) {
+export function AgeGateModal({ onOpenTerms, forceOpen, onCloseManual }: AgeGateModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUnderage, setIsUnderage] = useState(false);
 
   useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(true);
+      setIsUnderage(false);
+      return;
+    }
     if (typeof window !== "undefined") {
       const verified = localStorage.getItem(STORAGE_KEY_AGE);
       if (!verified) {
         setIsOpen(true);
       }
     }
-  }, []);
+  }, [forceOpen]);
 
   const handleConfirmAge = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY_AGE, "true");
     }
     setIsOpen(false);
+    onCloseManual?.();
   };
 
   const handleRejectAge = () => {

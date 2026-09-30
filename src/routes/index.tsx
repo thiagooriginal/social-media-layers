@@ -1130,7 +1130,7 @@ function IndexPage() {
       {currentScreen === "home" ? (
         <div className="w-full">
           {/* Hero Banner Section */}
-          <section className="relative overflow-hidden border-b border-white/5 bg-gradient-to-b from-cyan-950/20 via-[#0a0f1d] to-[#070a11] py-8 sm:py-12">
+          <section className="hero-banner relative overflow-hidden border-b border-white/5 bg-gradient-to-b from-cyan-950/20 via-[#0a0f1d] to-[#070a11] py-8 sm:py-12">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-600/10 via-fuchsia-600/5 to-transparent pointer-events-none" />
 
             <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
@@ -1272,12 +1272,12 @@ function IndexPage() {
                   <button
                     type="button"
                     onClick={() => handleNavigate("custom-role")}
-                    className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-fuchsia-500/50 bg-gradient-to-r from-fuchsia-950/80 via-[#120a22]/90 to-cyan-950/80 p-3 sm:p-3.5 text-left transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_6px_25px_rgba(255,0,127,0.35)] active:scale-[0.99] cursor-pointer shadow-lg"
+                    className="nav-card-custom-role group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-fuchsia-500/50 bg-gradient-to-r from-fuchsia-950/80 via-[#120a22]/90 to-cyan-950/80 p-3 sm:p-3.5 text-left transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_6px_25px_rgba(255,0,127,0.35)] active:scale-[0.99] cursor-pointer shadow-lg"
                   >
                     <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-gradient-to-br from-fuchsia-600/20 to-cyan-500/10 blur-xl pointer-events-none" />
 
                     <div className="relative flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-xl border border-fuchsia-400/50 shadow-[0_0_15px_rgba(255,0,127,0.3)] group-hover:scale-105 group-hover:rotate-6 transition-transform">
+                      <div className="icon-box flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-500/20 text-xl border border-fuchsia-400/50 shadow-[0_0_15px_rgba(255,0,127,0.3)] group-hover:scale-105 group-hover:rotate-6 transition-transform">
                         ✨
                       </div>
                       <div className="min-w-0">
@@ -1317,10 +1317,10 @@ function IndexPage() {
                   <button
                     type="button"
                     onClick={() => handleNavigate("baladas")}
-                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/70 via-[#180824] to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(255,0,127,0.5)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-baladas group relative flex items-center justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/70 via-[#180824] to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(255,0,127,0.5)] cursor-pointer w-full shadow-lg"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl sm:text-3xl border border-fuchsia-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,0,127,0.3)]">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl sm:text-3xl border border-fuchsia-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,0,127,0.3)]">
                         🪩
                       </div>
                       <div className="min-w-0">
@@ -1353,10 +1353,10 @@ function IndexPage() {
                   <button
                     type="button"
                     onClick={() => handleNavigate("restaurantes")}
-                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0a1828]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-bares group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0a1828]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                         🍸
                       </div>
                       <div className="min-w-0">
@@ -1384,10 +1384,10 @@ function IndexPage() {
                   <button
                     type="button"
                     onClick={() => handleNavigate("moteis")}
-                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/70 via-[#1e0a24]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(255,0,127,0.4)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-moteis group relative flex items-center justify-between overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/70 via-[#1e0a24]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-fuchsia-400 hover:shadow-[0_10px_30px_-5px_rgba(255,0,127,0.4)] cursor-pointer w-full shadow-lg"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl sm:text-3xl border border-fuchsia-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,0,127,0.3)]">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-2xl sm:text-3xl border border-fuchsia-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,0,127,0.3)]">
                         🏩
                       </div>
                       <div className="min-w-0">
@@ -1420,10 +1420,10 @@ function IndexPage() {
                   <button
                     type="button"
                     onClick={() => handleNavigate("after")}
-                    className="group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0b1326]/60 to-fuchsia-950/50 p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-after group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0b1326]/60 to-fuchsia-950/50 p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                         🌙
                       </div>
                       <div className="min-w-0">

@@ -120,7 +120,7 @@ export function FilterBar({
       </div>
 
       {/* 🎯 PAINEL ESTRUTURADO: AS 3 FORMAS DE BUSCA */}
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1424] to-[#080d19] p-4 sm:p-5 backdrop-blur-xl shadow-xl space-y-4">
+      <div className="filter-panel-container rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1424] to-[#080d19] p-4 sm:p-5 backdrop-blur-xl shadow-xl space-y-4">
         
         {/* CABEÇALHO DO PAINEL */}
         <div className="flex items-center justify-between pb-1 border-b border-white/5">

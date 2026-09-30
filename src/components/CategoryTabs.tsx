@@ -30,8 +30,8 @@ export function CategoryTabs({
           onClick={() => onTabChange("baladas")}
           className={`group relative flex flex-col items-start rounded-2xl border p-3 text-left transition-all duration-300 sm:p-4 min-w-0 w-full ${
             activeTab === "baladas"
-              ? "border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#1a0a26]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
-              : "border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
+              ? "category-tab-active-baladas border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#1a0a26]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
+              : "category-tab-inactive border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
           }`}
         >
           <div className="flex w-full items-center justify-between">
@@ -65,8 +65,8 @@ export function CategoryTabs({
           onClick={() => onTabChange("restaurantes")}
           className={`group relative flex flex-col items-start rounded-2xl border p-3 text-left transition-all duration-300 sm:p-4 min-w-0 w-full ${
             activeTab === "restaurantes"
-              ? "border-cyan-500/80 bg-gradient-to-br from-cyan-950/80 via-[#0a1828]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(0,240,255,0.4)]"
-              : "border-white/10 bg-[#0c101c]/70 hover:border-cyan-500/40 hover:bg-[#121829]"
+              ? "category-tab-active-restaurantes border-cyan-500/80 bg-gradient-to-br from-cyan-950/80 via-[#0a1828]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(0,240,255,0.4)]"
+              : "category-tab-inactive border-white/10 bg-[#0c101c]/70 hover:border-cyan-500/40 hover:bg-[#121829]"
           }`}
         >
           <div className="flex w-full items-center justify-between">
@@ -100,8 +100,8 @@ export function CategoryTabs({
           onClick={() => onTabChange("moteis")}
           className={`group relative flex flex-col items-start rounded-2xl border p-3 text-left transition-all duration-300 sm:p-4 min-w-0 w-full ${
             activeTab === "moteis"
-              ? "border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#180a24]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
-              : "border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
+              ? "category-tab-active-moteis border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#180a24]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
+              : "category-tab-inactive border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
           }`}
         >
           <div className="flex w-full items-center justify-between">
@@ -140,8 +140,8 @@ export function CategoryTabs({
           onClick={() => onTabChange("kids")}
           className={`group relative flex flex-col items-start rounded-2xl border p-3 text-left transition-all duration-300 sm:p-4 min-w-0 w-full ${
             activeTab === "kids"
-              ? "border-cyan-400/90 bg-gradient-to-br from-cyan-950/80 via-[#0a1824]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(0,240,255,0.4)]"
-              : "border-cyan-500/25 bg-cyan-500/5 hover:border-cyan-400/50 hover:bg-cyan-500/10"
+              ? "category-tab-active-kids border-cyan-400/90 bg-gradient-to-br from-cyan-950/80 via-[#0a1824]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(0,240,255,0.4)]"
+              : "category-tab-inactive border-cyan-500/25 bg-cyan-500/5 hover:border-cyan-400/50 hover:bg-cyan-500/10"
           }`}
         >
           <div className="flex w-full items-center justify-between">
@@ -177,8 +177,8 @@ export function CategoryTabs({
           onClick={() => onTabChange("favorites")}
           className={`group relative flex flex-col items-start rounded-2xl border p-3 text-left transition-all duration-300 sm:p-4 min-w-0 w-full col-span-2 sm:col-span-1 ${
             activeTab === "favorites"
-              ? "border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#180a24]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
-              : "border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
+              ? "category-tab-active-favorites border-fuchsia-500/80 bg-gradient-to-br from-fuchsia-950/80 via-[#180a24]/70 to-[#0e1422] shadow-[0_0_30px_-5px_rgba(255,0,127,0.4)]"
+              : "category-tab-inactive border-white/10 bg-[#0c101c]/70 hover:border-fuchsia-500/40 hover:bg-[#121829]"
           }`}
         >
           <div className="flex w-full items-center justify-between">

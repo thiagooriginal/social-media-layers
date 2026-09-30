@@ -90,10 +90,10 @@ export function InitialThemeModal({ isOpen, onClose }: InitialThemeModalProps) {
           <button
             type="button"
             onClick={() => handleSelect("dark")}
-            className={`group relative flex flex-col justify-between rounded-2xl border-2 p-4 text-left transition-all cursor-pointer ${
+            className={`group keep-white relative flex flex-col justify-between rounded-2xl border-2 p-4 text-left transition-all cursor-pointer ${
               selectedTheme === "dark"
                 ? "border-cyan-400 bg-gradient-to-b from-[#111827] to-[#070a11] shadow-[0_0_25px_rgba(0,240,255,0.4)] ring-2 ring-cyan-400/30"
-                : "border-white/10 bg-[#0f172a]/60 hover:border-cyan-400/50 hover:bg-[#111827]"
+                : "border-slate-700 bg-[#0b0f19] hover:border-cyan-400/50 hover:bg-[#111827]"
             }`}
           >
             {/* Top Selection Indicator */}

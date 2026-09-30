@@ -33,7 +33,7 @@ export function VenueCard({
   };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0d121f] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_10px_35px_-10px_rgba(0,240,255,0.3)]">
+    <div className="venue-card group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0d121f] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_10px_35px_-10px_rgba(0,240,255,0.3)]">
       {/* Media / Image Container (Clickable to enter/open venue) */}
       <div
         onClick={handleOpenDetails}
@@ -47,7 +47,7 @@ export function VenueCard({
           loading="lazy"
         />
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d121f] via-transparent to-black/60 pointer-events-none" />
+        <div className="venue-card-img-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
 
         {/* Hover / Tap Hint Indicator */}
         <div className="absolute inset-0 bg-cyan-950/20 opacity-0 group-hover/image:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
@@ -161,7 +161,7 @@ export function VenueCard({
         </div>
 
         {/* Distance & Uber Estimate Box */}
-        <div className="mt-3.5 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2 text-xs">
+        <div className="distance-box mt-3.5 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2 text-xs">
           <div className="flex items-center gap-1.5 text-slate-300">
             <MapPin className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
             <span className="font-semibold text-slate-200">{venue.neighborhood}</span>
@@ -178,7 +178,7 @@ export function VenueCard({
               trackEvent(venue.id, "click_uber", venue.name);
             }}
             title="Estimativa de corrida por aplicativo (Uber/99). Valores aproximados sujeitos a tarifa dinâmica no app de destino."
-            className="flex items-center gap-1 font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/60 px-2 py-0.5 rounded-lg border border-cyan-500/30 transition-all cursor-pointer"
+            className="uber-btn flex items-center gap-1 font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/60 px-2 py-0.5 rounded-lg border border-cyan-500/30 transition-all cursor-pointer"
           >
             <Car className="h-3.5 w-3.5 text-cyan-400" />
             <span>App ~R$ {uberEstimate.uberX}</span>

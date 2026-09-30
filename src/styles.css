@@ -190,6 +190,7 @@
 
 /* ========================================================================== */
 /* TEMA CLARO (LIGHT THEME) - RADAR DO ROLÊ                                   */
+/* Visual profissional, diurno, elegante, com superfícies limpas e contraste */
 /* ========================================================================== */
 
 html.light {
@@ -201,17 +202,25 @@ html.light body {
   color: #0f172a !important;
 }
 
-/* Fundo geral da página e containers */
-html.light .bg-\[\#070a11\],
-html.light .bg-\[\#070a11\]\/90,
-html.light .bg-\[\#070a11\]\/95 {
+/* Fundo geral da página e containers principais */
+html.light [class*="bg-[#070a11]"],
+html.light [class*="bg-[#070a13]"],
+html.light [class*="bg-[#070b14]"],
+html.light [class*="bg-[#05070d]"],
+html.light [class*="bg-[#06080f]"],
+html.light [class*="bg-[#060810]"] {
   background-color: #f8fafc !important;
 }
 
+/* Header & Barra de Navegação Inferior */
 html.light header {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
   border-bottom-color: #e2e8f0 !important;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06) !important;
+}
+
+html.light header .text-white {
+  color: #0f172a !important;
 }
 
 html.light nav.fixed.bottom-0 {
@@ -220,49 +229,484 @@ html.light nav.fixed.bottom-0 {
   box-shadow: 0 -4px 20px -2px rgba(15, 23, 42, 0.08) !important;
 }
 
-/* Cards de baladas, bares, motéis e modais */
-html.light .bg-\[\#0c101c\],
-html.light .bg-\[\#0d121f\],
-html.light .bg-\[\#0e1422\],
-html.light .bg-\[\#0a0e1a\],
-html.light .bg-\[\#090d18\],
-html.light .bg-\[\#090d19\],
-html.light .bg-\[\#0b0f19\],
-html.light .bg-\[\#0e1424\],
-html.light .bg-\[\#0c1420\],
-html.light .bg-\[\#120d20\],
-html.light .bg-\[\#0c1622\],
-html.light .bg-\[\#1a0c16\],
-html.light .bg-\[\#060c14\],
-html.light .bg-\[\#070d18\],
-html.light .bg-\[\#070914\],
-html.light .bg-\[\#08101a\],
-html.light .bg-\[\#120810\],
-html.light .bg-\[\#0a0509\],
-html.light .bg-\[\#111827\],
-html.light .bg-slate-900 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+html.light nav.fixed.bottom-0 button {
+  color: #64748b !important;
 }
 
-/* Transições de gradientes nos cards de estabelecimentos */
-html.light .from-\[\#0d121f\] {
+html.light nav.fixed.bottom-0 button:hover {
+  color: #0f172a !important;
+}
+
+/* Cards de baladas, bares, motéis, modais e containers de superfície */
+html.light [class*="bg-[#0c101c]"],
+html.light [class*="bg-[#0d121f]"],
+html.light [class*="bg-[#0e1422]"],
+html.light [class*="bg-[#0e1424]"],
+html.light [class*="bg-[#0a0e19]"],
+html.light [class*="bg-[#0a0e1a]"],
+html.light [class*="bg-[#0a0e1c]"],
+html.light [class*="bg-[#0a0f1d]"],
+html.light [class*="bg-[#090d16]"],
+html.light [class*="bg-[#090d18]"],
+html.light [class*="bg-[#090d19]"],
+html.light [class*="bg-[#0b0f19]"],
+html.light [class*="bg-[#0b101e]"],
+html.light [class*="bg-[#0b141a]"],
+html.light [class*="bg-[#0c121e]"],
+html.light [class*="bg-[#0d1322]"],
+html.light [class*="bg-[#121829]"],
+html.light [class*="bg-[#12192c]"],
+html.light [class*="bg-[#0c1420]"],
+html.light [class*="bg-[#120d20]"],
+html.light [class*="bg-[#0c1622]"],
+html.light [class*="bg-[#1a0c16]"],
+html.light [class*="bg-[#060c14]"],
+html.light [class*="bg-[#070d18]"],
+html.light [class*="bg-[#070914]"],
+html.light [class*="bg-[#08101a]"],
+html.light [class*="bg-[#120810]"],
+html.light [class*="bg-[#0a0509]"],
+html.light [class*="bg-[#111827]"],
+html.light [class*="bg-[#141b2d]"],
+html.light [class*="bg-slate-900"],
+html.light [class*="bg-slate-950"]:not([class*="bg-black"]) {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* ========================================================================== */
+/* REMAPEAMENTO DE CLASSES 950 ESCURAS PARA PASTÉIS LUMINOSOS                 */
+/* ========================================================================== */
+
+/* Cyan 950 */
+html.light [class*="bg-cyan-950"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0e7490 !important;
+}
+html.light [class*="bg-cyan-950"]:hover {
+  background-color: #cffafe !important;
+}
+
+/* Fuchsia 950 */
+html.light [class*="bg-fuchsia-950"] {
+  background-color: #fdf4ff !important;
+  border-color: #f5d0fe !important;
+  color: #a21caf !important;
+}
+html.light [class*="bg-fuchsia-950"]:hover {
+  background-color: #fae8ff !important;
+}
+
+/* Purple 950 */
+html.light [class*="bg-purple-950"] {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+  color: #7e22ce !important;
+}
+html.light [class*="bg-purple-950"]:hover {
+  background-color: #f3e8ff !important;
+}
+
+/* Rose 950 */
+html.light [class*="bg-rose-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #be123c !important;
+}
+
+/* Emerald 950 */
+html.light [class*="bg-emerald-950"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+/* Amber 950 */
+html.light [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+
+/* ========================================================================== */
+/* GRADIENTES ADAPTATIVOS PARA TEMA CLARO                                     */
+/* ========================================================================== */
+
+html.light [class*="from-cyan-950"] {
+  --tw-gradient-from: #ecfeff var(--tw-gradient-from-position) !important;
+}
+html.light [class*="from-fuchsia-950"] {
+  --tw-gradient-from: #fdf4ff var(--tw-gradient-from-position) !important;
+}
+html.light [class*="from-purple-950"] {
+  --tw-gradient-from: #faf5ff var(--tw-gradient-from-position) !important;
+}
+html.light [class*="from-rose-950"] {
+  --tw-gradient-from: #fff1f2 var(--tw-gradient-from-position) !important;
+}
+html.light [class*="from-emerald-950"] {
+  --tw-gradient-from: #ecfdf5 var(--tw-gradient-from-position) !important;
+}
+html.light [class*="from-[#0"] {
   --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
 }
-html.light .from-\[\#070a11\] {
-  --tw-gradient-from: #f8fafc var(--tw-gradient-from-position) !important;
+html.light [class*="from-[#1"] {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
 }
-html.light .to-\[\#070a11\] {
+
+html.light [class*="via-[#0"] {
+  --tw-gradient-via: #f8fafc var(--tw-gradient-via-position) !important;
+}
+html.light [class*="via-[#1"] {
+  --tw-gradient-via: #fdf4ff var(--tw-gradient-via-position) !important;
+}
+
+html.light [class*="to-cyan-950"] {
+  --tw-gradient-to: #ecfeff var(--tw-gradient-to-position) !important;
+}
+html.light [class*="to-fuchsia-950"] {
+  --tw-gradient-to: #fdf4ff var(--tw-gradient-to-position) !important;
+}
+html.light [class*="to-purple-950"] {
+  --tw-gradient-to: #faf5ff var(--tw-gradient-to-position) !important;
+}
+html.light [class*="to-rose-950"] {
+  --tw-gradient-to: #fff1f2 var(--tw-gradient-to-position) !important;
+}
+html.light [class*="to-[#0"] {
+  --tw-gradient-to: #f8fafc var(--tw-gradient-to-position) !important;
+}
+html.light [class*="to-[#1"] {
   --tw-gradient-to: #f8fafc var(--tw-gradient-to-position) !important;
 }
 
-/* Bordas suaves */
+/* ========================================================================== */
+/* HERO BANNER SECTION NO TEMA CLARO                                          */
+/* ========================================================================== */
+
+html.light .hero-banner {
+  background: linear-gradient(180deg, #f0f9ff 0%, #f8fafc 100%) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html.light .hero-banner h1 {
+  color: #0f172a !important;
+}
+html.light .hero-banner p {
+  color: #475569 !important;
+}
+html.light .hero-banner input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ========================================================================== */
+/* CARDS DE NAVEGAÇÃO DO HOME HUB NO TEMA CLARO                               */
+/* ========================================================================== */
+
+html.light .nav-card-custom-role {
+  background: linear-gradient(135deg, #fdf4ff 0%, #faf5ff 50%, #ecfeff 100%) !important;
+  border-color: #f0abfc !important;
+  box-shadow: 0 4px 20px -2px rgba(217, 70, 239, 0.15) !important;
+}
+html.light .nav-card-custom-role:hover {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.25) !important;
+}
+html.light .nav-card-custom-role h3 {
+  color: #0f172a !important;
+}
+html.light .nav-card-custom-role p {
+  color: #475569 !important;
+}
+html.light .nav-card-custom-role .icon-box {
+  background: #ffffff !important;
+  border-color: #f0abfc !important;
+  box-shadow: 0 2px 10px rgba(217, 70, 239, 0.2) !important;
+}
+
+html.light .nav-card-baladas {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fff1f2 60%, #ffffff 100%) !important;
+  border-color: #f5d0fe !important;
+  box-shadow: 0 4px 20px -2px rgba(217, 70, 239, 0.12) !important;
+}
+html.light .nav-card-baladas:hover {
+  border-color: #d946ef !important;
+  box-shadow: 0 8px 30px rgba(217, 70, 239, 0.25) !important;
+}
+html.light .nav-card-baladas h3 {
+  color: #0f172a !important;
+}
+html.light .nav-card-baladas p {
+  color: #475569 !important;
+}
+html.light .nav-card-baladas .icon-box {
+  background: #ffffff !important;
+  border-color: #f5d0fe !important;
+  box-shadow: 0 2px 10px rgba(217, 70, 239, 0.18) !important;
+}
+
+html.light .nav-card-bares {
+  background: linear-gradient(135deg, #ecfeff 0%, #f0f9ff 60%, #ffffff 100%) !important;
+  border-color: #cffafe !important;
+  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.12) !important;
+}
+html.light .nav-card-bares:hover {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.25) !important;
+}
+html.light .nav-card-bares h3 {
+  color: #0f172a !important;
+}
+html.light .nav-card-bares p {
+  color: #475569 !important;
+}
+html.light .nav-card-bares .icon-box {
+  background: #ffffff !important;
+  border-color: #a5f3fc !important;
+  box-shadow: 0 2px 10px rgba(6, 182, 212, 0.18) !important;
+}
+
+html.light .nav-card-moteis {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 60%, #ffffff 100%) !important;
+  border-color: #fbcfe8 !important;
+  box-shadow: 0 4px 20px -2px rgba(236, 72, 153, 0.12) !important;
+}
+html.light .nav-card-moteis:hover {
+  border-color: #ec4899 !important;
+  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.25) !important;
+}
+html.light .nav-card-moteis h3 {
+  color: #0f172a !important;
+}
+html.light .nav-card-moteis p {
+  color: #475569 !important;
+}
+html.light .nav-card-moteis .icon-box {
+  background: #ffffff !important;
+  border-color: #fbcfe8 !important;
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.18) !important;
+}
+
+html.light .nav-card-after {
+  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 50%, #ecfeff 100%) !important;
+  border-color: #c7d2fe !important;
+  box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.12) !important;
+}
+html.light .nav-card-after:hover {
+  border-color: #6366f1 !important;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.25) !important;
+}
+html.light .nav-card-after h3 {
+  color: #0f172a !important;
+}
+html.light .nav-card-after p {
+  color: #475569 !important;
+}
+html.light .nav-card-after .icon-box {
+  background: #ffffff !important;
+  border-color: #c7d2fe !important;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.18) !important;
+}
+
+/* ========================================================================== */
+/* CATEGORY TABS NO TEMA CLARO                                                */
+/* ========================================================================== */
+
+html.light .category-tab-inactive {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.04) !important;
+}
+html.light .category-tab-inactive:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .category-tab-inactive div.text-slate-100 {
+  color: #1e293b !important;
+}
+html.light .category-tab-inactive p.text-slate-400 {
+  color: #64748b !important;
+}
+html.light .category-tab-inactive .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+/* Baladas active */
+html.light .category-tab-active-baladas {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fff1f2 100%) !important;
+  border-color: #d946ef !important;
+  box-shadow: 0 4px 20px -2px rgba(217, 70, 239, 0.2) !important;
+}
+html.light .category-tab-active-baladas div.text-slate-100 {
+  color: #701a75 !important;
+}
+html.light .category-tab-active-baladas p.text-slate-400 {
+  color: #86198f !important;
+}
+
+/* Restaurantes active */
+html.light .category-tab-active-restaurantes {
+  background: linear-gradient(135deg, #ecfeff 0%, #f0fdf4 100%) !important;
+  border-color: #06b6d4 !important;
+  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.2) !important;
+}
+html.light .category-tab-active-restaurantes div.text-slate-100 {
+  color: #155e75 !important;
+}
+html.light .category-tab-active-restaurantes p.text-slate-400 {
+  color: #0e7490 !important;
+}
+
+/* Moteis active */
+html.light .category-tab-active-moteis {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 100%) !important;
+  border-color: #ec4899 !important;
+  box-shadow: 0 4px 20px -2px rgba(236, 72, 153, 0.2) !important;
+}
+html.light .category-tab-active-moteis div.text-slate-100 {
+  color: #831843 !important;
+}
+html.light .category-tab-active-moteis p.text-slate-400 {
+  color: #9d174d !important;
+}
+
+/* Kids active */
+html.light .category-tab-active-kids {
+  background: linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%) !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.2) !important;
+}
+html.light .category-tab-active-kids div.text-slate-100 {
+  color: #075985 !important;
+}
+html.light .category-tab-active-kids p.text-slate-400 {
+  color: #0369a1 !important;
+}
+
+/* Favorites active */
+html.light .category-tab-active-favorites {
+  background: linear-gradient(135deg, #fff1f2 0%, #fdf4ff 100%) !important;
+  border-color: #f43f5e !important;
+  box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.2) !important;
+}
+html.light .category-tab-active-favorites div.text-slate-100 {
+  color: #881337 !important;
+}
+html.light .category-tab-active-favorites p.text-slate-400 {
+  color: #9f1239 !important;
+}
+
+/* ========================================================================== */
+/* PAINEL DE FILTROS (FILTER BAR) NO TEMA CLARO                               */
+/* ========================================================================== */
+
+html.light .filter-panel-container {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 25px -4px rgba(15, 23, 42, 0.06) !important;
+}
+html.light .filter-panel-container .text-slate-200 {
+  color: #1e293b !important;
+}
+html.light .filter-panel-container .text-slate-300 {
+  color: #334155 !important;
+}
+html.light .filter-panel-container .text-slate-400 {
+  color: #64748b !important;
+}
+html.light .filter-panel-container [class*="bg-[#0c101c]"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+html.light .filter-panel-container [class*="bg-[#0c101c]"]:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Active pills */
+html.light .filter-panel-container .bg-cyan-500\/25,
+html.light .filter-panel-container .bg-cyan-500\/30 {
+  background-color: #ecfeff !important;
+  border-color: #06b6d4 !important;
+  color: #0e7490 !important;
+  box-shadow: 0 2px 10px rgba(6, 182, 212, 0.25) !important;
+}
+html.light .filter-panel-container .bg-fuchsia-500\/25,
+html.light .filter-panel-container .bg-fuchsia-500\/30 {
+  background-color: #fdf4ff !important;
+  border-color: #d946ef !important;
+  color: #a21caf !important;
+  box-shadow: 0 2px 10px rgba(217, 70, 239, 0.25) !important;
+}
+html.light .filter-panel-container .bg-purple-500\/25,
+html.light .filter-panel-container .bg-purple-500\/30 {
+  background-color: #faf5ff !important;
+  border-color: #a855f7 !important;
+  color: #7e22ce !important;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.25) !important;
+}
+
+/* ========================================================================== */
+/* CARDS DE ESTABELECIMENTOS (VENUE CARD) NO TEMA CLARO                       */
+/* ========================================================================== */
+
+html.light .venue-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03) !important;
+}
+html.light .venue-card:hover {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 10px 35px -5px rgba(6, 182, 212, 0.2) !important;
+}
+html.light .venue-card h3 {
+  color: #0f172a !important;
+}
+html.light .venue-card h3:hover {
+  color: #0284c7 !important;
+}
+html.light .venue-card p.line-clamp-2 {
+  color: #64748b !important;
+}
+html.light .venue-card .distance-box {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+html.light .venue-card .uber-btn {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0e7490 !important;
+}
+html.light .venue-card .uber-btn:hover {
+  background-color: #cffafe !important;
+}
+
+/* Vinheta de sobreposição na foto: mantém tom escuro para contraste dos badges */
+html.light .venue-card-img-overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 55%, rgba(0, 0, 0, 0.45) 100%) !important;
+}
+
+/* ========================================================================== */
+/* BORDAS, DIVISORES E ELEMENTOS TRANSLÚCIDOS                                 */
+/* ========================================================================== */
+
 html.light .border-white\/10,
 html.light .border-white\/5,
 html.light .border-white\/15,
 html.light .border-white\/20,
-html.light .border-white\/30 {
+html.light .border-white\/25,
+html.light .border-white\/30,
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-700 {
   border-color: #e2e8f0 !important;
 }
 
@@ -271,63 +715,18 @@ html.light .divide-white\/10 > * + * {
   border-color: #f1f5f9 !important;
 }
 
-/* Elementos translúcidos de botões, tags e filtros */
-html.light .bg-white\/5 {
-  background-color: #f1f5f9 !important;
+html.light .bg-white\/5,
+html.light .bg-white\/\[0\.03\] {
+  background-color: #f8fafc !important;
 }
 html.light .bg-white\/10 {
-  background-color: #e2e8f0 !important;
+  background-color: #f1f5f9 !important;
 }
 html.light .hover\:bg-white\/10:hover {
   background-color: #e2e8f0 !important;
 }
 html.light .hover\:bg-white\/5:hover {
   background-color: #f1f5f9 !important;
-}
-
-/* Textos adaptativos no tema claro */
-html.light .text-white {
-  color: #0f172a !important;
-}
-
-html.light .text-slate-100 {
-  color: #1e293b !important;
-}
-
-html.light .text-slate-200 {
-  color: #334155 !important;
-}
-
-html.light .text-slate-300 {
-  color: #475569 !important;
-}
-
-html.light .text-slate-400 {
-  color: #64748b !important;
-}
-
-/* Preserva texto branco em botões com fundos coloridos, gradientes vibrantes ou badges neon */
-html.light [class*="bg-gradient-to-"] .text-white,
-html.light [class*="bg-gradient-to-"] span.text-white,
-html.light button[class*="bg-gradient-to-"],
-html.light button[class*="bg-gradient-to-"] span,
-html.light a[class*="bg-gradient-to-"],
-html.light a[class*="bg-gradient-to-"] span,
-html.light .bg-cyan-600,
-html.light .bg-cyan-600 *,
-html.light .bg-fuchsia-600,
-html.light .bg-fuchsia-600 *,
-html.light .bg-emerald-600,
-html.light .bg-emerald-600 *,
-html.light .bg-purple-600,
-html.light .bg-purple-600 *,
-html.light .bg-rose-600,
-html.light .bg-rose-600 *,
-html.light .bg-black,
-html.light .bg-black *,
-html.light .keep-white,
-html.light .keep-white * {
-  color: #ffffff !important;
 }
 
 /* Inputs, textareas e selects no tema claro */
@@ -344,18 +743,114 @@ html.light textarea::placeholder {
   color: #94a3b8 !important;
 }
 
-/* Cores de destaque com bom contraste no fundo claro */
-html.light .text-cyan-400 {
-  color: #0284c7 !important;
+/* ========================================================================== */
+/* TIPOGRAFIA E CONTRASTE DE CORES NO TEMA CLARO                              */
+/* ========================================================================== */
+
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: #0f172a;
 }
-html.light .text-fuchsia-400 {
-  color: #c026d3 !important;
+
+html.light p {
+  color: #475569;
 }
-html.light .text-emerald-400 {
-  color: #059669 !important;
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #1e293b !important;
 }
-html.light .text-amber-400 {
-  color: #d97706 !important;
+
+html.light .text-slate-300 {
+  color: #334155 !important;
 }
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Cores de destaque textuais com excelente legibilidade */
+html.light .text-cyan-400 { color: #0284c7 !important; }
+html.light .text-cyan-300 { color: #0369a1 !important; }
+html.light .text-cyan-200 { color: #0e7490 !important; }
+html.light .text-fuchsia-400 { color: #c026d3 !important; }
+html.light .text-fuchsia-300 { color: #a21caf !important; }
+html.light .text-fuchsia-200 { color: #86198f !important; }
+html.light .text-purple-400 { color: #9333ea !important; }
+html.light .text-purple-300 { color: #7e22ce !important; }
+html.light .text-emerald-400 { color: #059669 !important; }
+html.light .text-emerald-300 { color: #047857 !important; }
+html.light .text-amber-400 { color: #d97706 !important; }
+html.light .text-amber-300 { color: #b45309 !important; }
+html.light .text-rose-400 { color: #e11d48 !important; }
+html.light .text-rose-300 { color: #be123c !important; }
+
+/* Inverte .text-white apenas em texto comum em superfícies brancas/claras */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+/* ========================================================================== */
+/* BLINDAGEM: ELEMENTOS QUE DEVEM SEMPRE PERMANECER BRANCOS (#ffffff)         */
+/* ========================================================================== */
+
+/* 1. Botões e CTAs com fundos gradientes ou sólidos coloridos */
+html.light button[class*="bg-gradient-"],
+html.light button[class*="bg-gradient-"] *,
+html.light a[class*="bg-gradient-"],
+html.light a[class*="bg-gradient-"] *,
+html.light [class*="bg-gradient-to-"] .text-white,
+html.light [class*="bg-gradient-to-"] span.text-white,
+html.light button[class*="bg-cyan-600"],
+html.light button[class*="bg-cyan-600"] *,
+html.light button[class*="bg-cyan-500"],
+html.light button[class*="bg-cyan-500"] *,
+html.light button[class*="bg-fuchsia-600"],
+html.light button[class*="bg-fuchsia-600"] *,
+html.light button[class*="bg-fuchsia-500"],
+html.light button[class*="bg-fuchsia-500"] *,
+html.light button[class*="bg-emerald-600"],
+html.light button[class*="bg-emerald-600"] *,
+html.light button[class*="bg-purple-600"],
+html.light button[class*="bg-purple-600"] *,
+html.light button[class*="bg-rose-600"],
+html.light button[class*="bg-rose-600"] *,
+
+/* 2. Badges de destaque sólidos */
+html.light span[class*="bg-fuchsia-500"],
+html.light span[class*="bg-fuchsia-600"],
+html.light span[class*="bg-cyan-600"],
+html.light span[class*="bg-amber-500"],
+html.light span[class*="bg-rose-500"],
+html.light span[class*="bg-emerald-500"],
+
+/* 3. Badges, tags e textos sobrepostos em fotos e fundos escuros */
+html.light [class*="bg-black"],
+html.light [class*="bg-black"] *,
+html.light [class*="bg-black/"],
+html.light [class*="bg-black/"] *,
+
+/* 4. Elementos marcados expressamente com keep-white */
+html.light .keep-white,
+html.light .keep-white * {
+  color: #ffffff !important;
+}
+
+/* ========================================================================== */
+/* REMOVE GLOWS NEON ILEGÍVEIS NO FUNDO BRANCO                                */
+/* ========================================================================== */
+
+html.light [class*="shadow-[0_0_"] {
+  box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.08) !important;
+}
+
 
 

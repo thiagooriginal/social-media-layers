@@ -29,6 +29,58 @@ export interface UserVipPass {
 
 const STORAGE_KEY_USER = "baladaon_auth_user";
 const STORAGE_KEY_PASSES = "baladaon_user_vip_passes";
+const STORAGE_KEY_SAVED_CREDS = "baladaon_saved_credentials";
+
+export interface SavedCredentials {
+  email: string;
+  name?: string;
+  role?: "user" | "partner" | "admin";
+  businessName?: string;
+  rememberMe: boolean;
+  biometricsEnabled: boolean;
+  lastLoginAt: string;
+}
+
+export function getSavedCredentials(): SavedCredentials | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SAVED_CREDS);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function saveCredentials(data: {
+  email: string;
+  name?: string;
+  role?: "user" | "partner" | "admin";
+  businessName?: string;
+  rememberMe?: boolean;
+  biometricsEnabled?: boolean;
+}): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getSavedCredentials();
+    const payload: SavedCredentials = {
+      email: data.email.toLowerCase().trim(),
+      name: data.name || existing?.name,
+      role: data.role || existing?.role || "user",
+      businessName: data.businessName || existing?.businessName,
+      rememberMe: data.rememberMe ?? existing?.rememberMe ?? true,
+      biometricsEnabled: data.biometricsEnabled ?? existing?.biometricsEnabled ?? false,
+      lastLoginAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY_SAVED_CREDS, JSON.stringify(payload));
+  } catch (e) {}
+}
+
+export function clearSavedCredentials(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(STORAGE_KEY_SAVED_CREDS);
+  } catch (e) {}
+}
 
 const listeners: Array<(user: UserProfile | null) => void> = [];
 
@@ -174,6 +226,85 @@ export async function registerUser(data: {
     return { success: true, user };
   } catch (err: any) {
     return { success: false, error: err.message || "Erro ao cadastrar usuário" };
+  }
+}
+
+export async function updateUserProfile(data: {
+  name: string;
+  whatsapp: string;
+  email?: string;
+  businessName?: string;
+  neighborhood?: string;
+}): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  try {
+    const current = getCurrentUser();
+    if (!current) {
+      return { success: false, error: "Usuário não está autenticado." };
+    }
+
+    const cleanName = data.name.trim();
+    const cleanWhatsapp = data.whatsapp.trim();
+    const cleanEmail = data.email ? data.email.toLowerCase().trim() : current.email;
+
+    if (!cleanName) {
+      return { success: false, error: "O nome não pode ficar em branco." };
+    }
+    if (!cleanWhatsapp) {
+      return { success: false, error: "O WhatsApp não pode ficar em branco." };
+    }
+
+    const updatedUser: UserProfile = {
+      ...current,
+      name: cleanName,
+      whatsapp: cleanWhatsapp,
+      email: cleanEmail,
+      businessName: data.businessName !== undefined ? data.businessName.trim() : current.businessName,
+      neighborhood: data.neighborhood !== undefined ? data.neighborhood.trim() : current.neighborhood,
+    };
+
+    // 1. Atualizar no Supabase se possível
+    try {
+      if (current.id && !current.id.startsWith("usr_")) {
+        await (supabase as any)
+          .from("profiles")
+          .update({
+            name: updatedUser.name,
+            whatsapp: updatedUser.whatsapp,
+            email: updatedUser.email,
+            business_name: updatedUser.businessName || null,
+            neighborhood: updatedUser.neighborhood || null,
+          })
+          .eq("id", current.id);
+      } else if (current.email) {
+        await (supabase as any)
+          .from("profiles")
+          .update({
+            name: updatedUser.name,
+            whatsapp: updatedUser.whatsapp,
+            business_name: updatedUser.businessName || null,
+            neighborhood: updatedUser.neighborhood || null,
+          })
+          .eq("email", current.email.toLowerCase().trim());
+      }
+    } catch (e) {
+      console.warn("Could not sync updated profile to Supabase:", e);
+    }
+
+    // 2. Atualizar no LocalStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(updatedUser));
+      saveCredentials({
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        businessName: updatedUser.businessName,
+      });
+    }
+
+    notifyAuthChange(updatedUser);
+    return { success: true, user: updatedUser };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Erro ao atualizar dados do perfil" };
   }
 }
 

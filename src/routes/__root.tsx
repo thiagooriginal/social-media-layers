@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -86,6 +87,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "/logo-official.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@RadarDoRole" },
+      { name: "theme-color", content: "#070a11" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Radar do Rolê" },
+      { name: "application-name", content: "Radar do Rolê" },
     ],
     links: [
       {
@@ -108,6 +115,33 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR" className="dark w-full max-w-full overflow-x-hidden">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  localStorage.removeItem('radar_session_entered');
+                  sessionStorage.removeItem('radar_session_entered');
+                  if (document.documentElement) {
+                    document.documentElement.classList.remove('radar-already-entered');
+                  }
+                } catch(e) {}
+
+                window.__radarSkipped = false;
+
+                if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                      console.log('[PWA] SW registrado:', reg.scope);
+                    }).catch(function(err) {
+                      console.warn('[PWA] SW falha:', err);
+                    });
+                  });
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="bg-[#070a11] text-slate-100 antialiased min-h-screen selection:bg-purple-600 selection:text-white w-full max-w-full overflow-x-hidden">
         {children}
@@ -117,6 +151,8 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { Toaster } from "sonner";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -124,6 +160,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <PwaInstallPrompt />
+      <Toaster richColors position="top-center" theme="dark" />
     </QueryClientProvider>
   );
 }

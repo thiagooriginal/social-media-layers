@@ -55,6 +55,7 @@ function Projeto2Page() {
             setUser(null);
             setIsProfileModalOpen(false);
           }}
+          onUserUpdated={(updated) => setUser(updated)}
         />
       )}
     </div>

@@ -107,7 +107,13 @@ import {
   OFFICIAL_PLAN_NAME,
   OFFICIAL_PLAN_PRICE,
   OFFICIAL_PIX_KEY,
+  switchSubscriptionTier,
+  isSubscriptionPremium,
+  PlanTier,
+  STANDARD_PLAN_PRICE,
+  PREMIUM_PLAN_PRICE,
 } from "../services/saasBillingService";
+import { getVenueFavoritesStats } from "../services/favoritesPermissionService";
 
 export const Route = createFileRoute("/admin")({
   component: AdminDashboardPage,
@@ -756,6 +762,17 @@ function AdminDashboardPage() {
         return s;
       })
     );
+  };
+
+  // Toggle Subscription Tier Handler (Standard R$ 59 vs Premium R$ 89)
+  const handleToggleSubscriptionTier = (subId: string) => {
+    const targetSub = subscriptions.find((s) => s.id === subId);
+    if (!targetSub) return;
+    const nextTier: PlanTier = targetSub.tier === "premium" ? "standard" : "premium";
+    const updated = switchSubscriptionTier(subId, nextTier);
+    if (updated) {
+      setSubscriptions(getStoredSubscriptions());
+    }
   };
 
   // Switch tab with smooth auto-scroll to section
@@ -1950,18 +1967,14 @@ function AdminDashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-1.5 text-xs">
-                    <span className="h-3 w-3 rounded-full bg-blue-500" />
-                    <span className="text-slate-300">Mensal R$ 79 ({saasMetrics.planBreakdown.mensal})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="h-3 w-3 rounded-full bg-purple-500" />
-                    <span className="text-purple-300 font-bold">Semestral R$ 59 ({saasMetrics.planBreakdown.semestral}) 🔥</span>
+                    <span className="h-3 w-3 rounded-full bg-cyan-500" />
+                    <span className="text-cyan-300 font-bold">Standard R$ 59 ({saasMetrics.planBreakdown.standard || subscriptions.filter(s => s.tier !== "premium").length}) 💼</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs">
                     <span className="h-3 w-3 rounded-full bg-amber-400" />
-                    <span className="text-amber-300 font-bold">Anual R$ 39 ({saasMetrics.planBreakdown.anual}) 👑</span>
+                    <span className="text-amber-300 font-black">Premium R$ 89 ({saasMetrics.planBreakdown.premium || subscriptions.filter(s => s.tier === "premium").length}) ⭐ Promoções</span>
                   </div>
                 </div>
               </div>
@@ -2098,12 +2111,37 @@ function AdminDashboardPage() {
                               <span className="text-emerald-400 font-mono text-[11px] block">{sub.ownerWhatsapp}</span>
                             </td>
                             <td className="py-3 px-3">
-                              <span className="rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-black px-2 py-0.5 text-[10px] block w-fit">
-                                {sub.planName}
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase border ${
+                                    sub.tier === "premium"
+                                      ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
+                                      : "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
+                                  }`}
+                                >
+                                  {sub.tier === "premium" ? "👑 Premium" : "💼 Standard"}
+                                </span>
+                              </div>
                               <span className="text-white font-black text-xs mt-1 block">
-                                R$ {sub.monthlyValue || OFFICIAL_PLAN_PRICE},00/mês
+                                R$ {sub.monthlyValue || (sub.tier === "premium" ? 89 : 59)},00/mês
                               </span>
+                              {(() => {
+                                const favStats = getVenueFavoritesStats(sub.venueId);
+                                return (
+                                  <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-pink-300 font-bold bg-pink-500/10 border border-pink-500/20 rounded px-1.5 py-0.5" title="Total de usuários que favoritaram este local">
+                                      ❤️ {favStats.totalFavoritedCount} fãs ({favStats.authorizedSubscribersCount} zap)
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleSubscriptionTier(sub.id)}
+                                      className="text-[9px] font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                                    >
+                                      {sub.tier === "premium" ? "Mudar p/ Standard (59)" : "Mudar p/ Premium (89)"}
+                                    </button>
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="py-3 px-3">
                               <span className="rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black px-2 py-0.5 text-[10px] inline-block">
@@ -2722,8 +2760,29 @@ function AdminDashboardPage() {
                       return (
                         <tr key={sub.id} className="hover:bg-white/[0.02]">
                           <td className="py-3 px-3">
-                            <span className="font-bold text-white block">{sub.venueName}</span>
-                            <span className="text-[10px] text-slate-500 font-mono">ID: {sub.venueId}</span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-white">{sub.venueName}</span>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border ${
+                                  sub.tier === "premium"
+                                    ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
+                                    : "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
+                                }`}
+                              >
+                                {sub.tier === "premium" ? "👑 Premium R$89" : "Standard R$59"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] text-slate-500 font-mono">ID: {sub.venueId}</span>
+                              {(() => {
+                                const favStats = getVenueFavoritesStats(sub.venueId);
+                                return (
+                                  <span className="text-[9px] text-pink-300 font-bold bg-pink-500/10 border border-pink-500/20 rounded px-1">
+                                    ❤️ {favStats.totalFavoritedCount} fãs
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </td>
                           <td className="py-3 px-3">
                             <span className="font-bold text-slate-200 block">{sub.ownerName}</span>

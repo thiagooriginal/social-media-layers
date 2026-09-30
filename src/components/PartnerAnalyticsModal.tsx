@@ -35,6 +35,7 @@ interface PartnerAnalyticsModalProps {
   onClose: () => void;
   venues: Venue[];
   initialVenueId?: string;
+  isPartnerOnly?: boolean;
 }
 
 export function PartnerAnalyticsModal({
@@ -42,6 +43,7 @@ export function PartnerAnalyticsModal({
   onClose,
   venues,
   initialVenueId,
+  isPartnerOnly = false,
 }: PartnerAnalyticsModalProps) {
   const [selectedVenueId, setSelectedVenueId] = useState<string>(() => {
     return initialVenueId || (venues[0] ? venues[0].id : "");
@@ -53,7 +55,7 @@ export function PartnerAnalyticsModal({
   const [isStatusSaved, setIsStatusSaved] = useState<boolean>(false);
   const [copiedInsta, setCopiedInsta] = useState<boolean>(false);
 
-  // Keep selected venue in sync if initialVenueId changes
+  // Keep selected venue in sync if initialVenueId changes or in partner mode
   React.useEffect(() => {
     if (initialVenueId) {
       setSelectedVenueId(initialVenueId);
@@ -62,7 +64,9 @@ export function PartnerAnalyticsModal({
 
   if (!isOpen) return null;
 
-  const currentVenue = venues.find((v) => v.id === selectedVenueId) || venues[0];
+  const currentVenue = (isPartnerOnly && initialVenueId
+    ? venues.find((v) => v.id === initialVenueId)
+    : venues.find((v) => v.id === selectedVenueId)) || venues[0];
 
   const metrics: VenueMetrics = currentVenue
     ? getVenueMetrics(currentVenue.id, currentVenue.name)
@@ -110,7 +114,7 @@ export function PartnerAnalyticsModal({
           <X className="h-4 w-4" />
         </button>
 
-        {/* Header with Venue Selector */}
+        {/* Header with Venue Selector or Locked Partner Card */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 text-2xl shadow-[0_0_20px_rgba(168,85,247,0.5)]">
@@ -118,33 +122,51 @@ export function PartnerAnalyticsModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-white">Relatório do Estabelecimento</h3>
+                <h3 className="text-xl font-black text-white">
+                  {isPartnerOnly ? "Relatório do Meu Estabelecimento" : "Relatório do Estabelecimento"}
+                </h3>
                 <span className="rounded-full bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 text-[10px] font-extrabold text-purple-300">
-                  INSIGHTS
+                  {isPartnerOnly ? "EXCLUSIVO" : "INSIGHTS"}
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Métricas de alcance, cliques e conversão no Radar do Rolê
+                {isPartnerOnly
+                  ? `Métricas exclusivas e em tempo real de ${currentVenue?.name || "seu local"}`
+                  : "Métricas de alcance, cliques e conversão no Radar do Rolê"}
               </p>
             </div>
           </div>
 
-          {/* Venue Picker Dropdown */}
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-60">
-              <select
-                value={selectedVenueId}
-                onChange={(e) => setSelectedVenueId(e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-[#121829] py-2.5 px-3 pr-8 text-xs font-bold text-white focus:border-purple-500 focus:outline-none"
-              >
-                {venues.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.subTypeEmoji} {v.name} ({v.neighborhood})
-                  </option>
-                ))}
-              </select>
+          {/* Venue Picker Dropdown or Locked Partner Badge */}
+          {isPartnerOnly ? (
+            <div className="flex items-center gap-2.5 rounded-2xl border border-purple-500/40 bg-purple-950/40 px-3.5 py-2 text-xs font-bold text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+              <Building2 className="h-4 w-4 text-purple-400 shrink-0" />
+              <div className="text-left">
+                <div className="text-white font-black truncate max-w-[200px] sm:max-w-xs">
+                  {currentVenue?.subTypeEmoji} {currentVenue?.name}
+                </div>
+                <div className="text-[10px] text-purple-300">
+                  {currentVenue?.neighborhood} • Estabelecimento Verificado
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="relative w-full sm:w-64">
+                <select
+                  value={selectedVenueId}
+                  onChange={(e) => setSelectedVenueId(e.target.value)}
+                  className="w-full rounded-xl border border-white/15 bg-[#121829] py-2.5 px-3 pr-8 text-xs font-bold text-white focus:border-purple-500 focus:outline-none"
+                >
+                  {venues.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.subTypeEmoji} {v.name} ({v.neighborhood})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tab Switcher: Metrics vs Live Operations */}

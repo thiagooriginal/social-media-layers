@@ -1,17 +1,68 @@
 {
-  "name": "Radar do Rolê - Baladas, Bares e Afters em SP",
+  "name": "Radar do Rolê 📡 | Baladas, Bares e Motéis em SP",
   "short_name": "Radar do Rolê",
-  "description": "Radar do Rolê: O radar oficial da vida noturna de São Paulo. Encontre baladas, festas, bares e afters perto de você com estimativa de Uber e lista VIP.",
+  "description": "O radar oficial da vida noturna de São Paulo. Encontre baladas, festas, bares e afters perto de você com estimativa de Uber e lista VIP.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#070a11",
   "theme_color": "#070a11",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": [
+    "entertainment",
+    "lifestyle",
+    "travel"
+  ],
   "icons": [
+    {
+      "src": "/logo-official.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-official.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
     {
       "src": "/logo-official.jpg",
       "sizes": "1024x1024",
       "type": "image/jpeg",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Baladas & Festas",
+      "short_name": "Baladas",
+      "description": "Ver baladas ao vivo em São Paulo",
+      "url": "/?cat=baladas",
+      "icons": [{ "src": "/logo-official.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bares & Gastronomia",
+      "short_name": "Bares",
+      "description": "Explorar bares e gastronomia",
+      "url": "/?cat=restaurantes",
+      "icons": [{ "src": "/logo-official.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Motéis Design",
+      "short_name": "Motéis",
+      "description": "Suítes e motéis exclusivos",
+      "url": "/?cat=moteis",
+      "icons": [{ "src": "/logo-official.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Portal do Parceiro",
+      "short_name": "Parceiros",
+      "description": "Check-in de portaria e gestão",
+      "url": "/parceiro",
+      "icons": [{ "src": "/logo-official.jpg", "sizes": "192x192" }]
     }
   ]
 }

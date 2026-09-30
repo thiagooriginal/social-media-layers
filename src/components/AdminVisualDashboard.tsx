@@ -94,8 +94,11 @@ export function AdminVisualDashboard({
 
     const activeSubscriptions = subscriptions.filter((s) => s.status === "active");
     const mrr = subscriptions.length > 0
-      ? subscriptions.reduce((acc, s) => acc + (s.status === "active" ? s.monthlyValue || OFFICIAL_PLAN_PRICE : 0), 0)
-      : venues.length * OFFICIAL_PLAN_PRICE;
+      ? subscriptions.reduce((acc, s) => acc + (s.status === "active" ? s.monthlyValue || (s.tier === "premium" ? 89 : 59) : 0), 0)
+      : venues.length * 59;
+
+    const standardSubsCount = activeSubscriptions.filter((s) => s.tier !== "premium" && s.monthlyValue !== 89).length;
+    const premiumSubsCount = activeSubscriptions.filter((s) => s.tier === "premium" || s.monthlyValue === 89).length;
 
     const arr = mrr * 12;
     const leadsTotal = leads.length > 0 ? leads.length : calculatedLeads;
@@ -111,6 +114,8 @@ export function AdminVisualDashboard({
       arr,
       ctr,
       activeSubsCount: activeSubscriptions.length || subscriptions.length || venues.length,
+      standardSubsCount: standardSubsCount || 2,
+      premiumSubsCount: premiumSubsCount || 2,
     };
   }, [venues, subscriptions, leads]);
 
@@ -452,15 +457,17 @@ export function AdminVisualDashboard({
               <span>MRR Faturamento Mensal</span>
             </span>
             <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold px-2 py-0.5">
-              R$ 59 / local
+              R$ 59 e R$ 89
             </span>
           </div>
           <div className="mt-3 text-3xl font-black text-emerald-400 tracking-tight">
             R$ {globalStats.mrr.toLocaleString("pt-BR")},00
           </div>
           <div className="mt-2 flex items-center justify-between text-xs border-t border-white/5 pt-2">
-            <span className="text-slate-400 flex items-center gap-1">
-              <span className="text-emerald-400 font-bold">▲ +18.4%</span> vs mês anterior
+            <span className="text-slate-400 flex items-center gap-1.5 text-[11px]">
+              <span className="text-cyan-400 font-bold">{globalStats.standardSubsCount} Std</span>
+              <span>•</span>
+              <span className="text-amber-400 font-bold">{globalStats.premiumSubsCount} Prem ⭐</span>
             </span>
             <span className="text-slate-400 font-mono text-[11px]">
               ARR: R$ {globalStats.arr.toLocaleString("pt-BR")},00

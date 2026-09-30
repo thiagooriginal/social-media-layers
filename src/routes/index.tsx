@@ -35,6 +35,8 @@ import {
 } from "../lib/navPersistence";
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
+import { registerFavoriteOptIn, removeFavoriteOptIn } from "../services/favoritesPermissionService";
+import { toast } from "sonner";
 import {
   Sparkles,
   Compass,
@@ -333,11 +335,41 @@ function IndexPage() {
   }, [favorites]);
 
   const handleToggleFavorite = (venueId: string) => {
-    setFavorites((prev) =>
-      prev.includes(venueId)
-        ? prev.filter((id) => id !== venueId)
-        : [...prev, venueId]
-    );
+    const isFav = favorites.includes(venueId);
+    const targetVenue = venues.find((v) => v.id === venueId);
+    const venueName = targetVenue ? targetVenue.name : "Local";
+
+    if (!isFav) {
+      setFavorites((prev) => [...prev, venueId]);
+
+      // Resgata dados de contato salvos pelo usuário para vincular à lista de fãs
+      let phone = user?.phoneNumber || "";
+      let name = user?.displayName || "";
+      if (typeof window !== "undefined") {
+        if (!phone) phone = localStorage.getItem("baladaon_user_phone") || localStorage.getItem("baladaon_lead_phone") || "";
+        if (!name) name = localStorage.getItem("baladaon_user_name") || localStorage.getItem("baladaon_lead_name") || "";
+      }
+
+      registerFavoriteOptIn(venueId, phone, name);
+
+      toast.success(`❤️ ${venueName} salvo nos favoritos!`, {
+        description: "Você autorizou o recebimento de promoções exclusivas e benefícios VIP deste local no WhatsApp.",
+        duration: 3500,
+      });
+    } else {
+      setFavorites((prev) => prev.filter((id) => id !== venueId));
+
+      let phone = user?.phoneNumber || "";
+      if (typeof window !== "undefined" && !phone) {
+        phone = localStorage.getItem("baladaon_user_phone") || localStorage.getItem("baladaon_lead_phone") || "";
+      }
+      removeFavoriteOptIn(venueId, phone);
+
+      toast.info(`Removido dos favoritos (${venueName})`, {
+        description: "Você não receberá mais disparos promocionais deste local.",
+        duration: 2500,
+      });
+    }
   };
 
   const handleVenueCreated = (newVenue: Venue) => {
@@ -1665,6 +1697,26 @@ function IndexPage() {
                     </div>
                   </div>
                 </button>
+              </div>
+            )}
+
+            {/* Favorites Opt-in Notice */}
+            {(currentScreen === "favorites" || activeTab === "favorites") && (
+              <div className="mb-6 rounded-2xl border border-pink-500/30 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-900/10 p-4 sm:p-5 flex items-start gap-3.5 backdrop-blur-md shadow-lg shadow-pink-500/5">
+                <div className="h-9 w-9 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center shrink-0 text-pink-400">
+                  <Heart className="h-5 w-5 fill-pink-500/30" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black text-white">Seus Lugares Favoritos & Ofertas VIP</span>
+                    <span className="rounded-full bg-pink-500/20 px-2 py-0.5 text-[9px] font-black uppercase text-pink-300 border border-pink-500/30">
+                      Permissão Ativa
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+                    Ao salvar estabelecimentos nos favoritos, você autoriza automaticamente o envio de promoções exclusivas, vouchers de desconto e cortesias VIP diretamente no seu WhatsApp oficial pelos parceiros cadastrados.
+                  </p>
+                </div>
               </div>
             )}
 

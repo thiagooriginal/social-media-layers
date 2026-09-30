@@ -55,7 +55,7 @@ export function MobileNav({
           onClick={() => onNavigate("restaurantes")}
           className={`flex flex-col items-center justify-center rounded-2xl py-1 text-[10px] font-bold transition-all ${
             currentScreen === "restaurantes"
-              ? "text-amber-400 bg-amber-950/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              ? "text-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -68,7 +68,7 @@ export function MobileNav({
           onClick={() => onNavigate("after")}
           className={`flex flex-col items-center justify-center rounded-2xl py-1 text-[10px] font-bold transition-all ${
             currentScreen === "after"
-              ? "text-purple-400 bg-purple-950/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+              ? "text-fuchsia-400 bg-fuchsia-950/40 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -81,14 +81,14 @@ export function MobileNav({
           onClick={() => onNavigate("favorites")}
           className={`relative flex flex-col items-center justify-center rounded-2xl py-1 text-[10px] font-bold transition-all ${
             currentScreen === "favorites"
-              ? "text-pink-400 bg-pink-950/40 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+              ? "text-fuchsia-400 bg-fuchsia-950/40 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
           <div className="relative">
             <Heart className="h-4 w-4" />
             {favoritesCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-pink-500 px-0.5 text-[8px] font-extrabold text-white">
+              <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-fuchsia-500 px-0.5 text-[8px] font-extrabold text-white shadow-[0_0_8px_rgba(255,0,127,0.6)]">
                 {favoritesCount}
               </span>
             )}

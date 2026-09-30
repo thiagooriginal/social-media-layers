@@ -34,6 +34,12 @@ import {
   Sliders,
   Fingerprint,
   X,
+  Heart,
+  Upload,
+  Image as ImageIcon,
+  Send,
+  Trash2,
+  Layers,
 } from "lucide-react";
 import {
   getCurrentUser,
@@ -69,7 +75,21 @@ import {
   OFFICIAL_PLAN_NAME,
   OFFICIAL_PLAN_PRICE,
   OFFICIAL_PIX_KEY,
+  STANDARD_PLAN_PRICE,
+  PREMIUM_PLAN_PRICE,
+  STANDARD_PLAN_NAME,
+  PREMIUM_PLAN_NAME,
+  isSubscriptionPremium,
+  switchSubscriptionTier,
+  PlanTier,
 } from "../services/saasBillingService";
+import {
+  getVenueFavoritesStats,
+  getVenueBroadcastHistory,
+  sendPromotionBroadcast,
+  PromotionBroadcast,
+  FavoriteSubscriber,
+} from "../services/favoritesPermissionService";
 import {
   buildPortariaCheckInMessage,
   buildBulkReminderMessage,
@@ -147,9 +167,19 @@ function PartnerPortalPage() {
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
 
-  // Sub-tabs in Partner Portal: "portaria" (Check-in VIP) | "live" (Lotação / Fila) | "subscription" (Minha Assinatura SaaS)
-  const [partnerSubTab, setPartnerSubTab] = useState<"portaria" | "live" | "subscription">("portaria");
+  // Sub-tabs in Partner Portal: "portaria" | "promotions" | "live" | "subscription"
+  const [partnerSubTab, setPartnerSubTab] = useState<"portaria" | "promotions" | "live" | "subscription">("portaria");
   const [leadStatusFilter, setLeadStatusFilter] = useState<"all" | "confirmed" | "checked_in">("all");
+
+  // Favorites & Promotions State (Exclusivo Premium)
+  const [promoTitle, setPromoTitle] = useState("");
+  const [promoMessage, setPromoMessage] = useState("");
+  const [promoImage, setPromoImage] = useState<string>("");
+  const [promoVoucherCode, setPromoVoucherCode] = useState("");
+  const [promoExpiresAt, setPromoExpiresAt] = useState("Válido até este Domingo às 23h59");
+  const [isSendingPromo, setIsSendingPromo] = useState(false);
+  const [promoSuccessMessage, setPromoSuccessMessage] = useState<string | null>(null);
+  const [broadcastHistory, setBroadcastHistory] = useState<PromotionBroadcast[]>([]);
 
   // Modals state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -216,6 +246,85 @@ function PartnerPortalPage() {
   const partnerMetrics = useMemo(() => {
     return getVenueMetrics(activeVenue.id, activeVenue.name);
   }, [activeVenue]);
+
+  // Favorites Audience Stats for Active Venue (Fãs que favoritaram)
+  const favoritesStats = useMemo(() => {
+    return getVenueFavoritesStats(activeVenue.id, activeVenue.name);
+  }, [activeVenue.id, activeVenue.name]);
+
+  const isPremium = useMemo(() => {
+    return isSubscriptionPremium(subscription);
+  }, [subscription]);
+
+  // Load broadcast history
+  useEffect(() => {
+    if (activeVenue) {
+      const history = getVenueBroadcastHistory(activeVenue.id, activeVenue.name);
+      setBroadcastHistory(history);
+    }
+  }, [activeVenue]);
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setPromoImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleApplyPreset = (preset: { title: string; message: string; image: string; code: string }) => {
+    setPromoTitle(preset.title);
+    setPromoMessage(preset.message);
+    setPromoImage(preset.image);
+    setPromoVoucherCode(preset.code);
+  };
+
+  const handleDispatchPromotion = async () => {
+    if (!promoTitle.trim() || !promoMessage.trim()) {
+      alert("Por favor, preencha o título e o texto da mensagem.");
+      return;
+    }
+    setIsSendingPromo(true);
+    try {
+      const res = await sendPromotionBroadcast({
+        venueId: activeVenue.id,
+        venueName: activeVenue.name,
+        title: promoTitle,
+        messageText: promoMessage,
+        imageUrl: promoImage || undefined,
+        voucherCode: promoVoucherCode || undefined,
+        expiresAt: promoExpiresAt || undefined,
+      });
+
+      if (res.success) {
+        setPromoSuccessMessage(`🚀 Promoção disparada com sucesso para ${res.sentCount} clientes que favoritaram seu local!`);
+        setBroadcastHistory((prev) => [res.broadcast, ...prev]);
+        setPromoTitle("");
+        setPromoMessage("");
+        setPromoImage("");
+        setPromoVoucherCode("");
+        setTimeout(() => setPromoSuccessMessage(null), 6000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSendingPromo(false);
+    }
+  };
+
+  const handleTogglePartnerTier = (targetTier: PlanTier) => {
+    if (subscription) {
+      const updated = switchSubscriptionTier(subscription.id, targetTier);
+      if (updated) {
+        setSubscription(updated);
+      }
+    }
+  };
 
   // Load partner SaaS subscription
   useEffect(() => {
@@ -836,6 +945,27 @@ function PartnerPortalPage() {
             </button>
 
             <button
+              onClick={() => setPartnerSubTab("promotions")}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+                partnerSubTab === "promotions"
+                  ? "bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.5)]"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Heart className="h-4 w-4 text-pink-400" />
+              <span>Promoções p/ Fãs ({favoritesStats.totalFavoritedCount})</span>
+              {isPremium ? (
+                <span className="rounded-full bg-amber-400 text-black text-[9px] font-black px-1.5 py-0.2 shadow">
+                  ⭐ PREMIUM
+                </span>
+              ) : (
+                <span className="rounded-full bg-white/10 text-slate-400 text-[9px] font-bold px-1.5 py-0.2">
+                  🔒 Premium
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => setPartnerSubTab("live")}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
                 partnerSubTab === "live"
@@ -866,30 +996,42 @@ function PartnerPortalPage() {
           {partnerSubTab === "portaria" && (
             <div className="mt-6 space-y-6">
               {/* Stats Bar */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="rounded-2xl border border-pink-500/30 bg-gradient-to-br from-pink-950/30 via-[#0e1424] to-purple-950/20 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-pink-300 uppercase">Fãs Favoritados</span>
+                    <Heart className="h-4 w-4 text-pink-400 fill-pink-400/30" />
+                  </div>
+                  <div className="mt-1 text-2xl font-black text-pink-400">
+                    {favoritesStats.totalFavoritedCount}
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {favoritesStats.authorizedSubscribersCount} autorizados p/ promoções
+                  </p>
+                </div>
                 <div className="rounded-2xl border border-white/10 bg-[#0e1424] p-4">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Visualizações do Card</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Visualizações Card</span>
                   <div className="mt-1 text-2xl font-black text-cyan-300">
                     {(partnerMetrics?.impressionsFeed || 0).toLocaleString("pt-BR")}
                   </div>
                   <p className="text-[10px] text-slate-500 mt-0.5">+{(partnerMetrics?.weeklyGrowth || 0)}% esta semana</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-[#0e1424] p-4">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Cliques para WhatsApp</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Cliques WhatsApp</span>
                   <div className="mt-1 text-2xl font-black text-emerald-400">
                     {(partnerMetrics?.whatsappDirectClicks || 0).toLocaleString("pt-BR")}
                   </div>
                   <p className="text-[10px] text-slate-500 mt-0.5">Contatos diretos gerados</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-[#0e1424] p-4">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Check-ins na Casa</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Check-ins Portaria</span>
                   <div className="mt-1 text-2xl font-black text-purple-300">
                     {checkedInCount} / {partnerLeads.length}
                   </div>
                   <p className="text-[10px] text-slate-500 mt-0.5">{waitingCount} aguardando entrada</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-[#0e1424] p-4">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Simulações de Uber</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Simulações Uber</span>
                   <div className="mt-1 text-2xl font-black text-amber-300">
                     {(partnerMetrics?.uberSimulations || 0).toLocaleString("pt-BR")}
                   </div>
@@ -1241,6 +1383,644 @@ function PartnerPortalPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* =============================================================== */}
+          {/* TAB 2: PROMOÇÕES PARA FAVORITADOS (EXCLUSIVO PREMIUM)           */}
+          {/* =============================================================== */}
+          {partnerSubTab === "promotions" && (
+            <div className="mt-6 space-y-6">
+              {/* Audience Banner */}
+              <div className="rounded-3xl border border-pink-500/40 bg-gradient-to-r from-pink-950/40 via-[#0e1424] to-purple-950/30 p-5 sm:p-6 shadow-[0_0_35px_rgba(236,72,153,0.15)]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-500/20 border border-pink-500/40 px-2.5 py-0.5 text-[11px] font-black text-pink-300">
+                        <Heart className="h-3 w-3 fill-pink-400" />
+                        Lista de Permissão de Fãs
+                      </span>
+                      {isPremium ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-black text-amber-300">
+                          👑 Parceiro Premium (R$ 89,00) • Disparos Liberados
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/20 border border-slate-500/40 px-2.5 py-0.5 text-[11px] font-black text-slate-300">
+                          🔒 Parceiro Standard (R$ 59,00) • Disparo Bloqueado
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-white">
+                      Central de Promoções para Favoritados
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                      Quando um usuário favorita <strong className="text-white">{activeVenue.name}</strong> no Radar, ele entra automaticamente na sua lista de permissão LGPD para receber ofertas, cupons e avisos no WhatsApp.
+                    </p>
+                  </div>
+
+                  {/* Fast Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    {!isPremium ? (
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePartnerTier("premium")}
+                        className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xs font-black text-black hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer"
+                      >
+                        <Crown className="h-4 w-4" />
+                        <span>Upgrade para Premium (R$ 89)</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePartnerTier("standard")}
+                        className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                        title="Alternar de volta para Standard para testar a trava"
+                      >
+                        <span>Mudar p/ Standard (Teste)</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Audiences Counters */}
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 pt-4">
+                  <div className="rounded-2xl border border-pink-500/30 bg-pink-950/20 p-4">
+                    <span className="text-[10px] font-bold text-pink-300 uppercase tracking-wider block">
+                      Total de Fãs que Favoritaram
+                    </span>
+                    <div className="text-3xl font-black text-white mt-1">
+                      {favoritesStats.totalFavoritedCount}
+                    </div>
+                    <span className="text-[11px] text-pink-200/80 mt-0.5 block">
+                      Pessoas com {activeVenue.name} na lista de favoritos
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">
+                      Contatos Autorizados no WhatsApp
+                    </span>
+                    <div className="text-3xl font-black text-emerald-400 mt-1">
+                      {favoritesStats.authorizedSubscribersCount}
+                    </div>
+                    <span className="text-[11px] text-emerald-200/80 mt-0.5 block">
+                      Prontos para receber o próximo disparo de oferta
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-purple-500/30 bg-purple-950/20 p-4">
+                    <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider block">
+                      Taxa de Conversão Esperada
+                    </span>
+                    <div className="text-3xl font-black text-purple-300 mt-1">
+                      ~34%
+                    </div>
+                    <span className="text-[11px] text-purple-200/80 mt-0.5 block">
+                      Público altamente engajado na sua casa
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* SUCCESS TOAST BANNER */}
+              {promoSuccessMessage && (
+                <div className="rounded-2xl border border-emerald-500/50 bg-emerald-950/40 p-4 text-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.3)] animate-in slide-in-from-top-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 text-xl font-bold">
+                      ✓
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-white">Disparo Realizado com Sucesso!</h4>
+                      <p className="text-xs text-emerald-300">{promoSuccessMessage}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPromoSuccessMessage(null)}
+                    className="text-xs text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* IF NOT PREMIUM: SHOW LOCK BOX WITH CTA */}
+              {!isPremium ? (
+                <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 via-[#0c101c] to-purple-950/30 p-6 sm:p-8 text-center space-y-6 shadow-[0_0_40px_rgba(245,158,11,0.2)] animate-in fade-in">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-3xl shadow-[0_0_25px_rgba(245,158,11,0.4)]">
+                    🔒
+                  </div>
+
+                  <div className="max-w-xl mx-auto space-y-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-0.5 text-xs font-black text-amber-300 uppercase">
+                      Funcionalidade Exclusiva para Parceiros Premium
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white">
+                      Dispare Promoções com Flyer e Texto Direto para seus {favoritesStats.totalFavoritedCount} Fãs
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                      Seu estabelecimento no <strong>Plano Standard (R$ 59,00)</strong> já conta com página oficial e lista VIP. Para desbloquear o envio ilimitado de promoções, cupons, flyers e cortesias para todos que favoritaram sua casa, faça o upgrade para o <strong>Plano Premium (R$ 89,00)</strong>.
+                    </p>
+                  </div>
+
+                  {/* Plan Comparison Table */}
+                  <div className="max-w-2xl mx-auto rounded-2xl border border-white/10 bg-white/5 overflow-hidden text-left text-xs">
+                    <div className="grid grid-cols-3 bg-white/5 p-3 font-black text-slate-300 text-[11px] uppercase border-b border-white/10">
+                      <span>Recurso</span>
+                      <span className="text-center">Standard (R$ 59)</span>
+                      <span className="text-center text-amber-300">Premium (R$ 89) ⭐</span>
+                    </div>
+                    <div className="divide-y divide-white/5 text-slate-300">
+                      <div className="grid grid-cols-3 p-3 items-center">
+                        <span>Página e Card no Radar SP</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                      </div>
+                      <div className="grid grid-cols-3 p-3 items-center">
+                        <span>Lista VIP com QR Code e Portaria</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                      </div>
+                      <div className="grid grid-cols-3 p-3 items-center">
+                        <span>Ver quantidade de quem favoritou</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                        <span className="text-center text-emerald-400 font-bold">✓ Incluso</span>
+                      </div>
+                      <div className="grid grid-cols-3 p-3 items-center bg-amber-500/10">
+                        <span className="font-bold text-white">Upload de Flyer & Disparo de Promoções</span>
+                        <span className="text-center text-rose-400 font-bold">✕ Bloqueado</span>
+                        <span className="text-center text-amber-300 font-black">🚀 Ilimitado</span>
+                      </div>
+                      <div className="grid grid-cols-3 p-3 items-center bg-amber-500/10">
+                        <span className="font-bold text-white">Selo Dourado VIP & Topo nos Feeds</span>
+                        <span className="text-center text-slate-500">Normal</span>
+                        <span className="text-center text-amber-300 font-black">👑 Destaque Máximo</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upgrade Actions */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleTogglePartnerTier("premium")}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 px-6 py-3.5 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(245,158,11,0.4)] cursor-pointer"
+                    >
+                      <Crown className="h-5 w-5 text-amber-200" />
+                      <span>Fazer Upgrade para Parceiro Premium (R$ 89,00)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCheckoutModalOpen(true)}
+                      className="w-full sm:w-auto rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 px-5 py-3 text-xs font-bold text-slate-300 transition-all cursor-pointer"
+                    >
+                      Ver Detalhes do Pagamento
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* IF PREMIUM: FULL PROMOTION BROADCAST COMPOSER */
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left: Compose Form (8 cols) */}
+                    <div className="lg:col-span-7 rounded-3xl border border-white/10 bg-[#0c101c] p-5 sm:p-6 space-y-5">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-500/20 text-pink-400">
+                            <Send className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-white">Criar Nova Campanha de Promoção</h3>
+                            <p className="text-[11px] text-slate-400">
+                              Dispare para os {favoritesStats.authorizedSubscribersCount} clientes autorizados
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Quick Presets */}
+                        <span className="hidden sm:inline-block text-[10px] text-purple-300 bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 rounded-full font-bold">
+                          ⚡ Modelos Prontos Abaixo
+                        </span>
+                      </div>
+
+                      {/* Quick Presets Row */}
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                          Modelos Rápidos de Promoção:
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleApplyPreset({
+                                title: "🍸 OPEN BAR DE GIN ATÉ 00H NESTE SÁBADO!",
+                                message:
+                                  "Como você favoritou a nossa casa no Radar do Rolê, liberamos um presente VIP: Entrada free + Open Bar de Gin Tropical até 00h! Apresente o código na porta.",
+                                image:
+                                  "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80",
+                                code: "OPENGIN2026",
+                              })
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 hover:border-pink-500/50 hover:bg-pink-950/20 p-2 text-left transition-all cursor-pointer"
+                          >
+                            <span className="text-base block mb-0.5">🍸</span>
+                            <span className="text-[11px] font-black text-white block">Open Bar Gin</span>
+                            <span className="text-[9px] text-slate-400 block">Até 00h</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleApplyPreset({
+                                title: "🎟️ 50% OFF NA ENTRADA PARA FAVORITADOS!",
+                                message:
+                                  "Exclusivo para os fãs do Radar do Rolê: 50% de desconto no valor da portaria nesta sexta-feira chegando até as 23h30. Não fique de fora!",
+                                image:
+                                  "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=800&q=80",
+                                code: "OFF50RADAR",
+                              })
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 hover:border-cyan-500/50 hover:bg-cyan-950/20 p-2 text-left transition-all cursor-pointer"
+                          >
+                            <span className="text-base block mb-0.5">🎟️</span>
+                            <span className="text-[11px] font-black text-white block">50% Off Entrada</span>
+                            <span className="text-[9px] text-slate-400 block">Desconto</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleApplyPreset({
+                                title: "🎂 ANIVERSARIANTE DO MÊS: CAMAROTE + COMBO!",
+                                message:
+                                  "Você ou algum amigo faz aniversário este mês? Comemore conosco e ganhe 1 garrafa de espumante + pulseiras de camarote grátis para 5 convidados!",
+                                image:
+                                  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80",
+                                code: "NIVERVIP",
+                              })
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/50 hover:bg-amber-950/20 p-2 text-left transition-all cursor-pointer"
+                          >
+                            <span className="text-base block mb-0.5">🎂</span>
+                            <span className="text-[11px] font-black text-white block">Aniversariante</span>
+                            <span className="text-[9px] text-slate-400 block">Camarote VIP</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleApplyPreset({
+                                title: "🍾 WELCOME DRINK NA CHEGADA!",
+                                message:
+                                  "Apresente este voucher na porta e retire um Drink de Boas-vindas autoral exclusivo no balcão principal. Te esperamos na pista!",
+                                image:
+                                  "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80",
+                                code: "WELCOME2026",
+                              })
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 hover:border-purple-500/50 hover:bg-purple-950/20 p-2 text-left transition-all cursor-pointer"
+                          >
+                            <span className="text-base block mb-0.5">🍾</span>
+                            <span className="text-[11px] font-black text-white block">Welcome Drink</span>
+                            <span className="text-[9px] text-slate-400 block">Cortesia</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 1. Flyer / Image Upload */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <Upload className="h-3.5 w-3.5 text-pink-400" />
+                            <span>1. Imagem / Flyer da Promoção</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">
+                            Arquivo do seu PC ou URL
+                          </span>
+                        </label>
+
+                        {promoImage ? (
+                          <div className="relative rounded-2xl overflow-hidden border border-pink-500/40 bg-black/60 max-h-48 group">
+                            <img
+                              src={promoImage}
+                              alt="Flyer da Promoção"
+                              className="w-full h-44 object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={() => setPromoImage("")}
+                                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg cursor-pointer"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Remover Imagem</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 hover:border-pink-500/60 bg-white/5 hover:bg-white/[0.08] rounded-2xl p-6 transition-all cursor-pointer">
+                            <Upload className="h-8 w-8 text-pink-400 mb-2 animate-bounce" />
+                            <span className="text-xs font-bold text-white">
+                              Clique para fazer upload do flyer (PNG, JPG)
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-1">
+                              Ou escolha um modelo pronto acima
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageFileChange}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+
+                      {/* 2. Promo Title */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">
+                          2. Título da Oferta / Chamada
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={promoTitle}
+                          onChange={(e) => setPromoTitle(e.target.value)}
+                          placeholder="Ex: 🍸 OPEN BAR DE GIN ATÉ 00H NESTE SÁBADO!"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-pink-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* 3. Promo Message */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">
+                            3. Texto da Mensagem (WhatsApp)
+                          </label>
+                          <span className="text-[10px] text-slate-500 font-mono">
+                            {promoMessage.length} caracteres
+                          </span>
+                        </div>
+                        <textarea
+                          rows={4}
+                          required
+                          value={promoMessage}
+                          onChange={(e) => setPromoMessage(e.target.value)}
+                          placeholder="Digite o texto explicativo da promoção, benefícios, horários e orientações de entrada..."
+                          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white placeholder-slate-500 focus:border-pink-500 focus:outline-none leading-relaxed"
+                        />
+                      </div>
+
+                      {/* 4. Voucher Code & Expiration */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                            4. Código do Cupom (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            value={promoVoucherCode}
+                            onChange={(e) => setPromoVoucherCode(e.target.value.toUpperCase())}
+                            placeholder="Ex: RADARVIP2026"
+                            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-mono text-amber-300 uppercase placeholder-slate-500 focus:border-pink-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                            5. Prazo de Validade
+                          </label>
+                          <input
+                            type="text"
+                            value={promoExpiresAt}
+                            onChange={(e) => setPromoExpiresAt(e.target.value)}
+                            placeholder="Ex: Válido até Domingo às 23h59"
+                            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-pink-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dispatch Button */}
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={handleDispatchPromotion}
+                          disabled={isSendingPromo || !promoTitle.trim() || !promoMessage.trim()}
+                          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 py-3.5 text-sm font-black text-white hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all shadow-[0_0_25px_rgba(236,72,153,0.4)] cursor-pointer"
+                        >
+                          {isSendingPromo ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              <span>Disparando mensagens para os favoritos...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4" />
+                              <span>Disparar Promoção para {favoritesStats.authorizedSubscribersCount} Fãs Favoritados</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right: Live WhatsApp Smartphone Preview (5 cols) */}
+                    <div className="lg:col-span-5 rounded-3xl border border-white/10 bg-[#080c16] p-5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                          <span className="text-xs font-black text-slate-300 uppercase flex items-center gap-1.5">
+                            <span>📱</span>
+                            <span>Prévia no WhatsApp do Cliente</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                            Ao Vivo
+                          </span>
+                        </div>
+
+                        {/* WhatsApp Mockup Bubble */}
+                        <div className="rounded-2xl bg-[#0b141a] border border-[#202c33] p-3 text-slate-100 shadow-xl space-y-2.5">
+                          {/* Chat header inside mockup */}
+                          <div className="flex items-center gap-2 border-b border-[#202c33] pb-2 text-xs">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-bold text-[10px]">
+                              {activeVenue.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-bold text-white block text-[11px] leading-tight">
+                                {activeVenue.name}
+                              </span>
+                              <span className="text-[9px] text-emerald-400 font-mono">Conta Verificada • Radar do Rolê</span>
+                            </div>
+                          </div>
+
+                          {/* Flyer Image inside WhatsApp message */}
+                          {promoImage && (
+                            <div className="rounded-xl overflow-hidden border border-[#222e35]">
+                              <img
+                                src={promoImage}
+                                alt="Flyer Preview"
+                                className="w-full h-36 object-cover"
+                              />
+                            </div>
+                          )}
+
+                          {/* Message Body inside green WhatsApp Bubble */}
+                          <div className="rounded-2xl rounded-tl-none bg-[#005c4b] p-3 text-xs text-white space-y-2 leading-relaxed shadow-sm">
+                            <p className="font-black text-amber-300 text-xs">
+                              {promoTitle || "🍸 Título da sua promoção aparecerá aqui"}
+                            </p>
+                            <p className="text-[11px] text-slate-100 whitespace-pre-wrap">
+                              {promoMessage ||
+                                "Olá! Como você favoritou a nossa casa no Radar do Rolê, liberamos um benefício exclusivo para sua próxima noite..."}
+                            </p>
+
+                            {promoVoucherCode && (
+                              <div className="rounded-lg bg-black/30 border border-white/20 p-2 text-center">
+                                <span className="text-[9px] text-slate-300 uppercase block font-bold">Código do Voucher:</span>
+                                <span className="font-mono text-xs font-black text-amber-300 tracking-wider">
+                                  {promoVoucherCode}
+                                </span>
+                              </div>
+                            )}
+
+                            {promoExpiresAt && (
+                              <p className="text-[10px] text-emerald-200 font-mono">
+                                ⏳ {promoExpiresAt}
+                              </p>
+                            )}
+
+                            <div className="text-[9px] text-slate-300/80 border-t border-white/10 pt-1 flex items-center justify-between">
+                              <span>Mensagem autorizada via Lista de Favoritos</span>
+                              <span className="text-[8px] text-slate-400">19:42 ✓✓</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] text-slate-400">
+                        🛡️ <strong>Garantia LGPD:</strong> Apenas pessoas que clicaram no botão de favorito ❤️ do seu local e autorizaram promoções recebem esta mensagem. O cliente pode desativar a qualquer momento desfavoritando a casa.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Broadcasts History */}
+                  <div className="rounded-3xl border border-white/10 bg-[#0c101c] p-5 sm:p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <h3 className="text-base font-black text-white flex items-center gap-2">
+                        <span>📋</span>
+                        <span>Histórico de Campanhas Disparadas ({broadcastHistory.length})</span>
+                      </h3>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        Últimos envios para favoritados
+                      </span>
+                    </div>
+
+                    {broadcastHistory.length === 0 ? (
+                      <div className="py-8 text-center text-slate-400 text-xs">
+                        Nenhuma campanha disparada ainda. Crie sua primeira oferta acima!
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {broadcastHistory.map((b) => (
+                          <div
+                            key={b.id}
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 hover:border-pink-500/40 transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              {b.imageUrl ? (
+                                <img
+                                  src={b.imageUrl}
+                                  alt={b.title}
+                                  className="h-14 w-14 rounded-xl object-cover border border-white/10 shrink-0"
+                                />
+                              ) : (
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-pink-500/20 text-pink-400 text-xl font-bold">
+                                  📢
+                                </div>
+                              )}
+                              <div>
+                                <h4 className="text-sm font-black text-white">{b.title}</h4>
+                                <p className="text-xs text-slate-300 line-clamp-1 mt-0.5">{b.messageText}</p>
+                                <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                                  <span>📅 {b.sentAt}</span>
+                                  {b.voucherCode && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="font-mono text-amber-300 font-bold">Código: {b.voucherCode}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 sm:self-center shrink-0">
+                              <span className="rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 text-[11px] font-black">
+                                🚀 {b.recipientsCount} clientes alcançados
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Table of Opted-in Favorite Subscribers */}
+                  <div className="rounded-3xl border border-white/10 bg-[#0c101c] p-5 sm:p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div>
+                        <h3 className="text-base font-black text-white flex items-center gap-2">
+                          <Users className="h-4 w-4 text-cyan-400" />
+                          <span>Lista de Fãs Autorizados ({favoritesStats.subscribers.length})</span>
+                        </h3>
+                        <p className="text-[11px] text-slate-400">
+                          Clientes que favoritaram {activeVenue.name} e autorizaram contato
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                        Opt-in Ativo
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="border-b border-white/10 text-slate-400 uppercase text-[10px] font-black">
+                          <tr>
+                            <th className="py-2.5 px-3">Cliente</th>
+                            <th className="py-2.5 px-3">WhatsApp</th>
+                            <th className="py-2.5 px-3">Data do Favorito</th>
+                            <th className="py-2.5 px-3">Origem</th>
+                            <th className="py-2.5 px-3 text-right">Status LGPD</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {favoritesStats.subscribers.map((sub) => (
+                            <tr key={sub.id} className="hover:bg-white/[0.02]">
+                              <td className="py-3 px-3 font-bold text-white">
+                                {sub.userName}
+                              </td>
+                              <td className="py-3 px-3 font-mono text-emerald-400 font-bold">
+                                {sub.userWhatsapp}
+                              </td>
+                              <td className="py-3 px-3 text-slate-300">
+                                {sub.optInDate}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span className="rounded-full bg-purple-500/20 text-purple-300 px-2 py-0.5 text-[10px] font-bold">
+                                  {sub.source === "lista_vip" ? "Lista VIP" : "Favoritou no App"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-black">
+                                  Autorizado ✓
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

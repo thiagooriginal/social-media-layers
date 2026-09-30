@@ -7,12 +7,21 @@
 
 export type DueDay = 10 | 20 | 30;
 
+export type PlanTier = "standard" | "premium";
+
+export const STANDARD_PLAN_PRICE = 59;
+export const STANDARD_PLAN_NAME = "Parceiro Standard";
+export const PREMIUM_PLAN_PRICE = 89;
+export const PREMIUM_PLAN_NAME = "Parceiro Premium";
+
+// Mantém compatibilidade com referências existentes
 export const OFFICIAL_PLAN_PRICE = 59;
-export const OFFICIAL_PLAN_NAME = "Plano Parceiro VIP Pro";
+export const OFFICIAL_PLAN_NAME = STANDARD_PLAN_NAME;
 export const OFFICIAL_PIX_KEY = "thiagooriginal2002@gmail.com";
 
 export interface SaasPlan {
-  id: "mensal" | "semestral" | "anual";
+  id: "standard" | "premium" | "mensal" | "semestral" | "anual";
+  tier: PlanTier;
   name: string;
   pricePerMonth: number;
   totalBilledAmount: number;
@@ -20,17 +29,20 @@ export interface SaasPlan {
   billingFrequencyText: string;
   savingsBadge: string | null;
   features: string[];
+  canSendPromotions: boolean;
 }
 
-export const SAAS_PLANS: Record<"mensal" | "semestral" | "anual", SaasPlan> = {
-  mensal: {
-    id: "mensal",
-    name: OFFICIAL_PLAN_NAME,
-    pricePerMonth: OFFICIAL_PLAN_PRICE,
-    totalBilledAmount: OFFICIAL_PLAN_PRICE,
+export const SAAS_PLANS: Record<"standard" | "premium" | "mensal" | "semestral" | "anual", SaasPlan> = {
+  standard: {
+    id: "standard",
+    tier: "standard",
+    name: STANDARD_PLAN_NAME,
+    pricePerMonth: STANDARD_PLAN_PRICE,
+    totalBilledAmount: STANDARD_PLAN_PRICE,
     periodText: "/mês",
-    billingFrequencyText: "Assinatura mensal recorrente de R$ 59,00 no Cartão ou Pix Recorrente",
-    savingsBadge: "PLANO OFICIAL ATIVO 🔥",
+    billingFrequencyText: "Assinatura mensal de R$ 59,00 no Cartão ou Pix Recorrente",
+    savingsBadge: "PLANO STANDARD 💼",
+    canSendPromotions: false,
     features: [
       "Página e card dedicado com destaque no Radar de SP",
       "Lista VIP digital ilimitada com emissão de vouchers e QR Code",
@@ -39,45 +51,81 @@ export const SAAS_PLANS: Record<"mensal" | "semestral" | "anual", SaasPlan> = {
       "Botão oficial direto para o WhatsApp comercial da casa",
       "Estimativa de rotas e corridas por aplicativos de mobilidade (Uber/99)",
       "Selo oficial de Estabelecimento Parceiro Verificado",
-      "Painel de métricas e analytics de público em tempo real",
+      "Painel com contagem de quantas pessoas favoritaram seu local",
+      "Métricas e analytics de público em tempo real",
+      "❌ Envio de promoções para favoritados (Recurso Premium)",
+    ],
+  },
+  premium: {
+    id: "premium",
+    tier: "premium",
+    name: PREMIUM_PLAN_NAME,
+    pricePerMonth: PREMIUM_PLAN_PRICE,
+    totalBilledAmount: PREMIUM_PLAN_PRICE,
+    periodText: "/mês",
+    billingFrequencyText: "Assinatura mensal de R$ 89,00 no Cartão ou Pix Recorrente",
+    savingsBadge: "RECOMENDADO • MAIS RESULTADO ⭐",
+    canSendPromotions: true,
+    features: [
+      "Tudo incluído no Plano Standard",
+      "🚀 Envio de Promoções para a Lista de Favoritados (Broadcast de Fãs)",
+      "Upload de Imagem/Banner (flyers, banner de festas e cardápios)",
+      "Envio de Textos com cupons e cortesias diretamente para os fãs",
+      "Visualização da lista de contatos com autorização LGPD",
+      "Selo Dourado Oficial 'Parceiro Premium' nos cards do Radar",
+      "Prioridade máxima no algoritmo do Radar e busca por proximidade",
+      "Suporte exclusivo direto com gerente de conta",
+    ],
+  },
+  // Aliases para compatibilidade total
+  mensal: {
+    id: "standard",
+    tier: "standard",
+    name: STANDARD_PLAN_NAME,
+    pricePerMonth: STANDARD_PLAN_PRICE,
+    totalBilledAmount: STANDARD_PLAN_PRICE,
+    periodText: "/mês",
+    billingFrequencyText: "Assinatura mensal de R$ 59,00 no Cartão ou Pix Recorrente",
+    savingsBadge: "PLANO STANDARD 💼",
+    canSendPromotions: false,
+    features: [
+      "Página e card dedicado com destaque no Radar de SP",
+      "Lista VIP digital ilimitada com emissão de vouchers e QR Code",
+      "Disparo automático de alertas para o WhatsApp da portaria",
+      "Painel com contagem de quantas pessoas favoritaram seu local",
+      "❌ Envio de promoções para favoritados (Recurso Premium)",
     ],
   },
   semestral: {
-    id: "semestral",
-    name: OFFICIAL_PLAN_NAME,
-    pricePerMonth: OFFICIAL_PLAN_PRICE,
-    totalBilledAmount: OFFICIAL_PLAN_PRICE,
+    id: "premium",
+    tier: "premium",
+    name: PREMIUM_PLAN_NAME,
+    pricePerMonth: PREMIUM_PLAN_PRICE,
+    totalBilledAmount: PREMIUM_PLAN_PRICE,
     periodText: "/mês",
-    billingFrequencyText: "Assinatura mensal recorrente de R$ 59,00 no Cartão ou Pix Recorrente",
-    savingsBadge: "PLANO OFICIAL ATIVO 🔥",
+    billingFrequencyText: "Assinatura mensal de R$ 89,00 no Cartão ou Pix Recorrente",
+    savingsBadge: "RECOMENDADO • MAIS RESULTADO ⭐",
+    canSendPromotions: true,
     features: [
-      "Página e card dedicado com destaque no Radar de SP",
-      "Lista VIP digital ilimitada com emissão de vouchers e QR Code",
-      "Disparo automático de alertas para o WhatsApp da portaria",
-      "Scanner de QR Code por câmera na entrada da balada",
-      "Botão oficial direto para o WhatsApp comercial da casa",
-      "Estimativa de rotas e corridas por aplicativos de mobilidade (Uber/99)",
-      "Selo oficial de Estabelecimento Parceiro Verificado",
-      "Painel de métricas e analytics de público em tempo real",
+      "Tudo incluído no Plano Standard",
+      "🚀 Envio de Promoções para a lista de favoritados (Texto e Imagem)",
+      "Selo Dourado Oficial 'Parceiro Premium' no Radar",
     ],
   },
   anual: {
-    id: "anual",
-    name: OFFICIAL_PLAN_NAME,
-    pricePerMonth: OFFICIAL_PLAN_PRICE,
-    totalBilledAmount: OFFICIAL_PLAN_PRICE,
+    id: "premium",
+    tier: "premium",
+    name: PREMIUM_PLAN_NAME,
+    pricePerMonth: PREMIUM_PLAN_PRICE,
+    totalBilledAmount: PREMIUM_PLAN_PRICE,
     periodText: "/mês",
-    billingFrequencyText: "Assinatura mensal recorrente de R$ 59,00 no Cartão ou Pix Recorrente",
-    savingsBadge: "PLANO OFICIAL ATIVO 🔥",
+    billingFrequencyText: "Assinatura mensal de R$ 89,00 no Cartão ou Pix Recorrente",
+    savingsBadge: "RECOMENDADO • MAIS RESULTADO ⭐",
+    canSendPromotions: true,
     features: [
-      "Página e card dedicado com destaque no Radar de SP",
-      "Lista VIP digital ilimitada com emissão de vouchers e QR Code",
-      "Disparo automático de alertas para o WhatsApp da portaria",
-      "Scanner de QR Code por câmera na entrada da balada",
-      "Botão oficial direto para o WhatsApp comercial da casa",
-      "Estimativa de rotas e corridas por aplicativos de mobilidade (Uber/99)",
-      "Selo oficial de Estabelecimento Parceiro Verificado",
-      "Painel de métricas e analytics de público em tempo real",
+      "Tudo incluído no Plano Standard",
+      "🚀 Envio de Promoções para a lista de favoritados (Texto e Imagem)",
+      "Selo Dourado Oficial 'Parceiro Premium' no Radar",
     ],
   },
 };
@@ -89,7 +137,8 @@ export interface SaasSubscription {
   ownerName: string;
   ownerEmail: string;
   ownerWhatsapp: string;
-  planId: "mensal" | "semestral" | "anual";
+  planId: "standard" | "premium" | "mensal" | "semestral" | "anual";
+  tier?: PlanTier;
   planName: string;
   monthlyValue: number;
   totalCycleValue: number;
@@ -98,6 +147,7 @@ export interface SaasSubscription {
   paymentMethod: "pix" | "credit_card" | "boleto";
   startDate: string;
   nextBillingDate: string;
+  canSendPromotions?: boolean;
   asaasSubscriptionId?: string;
   pixCopiaECola?: string;
   pixQrCodeUrl?: string;
@@ -119,6 +169,8 @@ export interface SaasMetrics {
   churnRatePercent: number;
   ltv: number;
   planBreakdown: {
+    standard: number;
+    premium: number;
     mensal: number;
     semestral: number;
     anual: number;
@@ -193,10 +245,11 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     ownerName: "Carlos Eduardo Mendes",
     ownerEmail: "carlos@vilajk.com.br",
     ownerWhatsapp: "11988881234",
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: 59,
-    totalCycleValue: 59,
+    planId: "standard",
+    tier: "standard",
+    planName: STANDARD_PLAN_NAME,
+    monthlyValue: STANDARD_PLAN_PRICE,
+    totalCycleValue: STANDARD_PLAN_PRICE,
     dueDay: 10,
     status: "active",
     paymentMethod: "credit_card",
@@ -207,6 +260,7 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     cardHolder: "CARLOS E MENDES",
     lastChargeStatus: "success",
     lastChargeDate: "2026-09-10",
+    canSendPromotions: false,
   },
   {
     id: "sub-002",
@@ -215,18 +269,20 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     ownerName: "Renato Silveira",
     ownerEmail: "renato@seujustino.com.br",
     ownerWhatsapp: "11977774321",
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: 59,
-    totalCycleValue: 59,
+    planId: "standard",
+    tier: "standard",
+    planName: STANDARD_PLAN_NAME,
+    monthlyValue: STANDARD_PLAN_PRICE,
+    totalCycleValue: STANDARD_PLAN_PRICE,
     dueDay: 20,
     status: "active",
     paymentMethod: "pix",
     startDate: "2026-05-20",
     nextBillingDate: "2026-10-20",
-    pixCopiaECola: generatePixCopiaECola(59),
+    pixCopiaECola: generatePixCopiaECola(STANDARD_PLAN_PRICE),
     lastChargeStatus: "success",
     lastChargeDate: "2026-09-20",
+    canSendPromotions: false,
   },
   {
     id: "sub-003",
@@ -235,10 +291,11 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     ownerName: "Renato Ratier",
     ownerEmail: "diretoria@d-edge.com.br",
     ownerWhatsapp: "11999998888",
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: 59,
-    totalCycleValue: 59,
+    planId: "premium",
+    tier: "premium",
+    planName: PREMIUM_PLAN_NAME,
+    monthlyValue: PREMIUM_PLAN_PRICE,
+    totalCycleValue: PREMIUM_PLAN_PRICE,
     dueDay: 30,
     status: "active",
     paymentMethod: "credit_card",
@@ -249,6 +306,7 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     cardHolder: "RENATO RATIER",
     lastChargeStatus: "success",
     lastChargeDate: "2026-09-30",
+    canSendPromotions: true,
   },
   {
     id: "sub-004",
@@ -257,18 +315,20 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
     ownerName: "Fabiana Toledo",
     ownerEmail: "reservas@lushmotel.com.br",
     ownerWhatsapp: "11982223344",
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: 59,
-    totalCycleValue: 59,
+    planId: "premium",
+    tier: "premium",
+    planName: PREMIUM_PLAN_NAME,
+    monthlyValue: PREMIUM_PLAN_PRICE,
+    totalCycleValue: PREMIUM_PLAN_PRICE,
     dueDay: 10,
     status: "active",
     paymentMethod: "pix",
     startDate: "2026-04-10",
     nextBillingDate: "2026-10-10",
-    pixCopiaECola: generatePixCopiaECola(59),
+    pixCopiaECola: generatePixCopiaECola(PREMIUM_PLAN_PRICE),
     lastChargeStatus: "success",
     lastChargeDate: "2026-09-10",
+    canSendPromotions: true,
   },
   {
     id: "sub-005",
@@ -368,16 +428,23 @@ export function getStoredSubscriptions(): SaasSubscription[] {
       return SEED_SUBSCRIPTIONS;
     }
     const parsed: SaasSubscription[] = JSON.parse(raw);
-    // Assegura normalização para o plano oficial de R$ 59 e dia de vencimento
-    return parsed.map((s) => ({
-      ...s,
-      planName: OFFICIAL_PLAN_NAME,
-      monthlyValue: 59,
-      totalCycleValue: 59,
-      dueDay: (s.dueDay === 10 || s.dueDay === 20 || s.dueDay === 30 ? s.dueDay : 10) as DueDay,
-      paymentMethod: s.paymentMethod === "boleto" ? "pix" : s.paymentMethod || "pix",
-      pixCopiaECola: s.pixCopiaECola || generatePixCopiaECola(59),
-    }));
+    return parsed.map((s) => {
+      const isPremium = s.monthlyValue === 89 || s.planId === "premium" || s.tier === "premium";
+      const monthly = isPremium ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE;
+      const tier: PlanTier = isPremium ? "premium" : "standard";
+      return {
+        ...s,
+        planName: isPremium ? PREMIUM_PLAN_NAME : STANDARD_PLAN_NAME,
+        monthlyValue: monthly,
+        totalCycleValue: monthly,
+        tier,
+        planId: isPremium ? "premium" : "standard",
+        dueDay: (s.dueDay === 10 || s.dueDay === 20 || s.dueDay === 30 ? s.dueDay : 10) as DueDay,
+        paymentMethod: s.paymentMethod === "boleto" ? "pix" : s.paymentMethod || "pix",
+        pixCopiaECola: s.pixCopiaECola || generatePixCopiaECola(monthly),
+        canSendPromotions: isPremium,
+      };
+    });
   } catch (e) {
     return SEED_SUBSCRIPTIONS;
   }
@@ -416,16 +483,18 @@ export function getSubscriptionByVenue(venueId?: string, venueName?: string): Sa
     ownerName: "Responsável pelo Estabelecimento",
     ownerEmail: "contato@" + displayName.toLowerCase().replace(/[^a-z0-9]/g, "") + ".com.br",
     ownerWhatsapp: "11999990000",
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: OFFICIAL_PLAN_PRICE,
-    totalCycleValue: OFFICIAL_PLAN_PRICE,
+    planId: "standard",
+    tier: "standard",
+    planName: STANDARD_PLAN_NAME,
+    monthlyValue: STANDARD_PLAN_PRICE,
+    totalCycleValue: STANDARD_PLAN_PRICE,
     dueDay: defaultDueDay,
     status: "active",
     paymentMethod: "pix",
     startDate: new Date().toISOString().split("T")[0],
     nextBillingDate: calculateNextDueDate(defaultDueDay),
-    pixCopiaECola: generatePixCopiaECola(59),
+    pixCopiaECola: generatePixCopiaECola(STANDARD_PLAN_PRICE),
+    canSendPromotions: false,
   };
 
   const updated = [...subs, newSub];
@@ -449,7 +518,9 @@ export function createSubscription(input: {
   ownerName: string;
   ownerEmail: string;
   ownerWhatsapp: string;
-  planId?: "mensal" | "semestral" | "anual";
+  planId?: "standard" | "premium" | "mensal" | "semestral" | "anual";
+  tier?: PlanTier;
+  monthlyValue?: number;
   paymentMethod: "pix" | "credit_card" | "boleto";
   dueDay?: DueDay;
   cardLast4?: string;
@@ -458,7 +529,10 @@ export function createSubscription(input: {
 }): SaasSubscription {
   const subs = getStoredSubscriptions();
   const chosenDueDay: DueDay = input.dueDay === 10 || input.dueDay === 20 || input.dueDay === 30 ? input.dueDay : 10;
-  const pixKey = generatePixCopiaECola(OFFICIAL_PLAN_PRICE);
+  const isPremium = input.planId === "premium" || input.tier === "premium" || input.monthlyValue === 89;
+  const monthly = isPremium ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE;
+  const planName = isPremium ? PREMIUM_PLAN_NAME : STANDARD_PLAN_NAME;
+  const pixKey = generatePixCopiaECola(monthly);
 
   const newSub: SaasSubscription = {
     id: "sub-" + Date.now(),
@@ -467,10 +541,11 @@ export function createSubscription(input: {
     ownerName: input.ownerName,
     ownerEmail: input.ownerEmail,
     ownerWhatsapp: input.ownerWhatsapp,
-    planId: "mensal",
-    planName: OFFICIAL_PLAN_NAME,
-    monthlyValue: OFFICIAL_PLAN_PRICE,
-    totalCycleValue: OFFICIAL_PLAN_PRICE,
+    planId: isPremium ? "premium" : "standard",
+    tier: isPremium ? "premium" : "standard",
+    planName,
+    monthlyValue: monthly,
+    totalCycleValue: monthly,
     dueDay: chosenDueDay,
     status: "active",
     paymentMethod: input.paymentMethod === "boleto" ? "pix" : input.paymentMethod,
@@ -482,12 +557,38 @@ export function createSubscription(input: {
     cardHolder: input.cardHolder,
     lastChargeStatus: "success",
     lastChargeDate: new Date().toISOString().split("T")[0],
+    canSendPromotions: isPremium,
   };
 
   const filtered = subs.filter((s) => s.venueId !== input.venueId);
   const updated = [newSub, ...filtered];
   saveSubscriptions(updated);
   return newSub;
+}
+
+export function isSubscriptionPremium(sub?: SaasSubscription | null): boolean {
+  if (!sub) return false;
+  return sub.planId === "premium" || sub.tier === "premium" || (Boolean(sub.monthlyValue) && sub.monthlyValue >= 89) || sub.canSendPromotions === true;
+}
+
+export function switchSubscriptionTier(subIdOrVenueId: string, targetTier: PlanTier): SaasSubscription | null {
+  const subs = getStoredSubscriptions();
+  const index = subs.findIndex((s) => s.id === subIdOrVenueId || s.venueId === subIdOrVenueId);
+  if (index === -1) return null;
+  const isPrem = targetTier === "premium";
+  const updatedSub: SaasSubscription = {
+    ...subs[index],
+    planId: isPrem ? "premium" : "standard",
+    tier: targetTier,
+    planName: isPrem ? PREMIUM_PLAN_NAME : STANDARD_PLAN_NAME,
+    monthlyValue: isPrem ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE,
+    totalCycleValue: isPrem ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE,
+    canSendPromotions: isPrem,
+    pixCopiaECola: generatePixCopiaECola(isPrem ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE),
+  };
+  subs[index] = updatedSub;
+  saveSubscriptions(subs);
+  return updatedSub;
 }
 
 /**
@@ -702,9 +803,14 @@ export function calculateSaasMetrics(totalCatalogVenuesCount: number = 300): Saa
   const subs = getStoredSubscriptions();
   const activeSubs = subs.filter((s) => s.status === "active");
 
+  const standardCount = activeSubs.filter((s) => s.tier !== "premium" && s.monthlyValue !== 89).length;
+  const premiumCount = activeSubs.filter((s) => s.tier === "premium" || s.monthlyValue === 89).length;
+
   const planBreakdown = {
-    mensal: activeSubs.length,
-    semestral: 0,
+    standard: standardCount,
+    premium: premiumCount,
+    mensal: standardCount,
+    semestral: premiumCount,
     anual: 0,
   };
 

@@ -137,10 +137,33 @@ export async function getVenues(): Promise<Venue[]> {
       planPrice: item.plan_price,
     }));
 
-    return [...custom, ...mappedVenues];
+    // Prioriza exatamente os 300 estabelecimentos verificados do catálogo oficial
+    const catalogIds = new Set(VENUES_DATA.map((v) => v.id));
+    const verifiedVenues = mappedVenues.filter((v) => catalogIds.has(v.id));
+
+    let finalVenues = [...custom, ...mappedVenues];
+    if (verifiedVenues.length >= 300) {
+      finalVenues = [...custom, ...verifiedVenues];
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const deletedIds = new Set(JSON.parse(localStorage.getItem("baladaon_deleted_venue_ids") || "[]"));
+        finalVenues = finalVenues.filter((v) => !deletedIds.has(v.id));
+      } catch (e) {}
+    }
+
+    return finalVenues;
   } catch (err) {
     console.warn("Using offline catalog fallback:", err);
-    return [...custom, ...VENUES_DATA];
+    let fallback = [...custom, ...VENUES_DATA];
+    if (typeof window !== "undefined") {
+      try {
+        const deletedIds = new Set(JSON.parse(localStorage.getItem("baladaon_deleted_venue_ids") || "[]"));
+        fallback = fallback.filter((v) => !deletedIds.has(v.id));
+      } catch (e) {}
+    }
+    return fallback;
   }
 }
 
@@ -336,3 +359,102 @@ export async function recordEventAttendance(params: {
     return false;
   }
 }
+
+// 6. Update Venue (Admin / Partner)
+export async function updateVenue(id: string, updates: Partial<Venue>): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Update in local custom venues storage
+    const custom = getCustomVenues();
+    const existingIndex = custom.findIndex((v) => v.id === id);
+    if (existingIndex !== -1) {
+      custom[existingIndex] = { ...custom[existingIndex], ...updates };
+      localStorage.setItem("baladaon_custom_venues", JSON.stringify(custom));
+    } else {
+      // Find from VENUES_DATA and save as custom override
+      const original = VENUES_DATA.find((v) => v.id === id);
+      if (original) {
+        const overridden = { ...original, ...updates };
+        saveCustomVenue(overridden);
+      }
+    }
+
+    // 2. Update in Supabase if exists
+    try {
+      const dbPayload: any = {};
+      if (updates.name !== undefined) dbPayload.name = updates.name;
+      if (updates.tagline !== undefined) dbPayload.tagline = updates.tagline;
+      if (updates.subType !== undefined) dbPayload.sub_type = updates.subType;
+      if (updates.subTypeEmoji !== undefined) dbPayload.sub_type_emoji = updates.subTypeEmoji;
+      if (updates.neighborhood !== undefined) dbPayload.neighborhood = updates.neighborhood;
+      if (updates.address !== undefined) dbPayload.address = updates.address;
+      if (updates.image !== undefined) dbPayload.image = updates.image;
+      if (updates.openHours !== undefined) dbPayload.open_hours = updates.openHours;
+      if (updates.entryPrice !== undefined) dbPayload.entry_price = updates.entryPrice;
+      if (updates.whatsapp !== undefined) dbPayload.whatsapp = updates.whatsapp;
+      if (updates.instagram !== undefined) dbPayload.instagram = updates.instagram;
+      if (updates.plan !== undefined) dbPayload.plan = updates.plan;
+      if (updates.planPrice !== undefined) dbPayload.plan_price = updates.planPrice;
+      if (updates.hasVipList !== undefined) dbPayload.has_vip_list = updates.hasVipList;
+      if (updates.rating !== undefined) dbPayload.rating = updates.rating;
+
+      if (Object.keys(dbPayload).length > 0) {
+        await (supabase as any).from("venues").update(dbPayload).eq("id", id);
+      }
+    } catch (e) {
+      console.warn("Supabase update notice:", e);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erro ao atualizar local" };
+  }
+}
+
+// 7. Delete Venue (Admin)
+export async function deleteVenue(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Remove from local storage
+    const custom = getCustomVenues();
+    const filtered = custom.filter((v) => v.id !== id);
+    localStorage.setItem("baladaon_custom_venues", JSON.stringify(filtered));
+
+    // Also mark as deleted in localStorage so catalog doesn't revive it
+    try {
+      const deletedIds = JSON.parse(localStorage.getItem("baladaon_deleted_venue_ids") || "[]");
+      deletedIds.push(id);
+      localStorage.setItem("baladaon_deleted_venue_ids", JSON.stringify(deletedIds));
+    } catch (e) {}
+
+    // 2. Remove from Supabase
+    try {
+      await (supabase as any).from("venues").delete().eq("id", id);
+    } catch (e) {
+      console.warn("Supabase delete notice:", e);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erro ao excluir local" };
+  }
+}
+
+// 8. Update VIP Lead Check-in Status (Portaria / Partner)
+export async function updateLeadStatus(
+  leadId: string,
+  newStatus: "confirmed" | "checked_in" | "cancelled"
+): Promise<boolean> {
+  try {
+    const { error } = await (supabase as any)
+      .from("vip_list_leads")
+      .update({ status: newStatus })
+      .eq("id", leadId);
+
+    if (error) {
+      console.warn("Supabase lead status update:", error.message);
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+

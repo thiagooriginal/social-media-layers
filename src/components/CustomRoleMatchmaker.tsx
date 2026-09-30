@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Sparkles, AlertCircle, Compass, Check } from "lucide-react";
 import { Venue, NeighborhoodCoord, ROLE_AMENITIES, RoleAmenityId } from "../data/venues";
 import { VenueCard } from "./VenueCard";
@@ -33,7 +33,7 @@ export function CustomRoleMatchmaker({
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       {/* Intro Box & Description */}
-      <div className="relative overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-purple-950/80 via-[#0e1424] to-cyan-950/80 p-5 sm:p-6 shadow-[0_0_35px_rgba(6,182,212,0.15)] mb-6">
+      <div className="relative overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-fuchsia-950/80 via-[#0e1424] to-cyan-950/80 p-5 sm:p-6 shadow-[0_0_35px_rgba(0,240,255,0.15)] mb-6">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-gradient-to-br from-fuchsia-600/20 to-cyan-500/20 blur-3xl pointer-events-none" />
 
         <div className="relative">
@@ -41,7 +41,7 @@ export function CustomRoleMatchmaker({
             <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-[11px] font-black text-cyan-300 border border-cyan-500/40 uppercase tracking-wider">
               🎯 Matchmaker Exclusivo
             </span>
-            <span className="rounded-full bg-purple-500/20 px-3 py-1 text-[11px] font-black text-purple-300 border border-purple-500/40">
+            <span className="rounded-full bg-fuchsia-500/20 px-3 py-1 text-[11px] font-black text-fuchsia-300 border border-fuchsia-500/40">
               Filtro Estrito (100% de Match)
             </span>
           </div>
@@ -56,7 +56,7 @@ export function CustomRoleMatchmaker({
           {/* Combos Rápidos Prontos (Presets) */}
           <div className="mt-4 pt-4 border-t border-white/10">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-2.5">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
               <span>Sugestões Populares (Clique para aplicar):</span>
             </div>
 
@@ -71,7 +71,7 @@ export function CustomRoleMatchmaker({
               <button
                 type="button"
                 onClick={() => onSelectCombo(["sinuca", "musica_ao_vivo", "chopp"])}
-                className="rounded-full border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 px-3.5 py-1.5 text-xs font-extrabold text-amber-200 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                className="rounded-full border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 px-3.5 py-1.5 text-xs font-extrabold text-cyan-200 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
               >
                 🎱 Sinuca + 🎸 Ao Vivo + 🍺 Chopp Gelado
               </button>
@@ -85,7 +85,7 @@ export function CustomRoleMatchmaker({
               <button
                 type="button"
                 onClick={() => onSelectCombo(["pista_danca", "drinks", "after_madrugada"])}
-                className="rounded-full border border-purple-500/40 bg-purple-950/40 hover:bg-purple-900/60 px-3.5 py-1.5 text-xs font-extrabold text-purple-200 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                className="rounded-full border border-fuchsia-500/40 bg-fuchsia-950/40 hover:bg-fuchsia-900/60 px-3.5 py-1.5 text-xs font-extrabold text-fuchsia-200 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
               >
                 🪩 Pista & DJ + 🍹 Drinques + 🌙 Madrugada 5h+
               </button>
@@ -127,7 +127,7 @@ export function CustomRoleMatchmaker({
                 onClick={() => onToggleAmenity(amenity.id)}
                 className={`group relative flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-all duration-200 cursor-pointer ${
                   isSelected
-                    ? "border-cyan-400 bg-gradient-to-br from-cyan-950/70 via-[#10192e] to-purple-950/70 shadow-[0_0_20px_rgba(6,182,212,0.35)] scale-[1.02]"
+                    ? "border-cyan-400 bg-gradient-to-br from-cyan-950/70 via-[#10192e] to-fuchsia-950/70 shadow-[0_0_20px_rgba(0,240,255,0.35)] scale-[1.02]"
                     : "border-white/10 bg-[#0d121f]/90 hover:border-white/25 hover:bg-[#121827]"
                 }`}
               >
@@ -138,7 +138,7 @@ export function CustomRoleMatchmaker({
                   <div
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
                       isSelected
-                        ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_10px_rgba(6,182,212,0.8)]"
+                        ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_10px_rgba(0,240,255,0.8)]"
                         : "border-white/20 bg-white/5"
                     }`}
                   >
@@ -185,7 +185,7 @@ export function CustomRoleMatchmaker({
               </>
             ) : (
               <>
-                <AlertCircle className="h-5 w-5 text-amber-400" />
+                <AlertCircle className="h-5 w-5 text-cyan-400" />
                 <span>Nenhum local com 100% de todas as opções juntas</span>
               </>
             )}
@@ -240,12 +240,12 @@ export function CustomRoleMatchmaker({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {customRoleMatches.map((venue) => (
             <div key={venue.id} className="relative">
-              <div className="mb-2 flex items-center justify-between rounded-xl border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs font-black text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              <div className="mb-2 flex items-center justify-between rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-950/80 via-[#081826] to-fuchsia-950/80 px-3 py-1.5 text-xs font-black text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.4)]">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
                   <span>🎯 100% Match! Tem tudo o que você pediu</span>
                 </span>
-                <span className="text-[10px] text-emerald-200/80 font-bold">
+                <span className="text-[10px] text-cyan-200/80 font-bold">
                   {selectedAmenities.length}/{selectedAmenities.length}
                 </span>
               </div>
@@ -262,8 +262,8 @@ export function CustomRoleMatchmaker({
         </div>
       ) : (
         <div className="space-y-8">
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-amber-500/30 bg-[#0d121f] px-6 py-12 text-center shadow-lg">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/15 text-3xl border border-amber-500/30">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-cyan-500/30 bg-[#0d121f] px-6 py-12 text-center shadow-lg">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/15 text-3xl border border-cyan-500/30">
               🤔
             </div>
             <h4 className="mt-4 text-lg font-black text-white">
@@ -275,13 +275,18 @@ export function CustomRoleMatchmaker({
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2 justify-center">
-              <button
-                type="button"
-                onClick={() => onToggleAmenity(selectedAmenities[selectedAmenities.length - 1])}
-                className="rounded-xl border border-amber-500/40 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition-all active:scale-95 cursor-pointer"
-              >
-                ✕ Remover "{ROLE_AMENITIES.find((a) => a.id === selectedAmenities[selectedAmenities.length - 1])?.name}"
-              </button>
+              {selectedAmenities.length > 0 && selectedAmenities[selectedAmenities.length - 1] && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const last = selectedAmenities[selectedAmenities.length - 1];
+                    if (last) onToggleAmenity(last);
+                  }}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/20 px-4 py-2 text-xs font-bold text-cyan-200 hover:bg-cyan-500/30 transition-all active:scale-95 cursor-pointer"
+                >
+                  ✕ Remover "{ROLE_AMENITIES.find((a) => a.id === selectedAmenities[selectedAmenities.length - 1])?.name}"
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onClearAmenities}
@@ -310,7 +315,7 @@ export function CustomRoleMatchmaker({
                   ).length;
                   return (
                     <div key={venue.id} className="relative">
-                      <div className="mb-2 flex items-center justify-between rounded-xl border border-purple-500/40 bg-purple-950/60 px-3 py-1.5 text-xs font-black text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                      <div className="mb-2 flex items-center justify-between rounded-xl border border-fuchsia-500/40 bg-fuchsia-950/60 px-3 py-1.5 text-xs font-black text-fuchsia-300 shadow-[0_0_15px_rgba(255,0,127,0.3)]">
                         <span>⚡ {matchCount} de {selectedAmenities.length} requisitos atendidos</span>
                       </div>
                       <VenueCard

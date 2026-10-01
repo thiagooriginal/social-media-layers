@@ -19,6 +19,7 @@ import {
   Flame,
   CheckCircle2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Venue, calculateDistanceKm, estimateUberPrice, NeighborhoodCoord } from "../data/venues";
 import { trackEvent } from "../services/analyticsService";
 import { recordEventAttendance } from "../services/venueService";
@@ -96,6 +97,25 @@ export function VenueModal({
       `Bora colar no *${venue.name}* (${venue.subType}) em ${venue.neighborhood}? Dá uma olhada: ${window.location.href}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+  };
+
+  const handleShareInstagram = () => {
+    trackEvent(venue.id, "click_share_instagram", venue.name);
+    const text = `🔥 Partiu ${venue.name}? ${venue.subTypeEmoji} ${venue.subType} em ${venue.neighborhood}!\n📍 ${venue.address}\n🎟️ Entre na Lista VIP pelo Radar do Rolê: ${window.location.origin}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      toast.success("Texto do rolê copiado para o Instagram!", {
+        description: "Abra seus Stories, cole o texto e marque o local para convidar a galera!",
+      });
+    }
+
+    if (venue.instagram) {
+      const handle = venue.instagram.replace(/^@/, "").replace(/\/+$/, "");
+      window.open(`https://www.instagram.com/${handle}/`, "_blank");
+    } else {
+      window.open("https://www.instagram.com/", "_blank");
+    }
   };
 
   const handleContactWhatsApp = () => {
@@ -571,9 +591,18 @@ export function VenueModal({
             <button
               onClick={handleShareWhatsApp}
               title="Compartilhar no WhatsApp com amigos"
-              className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white shrink-0 cursor-pointer"
+              className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20 shrink-0 cursor-pointer"
             >
               <Share2 className="h-4 w-4" />
+            </button>
+
+            {/* Share on Instagram Stories */}
+            <button
+              onClick={handleShareInstagram}
+              title="Compartilhar no Instagram Story (Copia texto e abre Insta)"
+              className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-pink-500/30 bg-pink-500/10 text-pink-300 transition-colors hover:bg-pink-500/20 shrink-0 cursor-pointer"
+            >
+              <Instagram className="h-4 w-4" />
             </button>
           </div>
         </div>

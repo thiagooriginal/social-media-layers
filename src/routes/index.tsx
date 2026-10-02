@@ -1922,13 +1922,13 @@ function IndexPage() {
                   <span className="rounded-full bg-pink-500/20 px-3 py-0.5 text-xs font-black text-pink-300 border border-pink-500/40">
                     Siga no Instagram
                   </span>
-                  <span className="text-xs font-mono font-bold text-cyan-400">@radardorolesp</span>
+                  <span className="text-xs font-mono font-bold text-cyan-400">@radardorole</span>
                 </div>
                 <h3 className="mt-2 text-lg sm:text-xl font-black text-white">
                   O Rolê Começa no Instagram: Festas Secretas, Listas VIP & Bastidores
                 </h3>
                 <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl">
-                  Acompanhe a cobertura em tempo real das noites mais agitadas de São Paulo e acesse o nosso Kit Visual com artes oficiais em alta resolução para feed e stories.
+                  Acompanhe a cobertura em tempo real das noites mais agitadas e acesse o nosso Kit Visual com artes oficiais em alta resolução para feed e stories.
                 </p>
               </div>
             </div>
@@ -1943,12 +1943,12 @@ function IndexPage() {
               </button>
 
               <a
-                href="https://www.instagram.com/radardorolesp"
+                href="https://www.instagram.com/radardorole"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-white/20 active:scale-95 transition-all cursor-pointer"
               >
-                <span>Ver @radardorolesp</span>
+                <span>Ver @radardorole</span>
                 <span className="text-slate-400">↗</span>
               </a>
             </div>

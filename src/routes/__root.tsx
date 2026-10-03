@@ -120,14 +120,9 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `
               (function() {
                 try {
-                  var savedTheme = localStorage.getItem('radar_theme') || 'dark';
-                  if (savedTheme === 'light') {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.classList.add('light');
-                  } else {
-                    document.documentElement.classList.remove('light');
-                    document.documentElement.classList.add('dark');
-                  }
+                  localStorage.setItem('radar_theme', 'dark');
+                  document.documentElement.classList.remove('light');
+                  document.documentElement.classList.add('dark');
                 } catch(e) {}
 
                 try {

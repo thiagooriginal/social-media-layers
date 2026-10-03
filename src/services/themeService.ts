@@ -14,55 +14,36 @@ const THEME_PROMPTED_KEY = "radar_theme_prompted";
  * Retorna o tema atualmente salvo ou o padrão 'dark' (Tema Escuro Original)
  */
 export function getStoredTheme(): AppTheme {
-  if (typeof window === "undefined") return "dark";
-  try {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === "light" || saved === "dark") {
-      return saved;
-    }
-  } catch (e) {}
   return "dark";
 }
 
 /**
- * Aplica o tema diretamente nas classes do HTML e no localStorage
+ * Aplica o tema escuro permanentemente no HTML
  */
-export function applyTheme(theme: AppTheme): void {
+export function applyTheme(_theme?: AppTheme): void {
   if (typeof window === "undefined") return;
 
   try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-
+    localStorage.setItem(THEME_STORAGE_KEY, "dark");
     const root = document.documentElement;
-    if (theme === "light") {
-      root.classList.remove("dark");
-      root.classList.add("light");
-    } else {
-      root.classList.remove("light");
-      root.classList.add("dark");
-    }
+    root.classList.remove("light");
+    root.classList.add("dark");
 
-    // Atualiza a meta tag de theme-color do navegador móvel
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", theme === "light" ? "#f8fafc" : "#070a11");
+      metaThemeColor.setAttribute("content", "#070a11");
     }
-
-    // Dispara evento customizado para sincronizar abas ou componentes
-    window.dispatchEvent(new CustomEvent("radar-theme-change", { detail: { theme } }));
   } catch (e) {
     console.warn("Falha ao salvar tema:", e);
   }
 }
 
 /**
- * Alterna entre dark e light e retorna o novo tema ativo
+ * Mantém o tema escuro fixo
  */
 export function toggleTheme(): AppTheme {
-  const current = getStoredTheme();
-  const next: AppTheme = current === "dark" ? "light" : "dark";
-  applyTheme(next);
-  return next;
+  applyTheme("dark");
+  return "dark";
 }
 
 /**

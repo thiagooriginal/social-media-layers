@@ -233,32 +233,6 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
         }
       `}</style>
 
-      {/* Top Floating Theme Switcher right on the opening radar splash */}
-      <div className="absolute top-3 right-3 z-30">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black backdrop-blur-md transition-all cursor-pointer shadow-lg active:scale-95 ${
-            theme === "dark"
-              ? "border-cyan-500/40 bg-black/60 text-cyan-300 hover:border-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-              : "border-amber-400/80 bg-white/90 text-amber-800 hover:bg-white shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-          }`}
-          title="Alternar Tema do App (Escuro Original / Claro)"
-        >
-          {theme === "dark" ? (
-            <>
-              <Moon className="h-3 w-3 text-cyan-400" />
-              <span>🌙 Escuro</span>
-            </>
-          ) : (
-            <>
-              <Sun className="h-3 w-3 text-amber-500" />
-              <span>☀️ Claro</span>
-            </>
-          )}
-        </button>
-      </div>
-
       {/* TOP STATUS HUD: Radar Telemetry */}
       <div className="relative z-20 flex flex-col items-center gap-1.5 pt-2 xs:pt-4">
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/30 backdrop-blur-md">

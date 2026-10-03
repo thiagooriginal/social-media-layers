@@ -1153,30 +1153,7 @@ function IndexPage() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
                   </span>
-                  <span>Radar do Rolê SP • Ativar Scanner Noturno</span>
-                </button>
-
-                {/* Opção de Tema Logo no Início */}
-                <button
-                  onClick={() => setIsThemeModalOpen(true)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all backdrop-blur-md cursor-pointer active:scale-95 ${
-                    theme === "dark"
-                      ? "border-purple-500/40 bg-purple-950/40 text-purple-300 hover:border-purple-400 hover:bg-purple-900/40 shadow-[0_0_15px_rgba(168,85,247,0.25)]"
-                      : "border-amber-400/80 bg-amber-50 text-amber-800 hover:bg-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                  }`}
-                  title="Configurar tema: manter escuro original ou deixar claro"
-                >
-                  {theme === "dark" ? (
-                    <>
-                      <Moon className="h-3.5 w-3.5 text-purple-400" />
-                      <span>Tema: 🌙 Escuro Original (Mudar)</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sun className="h-3.5 w-3.5 text-amber-500" />
-                      <span>Tema: ☀️ Claro (Mudar)</span>
-                    </>
-                  )}
+                  <span>Radar do Rolê • Ativar Scanner Noturno</span>
                 </button>
               </div>
 
@@ -2104,12 +2081,6 @@ function IndexPage() {
         isOpen={isLegalModalOpen}
         onClose={() => setIsLegalModalOpen(false)}
         initialTab={legalModalTab}
-      />
-
-      {/* Initial Theme Modal (Opção de Escolha de Tema: Escuro Original vs Claro) */}
-      <InitialThemeModal
-        isOpen={isThemeModalOpen}
-        onClose={() => setIsThemeModalOpen(false)}
       />
 
       {/* Instagram Launch Kit & Creative Hub Modal */}

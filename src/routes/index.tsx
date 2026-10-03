@@ -1922,7 +1922,7 @@ function IndexPage() {
                   <span className="rounded-full bg-pink-500/20 px-3 py-0.5 text-xs font-black text-pink-300 border border-pink-500/40">
                     Siga no Instagram
                   </span>
-                  <span className="text-xs font-mono font-bold text-cyan-400">@radardorole</span>
+                  <span className="text-xs font-mono font-bold text-cyan-400">@radar.dorole</span>
                 </div>
                 <h3 className="mt-2 text-lg sm:text-xl font-black text-white">
                   O Rolê Começa no Instagram: Festas Secretas, Listas VIP & Bastidores
@@ -1943,12 +1943,12 @@ function IndexPage() {
               </button>
 
               <a
-                href="https://www.instagram.com/radardorole"
+                href="https://www.instagram.com/radar.dorole"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-white/20 active:scale-95 transition-all cursor-pointer"
               >
-                <span>Ver @radardorole</span>
+                <span>Ver @radar.dorole</span>
                 <span className="text-slate-400">↗</span>
               </a>
             </div>

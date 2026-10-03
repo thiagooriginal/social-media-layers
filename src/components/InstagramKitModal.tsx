@@ -388,7 +388,7 @@ A sua semana inteira de trabalho e estudo merece um fim de semana extraordinári
 
 O Radar do Rolê está chegando para devolver a emoção de viver a noite sem estresse.
 
-Siga a nossa página @radardorole para:
+Siga a nossa página @radar.dorole para:
 ✨ Descobrir os segredos mais quentes da capital toda semana;
 🎟️ Garantir cortesias e Listas VIP exclusivas antes do público geral;
 📲 Ser avisado em primeira mão no dia do lançamento oficial do app!
@@ -441,7 +441,7 @@ export function InstagramKitModal({ isOpen, onClose }: InstagramKitModalProps) {
     navigator.clipboard.writeText(BIO_PROFILE_TEMPLATE);
     setCopiedBio(true);
     toast.success("Bio do Instagram copiada!", {
-      description: "Pronta para colar na descrição do seu perfil @radardorole.",
+      description: "Pronta para colar na descrição do seu perfil @radar.dorole.",
     });
     setTimeout(() => setCopiedBio(false), 2500);
   };
@@ -483,7 +483,7 @@ export function InstagramKitModal({ isOpen, onClose }: InstagramKitModalProps) {
                   Kit Visual Instagram • Estilo Papel Rasgado & Benefícios
                 </h3>
                 <span className="hidden sm:inline-block rounded-full bg-pink-500/20 px-2.5 py-0.5 text-[10px] font-black text-pink-300 border border-pink-500/30">
-                  @radardorole
+                  @radar.dorole
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-400">
@@ -572,7 +572,7 @@ export function InstagramKitModal({ isOpen, onClose }: InstagramKitModalProps) {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 justify-between">
                       <div>
                         <div className="flex items-center justify-center sm:justify-start gap-2">
-                          <h4 className="text-base sm:text-lg font-black text-white">radardorole</h4>
+                          <h4 className="text-base sm:text-lg font-black text-white">radar.dorole</h4>
                           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[10px] font-black text-black">
                             ✓
                           </span>
@@ -583,15 +583,15 @@ export function InstagramKitModal({ isOpen, onClose }: InstagramKitModalProps) {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={handleCopyBio}
-                          className="rounded-xl border border-pink-500/40 bg-pink-500/15 px-3 py-1.5 text-xs font-bold text-pink-200 hover:bg-pink-500/25 transition-all"
+                          className="rounded-xl border border-pink-500/40 bg-pink-500/15 px-3 py-1.5 text-xs font-bold text-pink-200 hover:bg-pink-500/25 transition-all cursor-pointer"
                         >
                           Copiar Texto da Bio
                         </button>
                         <a
-                          href="https://www.instagram.com/radardorole"
+                          href="https://www.instagram.com/radar.dorole?stkn=YnZlZzJra3Nmemxu"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition-all"
+                          className="rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition-all cursor-pointer"
                         >
                           Ver no Insta ↗
                         </a>

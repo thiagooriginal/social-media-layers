@@ -12,11 +12,14 @@ COPY . .
 # Gera o build de produção
 RUN bun run build
 
-# Configuração de portas e ambiente
+# Configuração de portas e ambiente para Nitro / TanStack Start
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
 ENV PORT=8080
+ENV NITRO_HOST=0.0.0.0
+ENV NITRO_PORT=8080
 
 EXPOSE 8080
 
-# Inicia o servidor em modo de alta performance
-CMD ["bun", "run", "preview", "--host", "0.0.0.0", "--port", "8080", "--outDir", ".output/public"]
+# Inicia o servidor Nitro de produção
+CMD ["bun", ".output/server/index.mjs"]

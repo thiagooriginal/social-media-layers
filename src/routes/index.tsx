@@ -535,6 +535,15 @@ function IndexPage() {
     if (screen === "baladas") {
       setActiveTab("baladas");
       setOnlyAfterHours(false);
+    } else if (screen === "bares") {
+      setActiveTab("bares");
+      setOnlyAfterHours(false);
+    } else if (screen === "tabacarias") {
+      setActiveTab("tabacarias");
+      setOnlyAfterHours(false);
+    } else if (screen === "sinucas") {
+      setActiveTab("sinucas");
+      setOnlyAfterHours(false);
     } else if (screen === "restaurantes") {
       setActiveTab("restaurantes");
       setOnlyAfterHours(false);
@@ -691,6 +700,15 @@ function IndexPage() {
     } else if (tab === "baladas") {
       setCurrentScreen("baladas");
       setSelectedCuisine("all");
+    } else if (tab === "bares") {
+      setCurrentScreen("bares");
+      setSelectedCuisine("all");
+    } else if (tab === "tabacarias") {
+      setCurrentScreen("tabacarias");
+      setSelectedCuisine("all");
+    } else if (tab === "sinucas") {
+      setCurrentScreen("sinucas");
+      setSelectedCuisine("all");
     } else if (tab === "restaurantes") {
       setCurrentScreen("restaurantes");
       setSelectedCuisine("all");
@@ -708,6 +726,18 @@ function IndexPage() {
   // Counts for tabs & menus
   const baladasCount = useMemo(
     () => venues.filter((v) => v.category === "baladas").length,
+    [venues]
+  );
+  const baresCount = useMemo(
+    () => venues.filter((v) => v.category === "bares").length,
+    [venues]
+  );
+  const tabacariasCount = useMemo(
+    () => venues.filter((v) => v.category === "tabacarias").length,
+    [venues]
+  );
+  const sinucasCount = useMemo(
+    () => venues.filter((v) => v.category === "sinucas").length,
     [venues]
   );
   const restaurantesCount = useMemo(
@@ -840,6 +870,12 @@ function IndexPage() {
         if (!venue.hasKidsSpace || venue.category === "moteis") return false;
       } else if (currentScreen === "baladas" || activeTab === "baladas") {
         if (venue.category !== "baladas") return false;
+      } else if (currentScreen === "bares" || activeTab === "bares") {
+        if (venue.category !== "bares") return false;
+      } else if (currentScreen === "tabacarias" || activeTab === "tabacarias") {
+        if (venue.category !== "tabacarias") return false;
+      } else if (currentScreen === "sinucas" || activeTab === "sinucas") {
+        if (venue.category !== "sinucas") return false;
       } else if (currentScreen === "restaurantes" || activeTab === "restaurantes") {
         if (venue.category !== "restaurantes") return false;
       } else if (currentScreen === "moteis" || activeTab === "moteis") {
@@ -1292,7 +1328,7 @@ function IndexPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
                   {/* Card 1: Baladas */}
                   <button
                     type="button"
@@ -1329,22 +1365,120 @@ function IndexPage() {
                     </div>
                   </button>
 
-                  {/* Card 2: Bares & Gastronomia (Electric Cyan Oficial) */}
+                  {/* Card 2: Bares, Botecos & Pubs */}
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("bares")}
+                    className="nav-card-bares group relative flex items-center justify-between overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-950/70 via-[#1e1308]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-amber-400 hover:shadow-[0_10px_30px_-5px_rgba(245,158,11,0.4)] cursor-pointer w-full shadow-lg"
+                  >
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl sm:text-3xl border border-amber-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                        🍻
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-black text-white group-hover:text-amber-300 transition-colors truncate">
+                          Bares & Botecos
+                        </h3>
+                        <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
+                          Chopp gelado, Espetarias, Pubs & Samba
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
+                      <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-300 border border-amber-500/30 whitespace-nowrap shadow-sm">
+                        {baresCount} bares
+                      </span>
+                      <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:bg-amber-500 transition-colors">
+                        <span>Abrir</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Card 3: Tabacarias & Hookah Lounge */}
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("tabacarias")}
+                    className="nav-card-tabacarias group relative flex items-center justify-between overflow-hidden rounded-3xl border border-purple-500/40 bg-gradient-to-r from-purple-950/70 via-[#180824]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-purple-400 hover:shadow-[0_10px_30px_-5px_rgba(168,85,247,0.4)] cursor-pointer w-full shadow-lg"
+                  >
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-purple-500/20 text-2xl sm:text-3xl border border-purple-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+                        💨
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-black text-white group-hover:text-purple-300 transition-colors truncate">
+                          Tabacarias & Lounge
+                        </h3>
+                        <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
+                          Hookah premium, essências, drinks & DJs
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
+                      <div className="flex items-center gap-1">
+                        <span className="rounded bg-rose-500/20 text-rose-300 font-mono text-[9px] px-1.5 py-0.5 font-black border border-rose-500/30">
+                          🔞 +18
+                        </span>
+                        <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-purple-300 border border-purple-500/30 whitespace-nowrap shadow-sm">
+                          {tabacariasCount} lounges
+                        </span>
+                      </div>
+                      <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:bg-purple-500 transition-colors">
+                        <span>Abrir</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Card 4: Casas de Sinuca & Bilhar */}
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("sinucas")}
+                    className="nav-card-sinucas group relative flex items-center justify-between overflow-hidden rounded-3xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/70 via-[#061e12]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-emerald-400 hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.4)] cursor-pointer w-full shadow-lg"
+                  >
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 text-2xl sm:text-3xl border border-emerald-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                        🎱
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-300 transition-colors truncate">
+                          Casas de Sinuca
+                        </h3>
+                        <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
+                          Mesas oficiais Brunswick, Snooker bars & Chopp
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 ml-2.5">
+                      <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30 whitespace-nowrap shadow-sm">
+                        {sinucasCount} salas
+                      </span>
+                      <div className="w-full flex items-center justify-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-md group-hover:bg-emerald-500 transition-colors">
+                        <span>Abrir</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Card 5: Restaurantes & Gastronomia */}
                   <button
                     type="button"
                     onClick={() => handleNavigate("restaurantes")}
-                    className="nav-card-bares group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0a1828]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-restaurantes group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0a1828]/60 to-[#080d1a] p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-                        🍸
+                        🍽️
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-sm sm:text-base font-black text-white group-hover:text-cyan-300 transition-colors truncate">
-                          Bares & Gastronomia
+                          Restaurantes
                         </h3>
                         <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
-                          Rooftops, Drinks autorais, Botecos & Família
+                          Japonesa, Churrascarias, Massas & Alta Cozinha
                         </p>
                       </div>
                     </div>
@@ -1360,7 +1494,7 @@ function IndexPage() {
                     </div>
                   </button>
 
-                  {/* Card 3: Motéis & Suítes (Neon Magenta Oficial) */}
+                  {/* Card 6: Motéis & Drive-ins */}
                   <button
                     type="button"
                     onClick={() => handleNavigate("moteis")}
@@ -1372,10 +1506,10 @@ function IndexPage() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-sm sm:text-base font-black text-white group-hover:text-fuchsia-300 transition-colors truncate">
-                          Motéis & Suítes
+                          Motéis & Drive-ins
                         </h3>
                         <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
-                          Hidro, Piscinas Privativas, Pernoite & Luxo
+                          Hidro, Piscinas Privativas, Pernoite & Drive-in
                         </p>
                       </div>
                     </div>
@@ -1396,11 +1530,11 @@ function IndexPage() {
                     </div>
                   </button>
 
-                  {/* Card 4: Modo After (Cyber Duo Cyan + Magenta) */}
+                  {/* Card 7: Modo After */}
                   <button
                     type="button"
                     onClick={() => handleNavigate("after")}
-                    className="nav-card-after group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0b1326]/60 to-fuchsia-950/50 p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg"
+                    className="nav-card-after group relative flex items-center justify-between overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-[#0b1326]/60 to-fuchsia-950/50 p-4 sm:p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:border-cyan-400 hover:shadow-[0_10px_30px_-5px_rgba(0,240,255,0.4)] cursor-pointer w-full shadow-lg sm:col-span-2 lg:col-span-3"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <div className="icon-box flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-2xl sm:text-3xl border border-cyan-500/40 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.3)]">
@@ -1411,7 +1545,7 @@ function IndexPage() {
                           Modo After (5h+ / 24h)
                         </h3>
                         <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400 line-clamp-1">
-                          Baladas que viram até 8h & Lanches/Padarias 24h
+                          Baladas que viram até 8h, Snookers 24h & Lanches/Padarias da Madrugada
                         </p>
                       </div>
                     </div>
@@ -1462,16 +1596,34 @@ function IndexPage() {
                         <span>Baladas & Festas</span>
                       </>
                     )}
+                    {currentScreen === "bares" && (
+                      <>
+                        <span className="text-2xl">🍻</span>
+                        <span>Bares, Botecos & Pubs</span>
+                      </>
+                    )}
+                    {currentScreen === "tabacarias" && (
+                      <>
+                        <span className="text-2xl">💨</span>
+                        <span>Tabacarias & Hookah Lounges</span>
+                      </>
+                    )}
+                    {currentScreen === "sinucas" && (
+                      <>
+                        <span className="text-2xl">🎱</span>
+                        <span>Casas de Sinuca & Snooker</span>
+                      </>
+                    )}
                     {currentScreen === "restaurantes" && (
                       <>
-                        <span className="text-2xl">🍸</span>
-                        <span>Bares & Gastronomia</span>
+                        <span className="text-2xl">🍽️</span>
+                        <span>Restaurantes & Gastronomia</span>
                       </>
                     )}
                     {currentScreen === "moteis" && (
                       <>
                         <span className="text-2xl">🏩</span>
-                        <span>Motéis & Suítes</span>
+                        <span>Motéis & Drive-ins</span>
                       </>
                     )}
                     {currentScreen === "after" && (
@@ -1495,13 +1647,19 @@ function IndexPage() {
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {currentScreen === "baladas" &&
-                      "As pistas mais disputadas, DJs convidados e listas VIP de São Paulo"}
+                      "As pistas mais disputadas, DJs convidados e listas VIP de São Paulo e Grande SP"}
+                    {currentScreen === "bares" &&
+                      "Chopp gelado, espetinhos, pubs de rock, botecos tradicionais e happy hours"}
+                    {currentScreen === "tabacarias" &&
+                      "Essências importadas, lounges com atendimento de mesa, drinks e DJs"}
+                    {currentScreen === "sinucas" &&
+                      "Mesas profissionais de bilhar, torneios de snooker, chopp e porções"}
                     {currentScreen === "restaurantes" &&
-                      "Drinks autorais, rooftops, botecos e alta gastronomia em SP"}
+                      "Culinária japonesa, churrascarias, pizzarias, alta gastronomia e ambiente familiar"}
                     {currentScreen === "moteis" &&
-                      "Privacidade, hidromassagem, piscinas privativas e suítes com pernoite"}
+                      "Privacidade, hidromassagem, piscinas privativas, suítes com pernoite e drive-ins"}
                     {currentScreen === "after" &&
-                      "Locais abertos para virar a noite até as 8h da manhã ou lanches 24h"}
+                      "Locais abertos para virar a noite até as 8h da manhã ou lanches/padarias 24h"}
                     {currentScreen === "favorites" &&
                       `${favorites.length} ${favorites.length === 1 ? "local salvo" : "locais salvos"} na sua lista`}
                     {currentScreen === "custom-role" &&
@@ -1544,6 +1702,20 @@ function IndexPage() {
             />
           ) : (
             <>
+              {/* Category Tabs (8 Sectors) */}
+              <CategoryTabs
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                baladasCount={baladasCount}
+                baresCount={baresCount}
+                tabacariasCount={tabacariasCount}
+                sinucasCount={sinucasCount}
+                restaurantesCount={restaurantesCount}
+                moteisCount={moteisCount}
+                kidsCount={kidsCount}
+                favoritesCount={favorites.length}
+              />
+
               {/* Category FilterBar */}
               <FilterBar
                 category={activeTab}

@@ -89,8 +89,11 @@ export function FilterBar({
   const isRestaurantes = category === "restaurantes" || category === "kids";
 
   const getPlaceholder = () => {
-    if (isBaladas) return "Buscar por balada, DJ, funk, pagode, sertanejo...";
-    if (isMoteis) return "Buscar por motel, suíte, hidro, piscina, pernoite...";
+    if (category === "baladas") return "Buscar por balada, DJ, funk, pagode, sertanejo...";
+    if (category === "bares") return "Buscar por barzinho, boteco, pub, espetinho, chopp...";
+    if (category === "tabacarias") return "Buscar por tabacaria, hookah lounge, narguilé, essências...";
+    if (category === "sinucas") return "Buscar por casa de sinuca, snooker bar, bilhar...";
+    if (category === "moteis") return "Buscar por motel, suíte, hidro, piscina, drive-in...";
     return "Buscar por restaurante, culinária, drinks, boteco...";
   };
 

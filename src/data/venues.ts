@@ -1,13 +1,14 @@
 import { VENUES_CATALOG_300 } from "./venuesCatalog300";
+import { VENUES_EXPANDED } from "./venuesExpanded";
 
 export interface Venue {
   id: string;
-  category: "baladas" | "restaurantes" | "moteis";
+  category: "baladas" | "bares" | "tabacarias" | "sinucas" | "restaurantes" | "moteis";
   name: string;
   tagline: string;
-  genre?: "pagode" | "sertanejo" | "funk" | "forro" | "rock" | "eletronica";
-  cuisine?: "kids" | "japonesa" | "churrascaria" | "italiano" | "hamburgueria";
-  motelStyle?: "hidro" | "piscina" | "design" | "tematica" | "economica";
+  genre?: "pagode" | "sertanejo" | "funk" | "forro" | "rock" | "eletronica" | undefined;
+  cuisine?: "kids" | "japonesa" | "churrascaria" | "italiano" | "hamburgueria" | undefined;
+  motelStyle?: "hidro" | "piscina" | "design" | "tematica" | "economica" | "drive-in" | undefined;
   subType: string;
   subTypeEmoji: string;
   neighborhood: string;
@@ -24,25 +25,25 @@ export interface Venue {
   priceDescription: string;
   hasVipList: boolean;
   allowsReservation: boolean;
-  hasKidsSpace?: boolean;
-  isOpenBar?: boolean;
-  isWomenFree?: boolean;
-  hasParking?: boolean;
-  hasHydro?: boolean;
-  hasPool?: boolean;
-  hasPrivateGarage?: boolean;
-  periodHours?: string;
-  isAfterHours?: boolean;
-  closesAt?: string;
+  hasKidsSpace?: boolean | undefined;
+  isOpenBar?: boolean | undefined;
+  isWomenFree?: boolean | undefined;
+  hasParking?: boolean | undefined;
+  hasHydro?: boolean | undefined;
+  hasPool?: boolean | undefined;
+  hasPrivateGarage?: boolean | undefined;
+  periodHours?: string | undefined;
+  isAfterHours?: boolean | undefined;
+  closesAt?: string | undefined;
   whatsapp: string;
   instagram: string;
   highlight: string;
   tags: string[];
-  lineup?: string[];
-  menuHighlights?: string[];
-  amenities?: RoleAmenityId[];
-  plan?: "mensal" | "semestral" | "anual";
-  planPrice?: number;
+  lineup?: string[] | undefined;
+  menuHighlights?: string[] | undefined;
+  amenities?: RoleAmenityId[] | undefined;
+  plan?: "mensal" | "semestral" | "anual" | undefined;
+  planPrice?: number | undefined;
 }
 
 export type RoleAmenityId =
@@ -92,10 +93,17 @@ export const NEIGHBORHOODS: NeighborhoodCoord[] = [
   { name: "Moema", lat: -23.6035, lng: -46.6612 },
   { name: "Barra Funda", lat: -23.5268, lng: -46.6672 },
   { name: "Tatuapé", lat: -23.5407, lng: -46.5768 },
+  { name: "Mooca", lat: -23.5552, lng: -46.5986 },
   { name: "Jardins", lat: -23.5663, lng: -46.6675 },
   { name: "Bela Vista", lat: -23.5618, lng: -46.6488 },
   { name: "Santana", lat: -23.5019, lng: -46.6253 },
   { name: "Ipiranga", lat: -23.5855, lng: -46.6080 },
+  { name: "Santo André", lat: -23.6639, lng: -46.5383 },
+  { name: "São Bernardo", lat: -23.6944, lng: -46.5654 },
+  { name: "São Caetano", lat: -23.6229, lng: -46.5547 },
+  { name: "Osasco", lat: -23.5329, lng: -46.7920 },
+  { name: "Guarulhos", lat: -23.4542, lng: -46.5333 },
+  { name: "Alphaville", lat: -23.4996, lng: -46.8529 },
 ];
 
 export const GENRES = [
@@ -259,9 +267,16 @@ export const MOTEL_STYLES = [
     desc: "Ótimo custo-benefício, ar-condicionado split e suíte privativa",
     activeClass: "border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_18px_rgba(0,240,255,0.45)]",
   },
+  {
+    id: "drive-in",
+    name: "Drive-In & Garagem",
+    emoji: "🚗",
+    desc: "Box privativo com garagem automatizada e discrição total",
+    activeClass: "border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_18px_rgba(0,240,255,0.45)]",
+  },
 ];
 
-export const VENUES_DATA: Venue[] = VENUES_CATALOG_300;
+export const VENUES_DATA: Venue[] = [...VENUES_CATALOG_300, ...VENUES_EXPANDED];
 
 // Utility: Calculate distance in KM using Haversine formula
 export function calculateDistanceKm(

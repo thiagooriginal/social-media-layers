@@ -28,7 +28,6 @@ interface HeaderProps {
   isGpsActive?: boolean;
   onOpenNeighborhoodModal?: () => void;
   onOpenThemeModal?: () => void;
-  onOpenInstagramKit?: () => void;
 }
 
 export function Header({
@@ -54,7 +53,6 @@ export function Header({
   isGpsActive,
   onOpenNeighborhoodModal,
   onOpenThemeModal,
-  onOpenInstagramKit,
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
@@ -424,20 +422,20 @@ export function Header({
             )}
           </button>
 
-          {/* Instagram Oficial & Kit Visual */}
-          {onOpenInstagramKit && (
-            <button
-              onClick={onOpenInstagramKit}
-              title="Instagram Oficial @radar.dorole & Kit Visual de Divulgação"
-              className="flex items-center gap-1.5 rounded-xl border border-pink-500/40 bg-gradient-to-r from-amber-500/15 via-rose-500/20 to-purple-600/25 px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-bold text-pink-200 hover:border-pink-400 hover:text-white transition-all shadow-[0_0_12px_rgba(244,63,94,0.3)] active:scale-95 shrink-0 cursor-pointer"
-            >
-              <Instagram className="h-3.5 w-3.5 text-pink-400 shrink-0" />
-              <span className="hidden md:inline text-[11px] font-black bg-gradient-to-r from-amber-300 via-rose-300 to-purple-300 bg-clip-text text-transparent">
-                @radar.dorole
-              </span>
-              <span className="md:hidden text-[10px] font-black text-pink-300">Insta</span>
-            </button>
-          )}
+          {/* Instagram Oficial */}
+          <a
+            href="https://www.instagram.com/radar.dorole"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Siga @radar.dorole no Instagram"
+            className="flex items-center gap-1.5 rounded-xl border border-pink-500/40 bg-gradient-to-r from-amber-500/15 via-rose-500/20 to-purple-600/25 px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-bold text-pink-200 hover:border-pink-400 hover:text-white transition-all shadow-[0_0_12px_rgba(244,63,94,0.3)] active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Instagram className="h-3.5 w-3.5 text-pink-400 shrink-0" />
+            <span className="hidden md:inline text-[11px] font-black bg-gradient-to-r from-amber-300 via-rose-300 to-purple-300 bg-clip-text text-transparent">
+              @radar.dorole
+            </span>
+            <span className="md:hidden text-[10px] font-black text-pink-300">Insta</span>
+          </a>
 
           {/* Share - Desktop only */}
           <button

@@ -29,7 +29,6 @@ import { AgeGateModal } from "../components/AgeGateModal";
 import { LgpdConsentBanner } from "../components/LgpdConsentBanner";
 import { LegalTermsModal } from "../components/LegalTermsModal";
 import { InitialThemeModal } from "../components/InitialThemeModal";
-import { InstagramKitModal } from "../components/InstagramKitModal";
 import { useTheme, hasUserPromptedTheme } from "../services/themeService";
 import {
   loadPersistedNavState,
@@ -122,7 +121,6 @@ function IndexPage() {
     if (typeof window === "undefined") return false;
     return !hasUserPromptedTheme();
   });
-  const [isInstagramKitOpen, setIsInstagramKitOpen] = useState(false);
 
   // Navigation & Category Tab state (Persistido entre abas)
   const [activeTab, setActiveTab] = useState<MainCategory>(() => initialNav.activeTab || "baladas");
@@ -1160,7 +1158,6 @@ function IndexPage() {
         isGpsActive={isGpsActive}
         onOpenNeighborhoodModal={() => setIsNeighborhoodModalOpen(true)}
         onOpenThemeModal={() => setIsThemeModalOpen(true)}
-        onOpenInstagramKit={() => setIsInstagramKitOpen(true)}
       />
 
       {/* ========================================================================= */}
@@ -2042,68 +2039,7 @@ function IndexPage() {
         onOpenProfile={handleOpenProfileModal}
       />
 
-      {/* Instagram Oficial & Marketing Kit Showcase Banner */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-12 mb-6">
-        <div className="relative overflow-hidden rounded-3xl border border-pink-500/30 bg-gradient-to-r from-purple-950/40 via-[#0d1020] to-pink-950/40 p-6 sm:p-8 backdrop-blur-xl shadow-[0_0_50px_-15px_rgba(236,72,153,0.3)]">
-          {/* Ambient Glows */}
-          <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-cyan-500/20 blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-              <div className="relative shrink-0">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 shadow-[0_0_25px_rgba(244,63,94,0.45)]">
-                  <div className="h-full w-full rounded-[14px] bg-[#070a11] flex items-center justify-center overflow-hidden">
-                    <img
-                      src="/marketing/insta-feed-1.jpg"
-                      alt="Radar do Rolê Instagram"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </div>
-                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-xs font-bold text-white shadow-md">
-                  📸
-                </span>
-              </div>
-
-              <div>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <span className="rounded-full bg-pink-500/20 px-3 py-0.5 text-xs font-black text-pink-300 border border-pink-500/40">
-                    Siga no Instagram
-                  </span>
-                  <span className="text-xs font-mono font-bold text-cyan-400">@radar.dorole</span>
-                </div>
-                <h3 className="mt-2 text-lg sm:text-xl font-black text-white">
-                  O Rolê Começa no Instagram: Festas Secretas, Listas VIP & Bastidores
-                </h3>
-                <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl">
-                  Acompanhe a cobertura em tempo real das noites mais agitadas e acesse o nosso Kit Visual com artes oficiais em alta resolução para feed e stories.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
-              <button
-                onClick={() => setIsInstagramKitOpen(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 px-5 py-3.5 text-xs sm:text-sm font-black text-white shadow-[0_0_25px_rgba(236,72,153,0.5)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-              >
-                <span>🎨</span>
-                <span>Abrir Kit Visual & Baixar Artes</span>
-              </button>
-
-              <a
-                href="https://www.instagram.com/radar.dorole"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-white/20 active:scale-95 transition-all cursor-pointer"
-              >
-                <span>Ver @radar.dorole</span>
-                <span className="text-slate-400">↗</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="mt-20 border-t border-white/10 bg-[#05070d] py-8 text-center text-xs text-slate-500">
@@ -2253,12 +2189,6 @@ function IndexPage() {
         isOpen={isLegalModalOpen}
         onClose={() => setIsLegalModalOpen(false)}
         initialTab={legalModalTab}
-      />
-
-      {/* Instagram Launch Kit & Creative Hub Modal */}
-      <InstagramKitModal
-        isOpen={isInstagramKitOpen}
-        onClose={() => setIsInstagramKitOpen(false)}
       />
     </div>
   );

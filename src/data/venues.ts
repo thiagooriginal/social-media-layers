@@ -1,5 +1,6 @@
 import { VENUES_CATALOG_300 } from "./venuesCatalog300";
 import { VENUES_EXPANDED } from "./venuesExpanded";
+import { VENUES_MEGA_CATALOG } from "./venuesMegaCatalog";
 
 export interface Venue {
   id: string;
@@ -90,20 +91,30 @@ export const NEIGHBORHOODS: NeighborhoodCoord[] = [
   { name: "Vila Madalena", lat: -23.5539, lng: -46.6917 },
   { name: "Itaim Bibi", lat: -23.5857, lng: -46.6806 },
   { name: "Pinheiros", lat: -23.5615, lng: -46.7027 },
+  { name: "Vila Olímpia", lat: -23.5950, lng: -46.6850 },
   { name: "Moema", lat: -23.6035, lng: -46.6612 },
   { name: "Barra Funda", lat: -23.5268, lng: -46.6672 },
+  { name: "Perdizes", lat: -23.5350, lng: -46.6730 },
   { name: "Tatuapé", lat: -23.5407, lng: -46.5768 },
   { name: "Mooca", lat: -23.5552, lng: -46.5986 },
+  { name: "Anália Franco", lat: -23.5520, lng: -46.5610 },
   { name: "Jardins", lat: -23.5663, lng: -46.6675 },
   { name: "Bela Vista", lat: -23.5618, lng: -46.6488 },
+  { name: "República", lat: -23.5430, lng: -46.6430 },
   { name: "Santana", lat: -23.5019, lng: -46.6253 },
   { name: "Ipiranga", lat: -23.5855, lng: -46.6080 },
+  { name: "Vila Mariana", lat: -23.5890, lng: -46.6350 },
+  { name: "Campo Belo", lat: -23.6210, lng: -46.6710 },
+  { name: "Brooklin", lat: -23.6120, lng: -46.6900 },
   { name: "Santo André", lat: -23.6639, lng: -46.5383 },
   { name: "São Bernardo", lat: -23.6944, lng: -46.5654 },
   { name: "São Caetano", lat: -23.6229, lng: -46.5547 },
+  { name: "Diadema", lat: -23.6865, lng: -46.6228 },
+  { name: "Mauá", lat: -23.6680, lng: -46.4614 },
   { name: "Osasco", lat: -23.5329, lng: -46.7920 },
   { name: "Guarulhos", lat: -23.4542, lng: -46.5333 },
   { name: "Alphaville", lat: -23.4996, lng: -46.8529 },
+  { name: "Cotia", lat: -23.6030, lng: -46.9190 },
 ];
 
 export const GENRES = [
@@ -276,7 +287,11 @@ export const MOTEL_STYLES = [
   },
 ];
 
-export const VENUES_DATA: Venue[] = [...VENUES_CATALOG_300, ...VENUES_EXPANDED];
+export const VENUES_DATA: Venue[] = [
+  ...VENUES_CATALOG_300,
+  ...VENUES_EXPANDED,
+  ...VENUES_MEGA_CATALOG,
+];
 
 // Utility: Calculate distance in KM using Haversine formula
 export function calculateDistanceKm(

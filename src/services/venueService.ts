@@ -73,78 +73,78 @@ function saveCustomVenue(venue: Venue) {
   } catch (e) {}
 }
 
-// 1. Fetch Venues with Supabase & Offline Fallback
+// 1. Fetch Venues with Supabase & Local Catalog Merge
 export async function getVenues(): Promise<Venue[]> {
   const custom = getCustomVenues();
 
   try {
+    // 1. Inicia o mapa com todos os 1.100 estabelecimentos reais do catálogo
+    const venueMap = new Map<string, Venue>();
+    VENUES_DATA.forEach((v) => venueMap.set(v.id, v));
+
+    // 2. Busca do Supabase para sobrepor edições ou novos cadastros feitos via admin
     const { data, error } = await (supabase as any)
       .from("venues")
       .select("*")
       .order("rating", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      // Fallback to local catalog if table not created or empty
-      return [...custom, ...VENUES_DATA];
+    if (!error && data && data.length > 0) {
+      data.forEach((item: any) => {
+        const mapped: Venue = {
+          id: item.id,
+          category: item.category,
+          name: item.name,
+          tagline: item.tagline || "",
+          genre: item.genre,
+          cuisine: item.cuisine,
+          motelStyle: item.motel_style || item.motelStyle,
+          subType: item.sub_type || item.subType || "Geral",
+          subTypeEmoji: item.sub_type_emoji || item.subTypeEmoji || "✨",
+          neighborhood: item.neighborhood,
+          address: item.address,
+          coordinates: {
+            lat: item.latitude || item.coordinates?.lat || -23.55,
+            lng: item.longitude || item.coordinates?.lng || -46.63,
+          },
+          image: item.image,
+          gallery: item.gallery || [item.image],
+          rating: Number(item.rating) || 4.8,
+          reviewsCount: Number(item.reviews_count) || 120,
+          openToday: Boolean(item.open_today),
+          openHours: item.open_hours || "18:00 às 04:00",
+          priceCategory: item.price_category || "medium",
+          entryPrice: item.entry_price || "Consulte valores",
+          priceDescription: item.price_description || "",
+          hasVipList: Boolean(item.has_vip_list),
+          allowsReservation: Boolean(item.allows_reservation),
+          hasKidsSpace: Boolean(item.has_kids_space),
+          isOpenBar: Boolean(item.is_open_bar),
+          isWomenFree: Boolean(item.is_women_free),
+          hasParking: Boolean(item.has_parking),
+          hasHydro: Boolean(item.has_hydro),
+          hasPool: Boolean(item.has_pool),
+          hasPrivateGarage: Boolean(item.has_private_garage),
+          periodHours: item.period_hours,
+          isAfterHours: Boolean(item.is_after_hours),
+          closesAt: item.closes_at,
+          whatsapp: item.whatsapp,
+          instagram: item.instagram || "",
+          highlight: item.highlight || "",
+          tags: item.tags || [],
+          lineup: item.lineup || [],
+          menuHighlights: item.menu_highlights || [],
+          amenities: item.amenities || [],
+          plan: item.plan,
+          planPrice: item.plan_price,
+        };
+        venueMap.set(mapped.id, mapped);
+      });
     }
 
-    // Map DB snake_case columns to Venue camelCase model
-    const mappedVenues: Venue[] = data.map((item: any) => ({
-      id: item.id,
-      category: item.category,
-      name: item.name,
-      tagline: item.tagline || "",
-      genre: item.genre,
-      cuisine: item.cuisine,
-      motelStyle: item.motel_style || item.motelStyle,
-      subType: item.sub_type || item.subType || "Geral",
-      subTypeEmoji: item.sub_type_emoji || item.subTypeEmoji || "✨",
-      neighborhood: item.neighborhood,
-      address: item.address,
-      coordinates: {
-        lat: item.latitude || item.coordinates?.lat || -23.55,
-        lng: item.longitude || item.coordinates?.lng || -46.63,
-      },
-      image: item.image,
-      gallery: item.gallery || [item.image],
-      rating: Number(item.rating) || 4.8,
-      reviewsCount: Number(item.reviews_count) || 120,
-      openToday: Boolean(item.open_today),
-      openHours: item.open_hours || "18:00 às 04:00",
-      priceCategory: item.price_category || "medium",
-      entryPrice: item.entry_price || "Consulte valores",
-      priceDescription: item.price_description || "",
-      hasVipList: Boolean(item.has_vip_list),
-      allowsReservation: Boolean(item.allows_reservation),
-      hasKidsSpace: Boolean(item.has_kids_space),
-      isOpenBar: Boolean(item.is_open_bar),
-      isWomenFree: Boolean(item.is_women_free),
-      hasParking: Boolean(item.has_parking),
-      hasHydro: Boolean(item.has_hydro),
-      hasPool: Boolean(item.has_pool),
-      hasPrivateGarage: Boolean(item.has_private_garage),
-      periodHours: item.period_hours,
-      isAfterHours: Boolean(item.is_after_hours),
-      closesAt: item.closes_at,
-      whatsapp: item.whatsapp,
-      instagram: item.instagram || "",
-      highlight: item.highlight || "",
-      tags: item.tags || [],
-      lineup: item.lineup || [],
-      menuHighlights: item.menu_highlights || [],
-      amenities: item.amenities || [],
-      plan: item.plan,
-      planPrice: item.plan_price,
-    }));
+    // 3. Adiciona cadastros locais customizados
+    custom.forEach((v) => venueMap.set(v.id, v));
 
-    // Prioriza exatamente os 300 estabelecimentos verificados do catálogo oficial
-    const catalogIds = new Set(VENUES_DATA.map((v) => v.id));
-    const verifiedVenues = mappedVenues.filter((v) => catalogIds.has(v.id));
-
-    let finalVenues = [...custom, ...mappedVenues];
-    if (verifiedVenues.length >= 300) {
-      finalVenues = [...custom, ...verifiedVenues];
-    }
+    let finalVenues = Array.from(venueMap.values());
 
     if (typeof window !== "undefined") {
       try {
@@ -156,7 +156,10 @@ export async function getVenues(): Promise<Venue[]> {
     return finalVenues;
   } catch (err) {
     console.warn("Using offline catalog fallback:", err);
-    let fallback = [...custom, ...VENUES_DATA];
+    const fallbackMap = new Map<string, Venue>();
+    VENUES_DATA.forEach((v) => fallbackMap.set(v.id, v));
+    custom.forEach((v) => fallbackMap.set(v.id, v));
+    let fallback = Array.from(fallbackMap.values());
     if (typeof window !== "undefined") {
       try {
         const deletedIds = new Set(JSON.parse(localStorage.getItem("baladaon_deleted_venue_ids") || "[]"));

@@ -1,6 +1,7 @@
 import { VENUES_CATALOG_300 } from "./venuesCatalog300";
 import { VENUES_EXPANDED } from "./venuesExpanded";
 import { VENUES_MEGA_CATALOG } from "./venuesMegaCatalog";
+import { VENUES_CATALOG_4000 } from "./venuesCatalog4000";
 
 export interface Venue {
   id: string;
@@ -95,17 +96,30 @@ export const NEIGHBORHOODS: NeighborhoodCoord[] = [
   { name: "Moema", lat: -23.6035, lng: -46.6612 },
   { name: "Barra Funda", lat: -23.5268, lng: -46.6672 },
   { name: "Perdizes", lat: -23.5350, lng: -46.6730 },
+  { name: "Pompeia", lat: -23.5290, lng: -46.6850 },
+  { name: "Lapa", lat: -23.5200, lng: -46.7050 },
+  { name: "Butantã", lat: -23.5710, lng: -46.7090 },
+  { name: "Morumbi", lat: -23.6000, lng: -46.7200 },
   { name: "Tatuapé", lat: -23.5407, lng: -46.5768 },
   { name: "Mooca", lat: -23.5552, lng: -46.5986 },
   { name: "Anália Franco", lat: -23.5520, lng: -46.5610 },
+  { name: "Penha", lat: -23.5250, lng: -46.5490 },
+  { name: "Vila Prudente", lat: -23.5820, lng: -46.5820 },
+  { name: "Itaquera", lat: -23.5350, lng: -46.4560 },
   { name: "Jardins", lat: -23.5663, lng: -46.6675 },
   { name: "Bela Vista", lat: -23.5618, lng: -46.6488 },
   { name: "República", lat: -23.5430, lng: -46.6430 },
+  { name: "Santa Cecília", lat: -23.5380, lng: -46.6540 },
+  { name: "Liberdade", lat: -23.5580, lng: -46.6340 },
   { name: "Santana", lat: -23.5019, lng: -46.6253 },
+  { name: "Casa Verde", lat: -23.5090, lng: -46.6560 },
+  { name: "Tucuruvi", lat: -23.4790, lng: -46.6020 },
+  { name: "Freguesia do Ó", lat: -23.4990, lng: -46.6970 },
   { name: "Ipiranga", lat: -23.5855, lng: -46.6080 },
   { name: "Vila Mariana", lat: -23.5890, lng: -46.6350 },
   { name: "Campo Belo", lat: -23.6210, lng: -46.6710 },
   { name: "Brooklin", lat: -23.6120, lng: -46.6900 },
+  { name: "Saúde", lat: -23.6150, lng: -46.6390 },
   { name: "Santo André", lat: -23.6639, lng: -46.5383 },
   { name: "São Bernardo", lat: -23.6944, lng: -46.5654 },
   { name: "São Caetano", lat: -23.6229, lng: -46.5547 },
@@ -115,6 +129,10 @@ export const NEIGHBORHOODS: NeighborhoodCoord[] = [
   { name: "Guarulhos", lat: -23.4542, lng: -46.5333 },
   { name: "Alphaville", lat: -23.4996, lng: -46.8529 },
   { name: "Cotia", lat: -23.6030, lng: -46.9190 },
+  { name: "Taboão da Serra", lat: -23.6260, lng: -46.7580 },
+  { name: "Carapicuíba", lat: -23.5220, lng: -46.8350 },
+  { name: "Mogi das Cruzes", lat: -23.5220, lng: -46.1880 },
+  { name: "Suzano", lat: -23.5420, lng: -46.3110 },
 ];
 
 export const GENRES = [
@@ -291,6 +309,7 @@ export const VENUES_DATA: Venue[] = [
   ...VENUES_CATALOG_300,
   ...VENUES_EXPANDED,
   ...VENUES_MEGA_CATALOG,
+  ...VENUES_CATALOG_4000,
 ];
 
 // Utility: Calculate distance in KM using Haversine formula

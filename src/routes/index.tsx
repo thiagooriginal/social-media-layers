@@ -58,6 +58,8 @@ import {
   TrendingUp,
   Check,
   CheckCircle2,
+  Download,
+  Smartphone,
 } from "lucide-react";
 
 interface AppHistoryState {
@@ -1311,6 +1313,46 @@ function IndexPage() {
                         <span>Montar</span>
                         <ChevronRight className="h-3.5 w-3.5" />
                       </div>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Card de Destaque: 📲 Baixar o App Oficial */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("open-pwa-install"));
+                      }
+                    }}
+                    className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/80 via-[#071324]/90 to-purple-950/80 p-3 sm:p-3.5 text-left transition-all duration-300 hover:border-cyan-300 hover:shadow-[0_6px_25px_rgba(6,182,212,0.35)] active:scale-[0.99] cursor-pointer shadow-lg"
+                  >
+                    <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-cyan-500/10 blur-xl pointer-events-none" />
+
+                    <div className="relative flex items-center gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/30 to-purple-500/20 text-xl border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.3)] group-hover:scale-105 transition-transform">
+                        📲
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-cyan-300 transition-colors truncate">
+                            Baixar Aplicativo Oficial
+                          </h3>
+                          <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[9px] font-black text-cyan-300 border border-cyan-400/30">
+                            GRÁTIS
+                          </span>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-slate-300 truncate mt-0.5">
+                          Instale no seu celular para abrir em tela cheia com 1 toque
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative shrink-0 flex items-center gap-1 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 px-3 py-1.5 text-xs font-black text-white shadow-md group-hover:brightness-110 transition-all ml-2">
+                      <Download className="h-3.5 w-3.5" />
+                      <span className="hidden xs:inline">Instalar</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </div>
                   </button>
                 </div>

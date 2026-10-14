@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun, Instagram } from "lucide-react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun, Instagram, Smartphone, Download } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
 import { useTheme } from "../services/themeService";
@@ -436,6 +436,23 @@ export function Header({
             </span>
             <span className="md:hidden text-[10px] font-black text-pink-300">Insta</span>
           </a>
+
+          {/* Baixar App Oficial */}
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-pwa-install"));
+              }
+            }}
+            title="Baixar e Instalar o App Radar do Rolê no Celular"
+            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-200 hover:border-cyan-300 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.35)] active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-cyan-400 shrink-0 animate-pulse" />
+            <span className="text-[11px] font-black bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+              Baixar App
+            </span>
+          </button>
 
           {/* Share - Desktop only */}
           <button

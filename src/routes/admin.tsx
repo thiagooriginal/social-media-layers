@@ -47,6 +47,8 @@ import {
   HelpCircle,
   AlertTriangle,
   RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   getCurrentUser,
@@ -141,6 +143,7 @@ function AdminDashboardPage() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getCurrentUser());
   const [adminEmail, setAdminEmail] = useState("thiagooriginal2002@gmail.com");
   const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -927,16 +930,51 @@ function AdminDashboardPage() {
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-                Senha Master
-              </label>
-              <input
-                type="password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3.5 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-bold text-slate-300 block">
+                  Senha Master
+                </label>
+                {adminPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                    className="flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+                  >
+                    {showAdminPassword ? (
+                      <>
+                        <EyeOff className="h-3 w-3" />
+                        <span>Ocultar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3 w-3" />
+                        <span>Visualizar senha</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showAdminPassword ? "text" : "password"}
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                  title={showAdminPassword ? "Ocultar senha" : "Visualizar senha"}
+                >
+                  {showAdminPassword ? (
+                    <EyeOff className="h-4 w-4 text-amber-400" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Checkboxes: Salvar Login & Biometria */}

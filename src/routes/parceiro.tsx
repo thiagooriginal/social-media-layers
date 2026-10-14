@@ -40,6 +40,8 @@ import {
   Send,
   Trash2,
   Layers,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   getCurrentUser,
@@ -119,6 +121,7 @@ function PartnerPortalPage() {
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
@@ -152,6 +155,9 @@ function PartnerPortalPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [category, setCategory] = useState<"baladas" | "restaurantes" | "moteis">("baladas");
   const [neighborhood, setNeighborhood] = useState(NEIGHBORHOODS[0].name);
   const [selectedPlan, setSelectedPlan] = useState<"mensal" | "semestral" | "anual">("mensal");
@@ -650,6 +656,14 @@ function PartnerPortalPage() {
     }
     if (whatsapp.replace(/\D/g, "").length < 10) {
       setRegisterError("Por favor, digite um WhatsApp comercial válido com DDD.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setRegisterError("A senha de acesso deve conter no mínimo 6 caracteres.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setRegisterError("As senhas digitadas não coincidem. Digite a mesma senha nos dois campos para confirmar.");
       return;
     }
 
@@ -2550,16 +2564,49 @@ function PartnerPortalPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 mb-1 block">Senha</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-300 block">Senha</label>
+                    {loginPassword && (
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
+                      >
+                        {showLoginPassword ? (
+                          <>
+                            <EyeOff className="h-3 w-3" />
+                            <span>Ocultar</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-3 w-3" />
+                            <span>Visualizar senha</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
-                      type="password"
+                      type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+                      className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                      title={showLoginPassword ? "Ocultar senha" : "Visualizar senha"}
+                    >
+                      {showLoginPassword ? (
+                        <EyeOff className="h-4 w-4 text-cyan-400" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -2716,35 +2763,143 @@ function PartnerPortalPage() {
                   </div>
                 </div>
 
-                {/* E-mail e Senha */}
+                {/* E-mail */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 mb-1 block">
+                    E-mail de Contato *
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="gestao@suacasa.com"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-purple-400 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                {/* Senha e Confirmação de Senha */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-                      E-mail de Contato *
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="gestao@suacasa.com"
-                      className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-purple-400 focus:outline-none"
-                      required
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-300 block">
+                        Senha de Acesso *
+                      </label>
+                      {password && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="flex items-center gap-1 text-[10px] text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+                        >
+                          {showPassword ? (
+                            <>
+                              <EyeOff className="h-3 w-3" />
+                              <span>Ocultar</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-3 w-3" />
+                              <span>Ver</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Mínimo 6 dígitos"
+                        className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-3 pr-9 text-xs text-white placeholder-slate-500 focus:border-purple-400 focus:outline-none"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 transition-colors cursor-pointer"
+                        title={showPassword ? "Ocultar senha" : "Ver senha"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-3.5 w-3.5 text-purple-400" />
+                        ) : (
+                          <Eye className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
+
                   <div>
-                    <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-                      Senha de Acesso *
-                    </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-purple-400 focus:outline-none"
-                      required
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-300 block">
+                        Confirmar Senha *
+                      </label>
+                      {confirmPassword && (
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="flex items-center gap-1 text-[10px] text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+                        >
+                          {showConfirmPassword ? (
+                            <>
+                              <EyeOff className="h-3 w-3" />
+                              <span>Ocultar</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-3 w-3" />
+                              <span>Ver</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repita a mesma senha"
+                        className={`w-full rounded-xl border bg-white/5 py-2.5 pl-3 pr-9 text-xs text-white placeholder-slate-500 focus:outline-none ${
+                          confirmPassword && confirmPassword === password
+                            ? "border-emerald-500/60 focus:border-emerald-400"
+                            : confirmPassword && confirmPassword !== password
+                            ? "border-rose-500/60 focus:border-rose-400"
+                            : "border-white/15 focus:border-purple-400"
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 transition-colors cursor-pointer"
+                        title={showConfirmPassword ? "Ocultar senha" : "Ver senha"}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-3.5 w-3.5 text-purple-400" />
+                        ) : (
+                          <Eye className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                {/* Indicador de confirmação de senha */}
+                {confirmPassword && (
+                  <div className="text-[11px]">
+                    {password === confirmPassword ? (
+                      <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                        <Check className="h-3.5 w-3.5" />
+                        Senhas iguais! Perfeito para continuar.
+                      </span>
+                    ) : (
+                      <span className="text-rose-400 font-medium">
+                        ⚠️ As senhas não coincidem. Digite igual no segundo campo.
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Plano de Parceria & Cobrança Recorrente */}
                 <div className="pt-2 border-t border-white/10 space-y-3">

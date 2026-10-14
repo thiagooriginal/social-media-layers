@@ -17,6 +17,8 @@ import {
   Store,
   Fingerprint,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   loginUser,
@@ -67,6 +69,9 @@ export function AuthModal({
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Partner Specific Fields
   const [businessName, setBusinessName] = useState("");
@@ -151,6 +156,16 @@ export function AuthModal({
       const digits = whatsapp.replace(/\D/g, "");
       if (digits.length < 10) {
         setErrorMsg("Por favor, digite um WhatsApp válido com DDD.");
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        setErrorMsg("A senha de acesso deve conter no mínimo 6 caracteres.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setErrorMsg("As senhas digitadas não coincidem. Digite a mesma senha nos dois campos para confirmar.");
         return;
       }
 
@@ -609,20 +624,127 @@ export function AuthModal({
 
           {/* Password */}
           <div>
-            <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-              Senha de Acesso {tab === "register" ? "(Mínimo 6 caracteres)" : ""} *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-bold text-slate-300 block">
+                Senha de Acesso {tab === "register" ? "(Mínimo 6 caracteres)" : ""} *
+              </label>
+              {password && (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
+                >
+                  {showPassword ? (
+                    <>
+                      <EyeOff className="h-3 w-3" />
+                      <span>Ocultar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3 w-3" />
+                      <span>Visualizar senha</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                title={showPassword ? "Ocultar senha" : "Visualizar senha"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-cyan-400" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
+
+          {/* Confirm Password (Apenas no Cadastro) */}
+          {tab === "register" && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-bold text-slate-300 block">
+                  Confirmar Senha de Acesso *
+                </label>
+                {confirmPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
+                  >
+                    {showConfirmPassword ? (
+                      <>
+                        <EyeOff className="h-3 w-3" />
+                        <span>Ocultar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3 w-3" />
+                        <span>Visualizar senha</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a mesma senha"
+                  className={`w-full rounded-xl border bg-white/5 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:bg-white/10 focus:outline-none transition-all ${
+                    confirmPassword && confirmPassword === password
+                      ? "border-emerald-500/60 focus:border-emerald-400"
+                      : confirmPassword && confirmPassword !== password
+                      ? "border-rose-500/60 focus:border-rose-400"
+                      : "border-white/15 focus:border-cyan-400"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                  title={showConfirmPassword ? "Ocultar senha" : "Visualizar senha"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-cyan-400" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
+              {/* Indicador visual se as senhas coincidem */}
+              {confirmPassword && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
+                  {password === confirmPassword ? (
+                    <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                      <Check className="h-3.5 w-3.5" />
+                      Senhas iguais! Perfeito para continuar.
+                    </span>
+                  ) : (
+                    <span className="text-rose-400 font-medium">
+                      ⚠️ As senhas não coincidem. Digite igual acima.
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Checkboxes: Salvar Login & Biometria */}
           <div className="space-y-2 pt-1 pb-1">

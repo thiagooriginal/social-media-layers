@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   VENUES_DATA,
@@ -10,6 +10,7 @@ import {
   ROLE_AMENITIES,
   RoleAmenityId,
   RoleAmenity,
+  loadCatalog4000,
 } from "../data/venues";
 import { Header } from "../components/Header";
 import { CategoryTabs, MainCategory } from "../components/CategoryTabs";
@@ -51,6 +52,7 @@ import {
   MapPin,
   Ticket,
   ChevronRight,
+  ChevronDown,
   Clock,
   Moon,
   Sun,
@@ -212,6 +214,11 @@ function IndexPage() {
 
   // Search & Filters (Persistidos entre abas)
   const [searchQuery, setSearchQuery] = useState(() => initialNav.searchQuery || "");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Progressive Loading State (Evita travamentos e explosão de DOM no celular)
+  const [visibleCount, setVisibleCount] = useState(24);
+  const [homeResultsCount, setHomeResultsCount] = useState(24);
   const [selectedGenre, setSelectedGenre] = useState(() => initialNav.selectedGenre || "all");
   const [selectedCuisine, setSelectedCuisine] = useState(() => initialNav.selectedCuisine || "all");
   const [selectedMotelStyle, setSelectedMotelStyle] = useState(() => initialNav.selectedMotelStyle || "all");
@@ -274,21 +281,22 @@ function IndexPage() {
       }
     });
 
-    const sortByDist = (a: Venue, b: Venue) => {
-      const distA = calculateDistanceKm(
-        userLocation.lat,
-        userLocation.lng,
-        a.coordinates.lat,
-        a.coordinates.lng
-      );
-      const distB = calculateDistanceKm(
-        userLocation.lat,
-        userLocation.lng,
-        b.coordinates.lat,
-        b.coordinates.lng
-      );
-      return distA - distB;
+    const distMap = new Map<string, number>();
+    const getDist = (v: Venue) => {
+      let d = distMap.get(v.id);
+      if (d === undefined) {
+        d = calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          v.coordinates.lat,
+          v.coordinates.lng
+        );
+        distMap.set(v.id, d);
+      }
+      return d;
     };
+
+    const sortByDist = (a: Venue, b: Venue) => getDist(a) - getDist(b);
 
     return {
       customRoleMatches: exact.sort(sortByDist),
@@ -310,12 +318,22 @@ function IndexPage() {
     return null;
   });
 
-  // Load from Supabase on mount
+  // Load from Supabase on mount and stream extended 4k catalog in background
   useEffect(() => {
     getVenues().then((data) => {
       if (data && data.length > 0) {
         setVenues(data);
       }
+      // Carrega catálogo estendido de 4.000 locais de forma assíncrona sem travar o celular
+      loadCatalog4000().then((cat4k) => {
+        if (cat4k && cat4k.length > 0) {
+          setVenues((prev) => {
+            const existingIds = new Set(prev.map((v) => v.id));
+            const fresh = cat4k.filter((v) => !existingIds.has(v.id));
+            return fresh.length > 0 ? [...prev, ...fresh] : prev;
+          });
+        }
+      });
     });
 
     const unsubscribe = subscribeToAuth((newUser) => {
@@ -813,43 +831,45 @@ function IndexPage() {
       .slice(0, 8);
   }, [venues]);
 
-  // Instant Search Results on Home Screen
+  // Instant Search Results on Home Screen (Com pre-cálculo de distância otimizado)
   const homeSearchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase().trim();
-    return venues
-      .filter((venue) => {
-        const matchName = venue.name.toLowerCase().includes(q);
-        const matchNeighborhood = venue.neighborhood.toLowerCase().includes(q);
-        const matchTagline = venue.tagline.toLowerCase().includes(q);
-        const matchSubType = venue.subType.toLowerCase().includes(q);
-        const matchTags = venue.tags.some((t) => t.toLowerCase().includes(q));
-        const matchCategory = venue.category.toLowerCase().includes(q);
-        return (
-          matchName ||
-          matchNeighborhood ||
-          matchTagline ||
-          matchSubType ||
-          matchTags ||
-          matchCategory
-        );
-      })
-      .sort((a, b) => {
-        const distA = calculateDistanceKm(
+    if (!deferredSearchQuery.trim()) return [];
+    const q = deferredSearchQuery.toLowerCase().trim();
+    const matched = venues.filter((venue) => {
+      const matchName = venue.name.toLowerCase().includes(q);
+      const matchNeighborhood = venue.neighborhood.toLowerCase().includes(q);
+      const matchTagline = venue.tagline.toLowerCase().includes(q);
+      const matchSubType = venue.subType.toLowerCase().includes(q);
+      const matchTags = venue.tags.some((t) => t.toLowerCase().includes(q));
+      const matchCategory = venue.category.toLowerCase().includes(q);
+      return (
+        matchName ||
+        matchNeighborhood ||
+        matchTagline ||
+        matchSubType ||
+        matchTags ||
+        matchCategory
+      );
+    });
+
+    const distMap = new Map<string, number>();
+    for (let i = 0; i < matched.length; i++) {
+      const v = matched[i];
+      distMap.set(
+        v.id,
+        calculateDistanceKm(
           userLocation.lat,
           userLocation.lng,
-          a.coordinates.lat,
-          a.coordinates.lng
-        );
-        const distB = calculateDistanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          b.coordinates.lat,
-          b.coordinates.lng
-        );
-        return distA - distB;
-      });
-  }, [venues, searchQuery, userLocation]);
+          v.coordinates.lat,
+          v.coordinates.lng
+        )
+      );
+    }
+
+    return matched.sort(
+      (a, b) => (distMap.get(a.id) || 0) - (distMap.get(b.id) || 0)
+    );
+  }, [venues, deferredSearchQuery, userLocation]);
 
   // Filtered & Distance-Sorted venues
   const filteredVenues = useMemo(() => {
@@ -958,8 +978,8 @@ function IndexPage() {
       }
 
       // 12. Search query matching
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase().trim();
         const matchName = venue.name.toLowerCase().includes(q);
         const matchNeighborhood = venue.neighborhood.toLowerCase().includes(q);
         const matchTagline = venue.tagline.toLowerCase().includes(q);
@@ -1030,7 +1050,24 @@ function IndexPage() {
       }
 
       return true;
-    }).sort((a, b) => {
+    });
+
+    // Pré-calcula distâncias uma única vez (reduz drasticamente cálculos de trigonometria e CPU no celular)
+    const distMap = new Map<string, number>();
+    for (let i = 0; i < filtered.length; i++) {
+      const v = filtered[i];
+      distMap.set(
+        v.id,
+        calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          v.coordinates.lat,
+          v.coordinates.lng
+        )
+      );
+    }
+
+    return filtered.sort((a, b) => {
       // Ordenação por valor / preço (Mais Barato ou Mais Caro)
       if (entryPriceFilter === "price_asc") {
         const priceA = extractVenuePrice(a.entryPrice);
@@ -1047,19 +1084,7 @@ function IndexPage() {
       }
 
       // Default: Sort by closest distance to userLocation
-      const distA = calculateDistanceKm(
-        userLocation.lat,
-        userLocation.lng,
-        a.coordinates.lat,
-        a.coordinates.lng
-      );
-      const distB = calculateDistanceKm(
-        userLocation.lat,
-        userLocation.lng,
-        b.coordinates.lat,
-        b.coordinates.lng
-      );
-      return distA - distB;
+      return (distMap.get(a.id) || 0) - (distMap.get(b.id) || 0);
     });
   }, [
     venues,
@@ -1080,9 +1105,41 @@ function IndexPage() {
     onlyAfterHours,
     onlyTrending,
     onlySnookerHookah,
-    searchQuery,
+    deferredSearchQuery,
     userLocation,
   ]);
+
+  // Reseta paginação sempre que qualquer filtro mudar
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [
+    activeTab,
+    currentScreen,
+    selectedGenre,
+    selectedCuisine,
+    selectedMotelStyle,
+    selectedNeighborhood,
+    maxDistanceKm,
+    entryPriceFilter,
+    onlyOpenToday,
+    onlyVipOrFree,
+    onlyWithParking,
+    onlyWithHydro,
+    onlyWithPool,
+    onlyAfterHours,
+    onlyTrending,
+    onlySnookerHookah,
+    deferredSearchQuery,
+  ]);
+
+  // Listas fatiadas progressivas (renderiza apenas 24 cards por vez garantindo 60 FPS no celular)
+  const displayedVenues = useMemo(() => {
+    return filteredVenues.slice(0, visibleCount);
+  }, [filteredVenues, visibleCount]);
+
+  const displayedHomeResults = useMemo(() => {
+    return homeSearchResults.slice(0, homeResultsCount);
+  }, [homeSearchResults, homeResultsCount]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -1250,18 +1307,39 @@ function IndexPage() {
               </div>
 
               {homeSearchResults.length > 0 ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {homeSearchResults.map((venue) => (
-                    <VenueCard
-                      key={venue.id}
-                      venue={venue}
-                      userLocation={userLocation}
-                      isFavorite={favorites.includes(venue.id)}
-                      onToggleFavorite={handleToggleFavorite}
-                      onOpenDetails={handleOpenVenueModal}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {displayedHomeResults.map((venue) => (
+                      <VenueCard
+                        key={venue.id}
+                        venue={venue}
+                        userLocation={userLocation}
+                        isFavorite={favorites.includes(venue.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        onOpenDetails={handleOpenVenueModal}
+                      />
+                    ))}
+                  </div>
+
+                  {homeSearchResults.length > displayedHomeResults.length && (
+                    <div className="mt-8 flex flex-col items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setHomeResultsCount((prev) => prev + 24)}
+                        className="group flex items-center gap-2.5 rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-purple-950/70 px-6 py-3.5 text-xs font-black text-white shadow-[0_0_25px_rgba(0,240,255,0.2)] hover:border-cyan-400 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <span>Mostrar mais resultados</span>
+                        <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] text-cyan-300 border border-cyan-400/30">
+                          +{Math.min(24, homeSearchResults.length - displayedHomeResults.length)}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-cyan-400 group-hover:translate-y-0.5 transition-transform" />
+                      </button>
+                      <p className="text-[11px] text-slate-400">
+                        Mostrando {displayedHomeResults.length} de {homeSearchResults.length} locais encontrados
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c101c] px-4 py-16 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-3xl">
@@ -1943,20 +2021,41 @@ function IndexPage() {
               </div>
             )}
 
-            {/* Venues Grid */}
+            {/* Venues Grid (Carregamento progressivo para fluidez 60 FPS no celular) */}
             {filteredVenues.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredVenues.map((venue) => (
-                  <VenueCard
-                    key={venue.id}
-                    venue={venue}
-                    userLocation={userLocation}
-                    isFavorite={favorites.includes(venue.id)}
-                    onToggleFavorite={handleToggleFavorite}
-                    onOpenDetails={handleOpenVenueModal}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {displayedVenues.map((venue) => (
+                    <VenueCard
+                      key={venue.id}
+                      venue={venue}
+                      userLocation={userLocation}
+                      isFavorite={favorites.includes(venue.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                      onOpenDetails={handleOpenVenueModal}
+                    />
+                  ))}
+                </div>
+
+                {filteredVenues.length > displayedVenues.length && (
+                  <div className="mt-10 flex flex-col items-center justify-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((prev) => prev + 24)}
+                      className="group flex items-center gap-2.5 rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-purple-950/70 px-6 py-3.5 text-xs font-black text-white shadow-[0_0_25px_rgba(0,240,255,0.25)] hover:border-cyan-400 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <span>Mostrar mais locais</span>
+                      <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] text-cyan-300 border border-cyan-400/30">
+                        +{Math.min(24, filteredVenues.length - displayedVenues.length)}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-cyan-400 group-hover:translate-y-0.5 transition-transform" />
+                    </button>
+                    <p className="text-[11px] text-slate-400">
+                      Mostrando {displayedVenues.length} de {filteredVenues.length} estabelecimentos
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               /* Empty State */
               <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c101c] px-4 py-16 text-center">

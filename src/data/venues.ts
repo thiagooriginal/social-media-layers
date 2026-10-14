@@ -1,7 +1,6 @@
 import { VENUES_CATALOG_300 } from "./venuesCatalog300";
 import { VENUES_EXPANDED } from "./venuesExpanded";
 import { VENUES_MEGA_CATALOG } from "./venuesMegaCatalog";
-import { VENUES_CATALOG_4000 } from "./venuesCatalog4000";
 
 export interface Venue {
   id: string;
@@ -309,8 +308,21 @@ export const VENUES_DATA: Venue[] = [
   ...VENUES_CATALOG_300,
   ...VENUES_EXPANDED,
   ...VENUES_MEGA_CATALOG,
-  ...VENUES_CATALOG_4000,
 ];
+
+// Carregamento assíncrono dos 4.000 estabelecimentos estendidos (Lazy / Não bloqueia o celular nem o bundle inicial)
+let _cachedCatalog4000: Venue[] | null = null;
+export async function loadCatalog4000(): Promise<Venue[]> {
+  if (_cachedCatalog4000) return _cachedCatalog4000;
+  try {
+    const mod = await import("./venuesCatalog4000");
+    _cachedCatalog4000 = mod.VENUES_CATALOG_4000 || [];
+    return _cachedCatalog4000;
+  } catch (err) {
+    console.warn("Aviso: Falha ao carregar catálogo estendido:", err);
+    return [];
+  }
+}
 
 // Utility: Calculate distance in KM using Haversine formula
 export function calculateDistanceKm(

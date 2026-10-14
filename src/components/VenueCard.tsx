@@ -11,7 +11,7 @@ interface VenueCardProps {
   onOpenDetails: (venue: Venue) => void;
 }
 
-export function VenueCard({
+export const VenueCard = React.memo(function VenueCard({
   venue,
   userLocation,
   isFavorite,
@@ -45,6 +45,7 @@ export function VenueCard({
           alt={venue.name}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
         {/* Gradient Overlays */}
         <div className="venue-card-img-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
@@ -282,4 +283,4 @@ export function VenueCard({
       </div>
     </div>
   );
-}
+});

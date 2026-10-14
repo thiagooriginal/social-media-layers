@@ -1,10 +1,10 @@
 // ============================================================================
 // RADAR DO ROLÊ - SERVICE WORKER OFICIAL (PWA)
-// Versão do Cache: v1.0.0
+// Versão do Cache: v2.0.0
 // Estratégia: Stale-While-Revalidate para assets estáticos, Network-First para navegação
 // ============================================================================
 
-const CACHE_NAME = 'radar-do-role-v1';
+const CACHE_NAME = 'radar-do-role-v2';
 const CORE_ASSETS = [
   '/',
   '/manifest.json',

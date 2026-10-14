@@ -138,7 +138,8 @@ function RootShell({ children }: { children: ReactNode }) {
                 if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
                   window.addEventListener('load', function() {
                     navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                      console.log('[PWA] SW registrado:', reg.scope);
+                      reg.update();
+                      console.log('[PWA] SW registrado e sincronizado:', reg.scope);
                     }).catch(function(err) {
                       console.warn('[PWA] SW falha:', err);
                     });

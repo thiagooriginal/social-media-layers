@@ -1,5 +1,4 @@
-import React from "react";
-import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun, Instagram, Smartphone, Download } from "lucide-react";
+import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun, Instagram, Smartphone, Download, MoreVertical, X } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
 import { useTheme } from "../services/themeService";
@@ -56,6 +55,7 @@ export function Header({
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [isPickerOpen, setIsPickerOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isSuperScanning, setIsSuperScanning] = React.useState(false);
   const [showScanToast, setShowScanToast] = React.useState(false);
 
@@ -135,7 +135,7 @@ export function Header({
           animation: headerSonarPulse 2.4s cubic-bezier(0.1, 0.4, 0.6, 1) 1.2s infinite !important;
         }
       `}</style>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3 w-full">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-2.5 py-2 sm:px-6 sm:py-3 w-full">
         {/* Brand / Logo */}
         <div
           onClick={handleLogoClick}
@@ -143,7 +143,7 @@ export function Header({
           title="Toque para disparar o Radar SP e ir para o Início!"
         >
           {/* Animated Radar Logo Box */}
-          <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden border-2 border-cyan-400 bg-black shadow-[0_0_20px_-2px_rgba(0,240,255,0.6)] group-hover:border-fuchsia-400 group-hover:shadow-[0_0_25px_rgba(255,0,127,0.7)] group-hover:scale-105 active:scale-95 transition-all">
+          <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl overflow-hidden border-2 border-cyan-400 bg-black shadow-[0_0_20px_-2px_rgba(0,240,255,0.6)] group-hover:border-fuchsia-400 group-hover:shadow-[0_0_25px_rgba(255,0,127,0.7)] group-hover:scale-105 active:scale-95 transition-all">
             {/* Base Logo Image */}
             <img
               src={currentLogo}
@@ -167,11 +167,11 @@ export function Header({
             </div>
 
             {/* Glowing Sonar Wave Rings emanating from logo */}
-            <div className="absolute inset-0 rounded-2xl border border-cyan-400 header-sonar-wave-1 pointer-events-none" />
-            <div className="absolute inset-0 rounded-2xl border border-fuchsia-500 header-sonar-wave-2 pointer-events-none" />
+            <div className="absolute inset-0 rounded-xl sm:rounded-2xl border border-cyan-400 header-sonar-wave-1 pointer-events-none" />
+            <div className="absolute inset-0 rounded-xl sm:rounded-2xl border border-fuchsia-500 header-sonar-wave-2 pointer-events-none" />
 
             {/* Central Neon Beacon Dot */}
-            <div className="absolute h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_10px_#00F0FF] pointer-events-none" />
+            <div className="absolute h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-cyan-300 shadow-[0_0_10px_#00F0FF] pointer-events-none" />
 
             {/* Live Green Online Beacon */}
             <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5 sm:h-3 sm:w-3 z-10">
@@ -181,21 +181,21 @@ export function Header({
           </div>
 
           <div className="shrink-0">
-            <h1 className="text-base sm:text-2xl font-black tracking-tight flex items-center leading-none whitespace-nowrap">
+            <h1 className="text-sm xs:text-base sm:text-2xl font-black tracking-tight flex items-center leading-none whitespace-nowrap">
               <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">Radar do</span>
               <span className="ml-1 sm:ml-1.5 text-fuchsia-400 drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">Rolê</span>
             </h1>
-            <div className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
-              <span className="hidden xs:inline text-[10px] sm:text-[11px] font-medium text-slate-400">
+            <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5 whitespace-nowrap">
+              <span className="hidden sm:inline text-[10px] sm:text-[11px] font-medium text-slate-400">
                 São Paulo
               </span>
-              <span className="hidden xs:inline text-slate-600">•</span>
-              <span className={`inline-flex items-center gap-1 rounded ${isSuperScanning ? "bg-fuchsia-500/25 border-fuchsia-400 text-fuchsia-300 shadow-[0_0_12px_rgba(255,0,127,0.6)]" : "bg-cyan-500/15 border-cyan-500/30 text-cyan-300"} border px-1.5 py-0.2 text-[9px] font-black transition-all`}>
+              <span className="hidden sm:inline text-slate-600">•</span>
+              <span className={`inline-flex items-center gap-1 rounded ${isSuperScanning ? "bg-fuchsia-500/25 border-fuchsia-400 text-fuchsia-300 shadow-[0_0_12px_rgba(255,0,127,0.6)]" : "bg-cyan-500/15 border-cyan-500/30 text-cyan-300"} border px-1.5 py-0.2 text-[8px] sm:text-[9px] font-black transition-all`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isSuperScanning ? "bg-fuchsia-400 animate-ping" : "bg-cyan-400 animate-pulse"}`}></span>
                 <span>{isSuperScanning ? "SUPER SCAN" : "SCAN AO VIVO"}</span>
               </span>
               <span
-                className="inline-flex items-center gap-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-300 px-1.5 py-0.2 text-[9px] font-black shadow-sm"
+                className="hidden xs:inline-flex items-center gap-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-300 px-1.5 py-0.2 text-[8px] sm:text-[9px] font-black shadow-sm"
                 title="Acesso e conteúdo estritamente para maiores de 18 anos (Art. 243 ECA)"
               >
                 🔞 +18
@@ -304,7 +304,7 @@ export function Header({
                 setIsPickerOpen(!isPickerOpen);
               }
             }}
-            className={`flex md:hidden items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs transition-all shrink-0 cursor-pointer ${
+            className={`flex md:hidden items-center gap-1 rounded-xl border px-2 py-1.5 text-xs transition-all shrink-0 cursor-pointer ${
               isGpsActive
                 ? "border-emerald-500/50 bg-emerald-950/50 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.3)]"
                 : "border-cyan-500/30 bg-cyan-950/40 text-cyan-200 hover:border-cyan-400"
@@ -312,7 +312,7 @@ export function Header({
             title="Mudar Bairro ou Usar GPS"
           >
             <MapPin className={`h-3 w-3 ${isGpsActive ? "text-emerald-400" : "text-cyan-400"} shrink-0`} />
-            <span className="truncate max-w-[76px] xs:max-w-[100px] text-[11px] font-bold text-slate-200">
+            <span className="truncate max-w-[62px] xs:max-w-[85px] sm:max-w-[120px] text-[10px] xs:text-[11px] font-bold text-slate-200">
               {currentNeighborhood.name}
             </span>
           </button>
@@ -350,11 +350,11 @@ export function Header({
             <a
               href="/parceiro"
               title="Portal de Estabelecimentos e Painel do Parceiro"
-              className="flex items-center gap-1 rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/15 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-fuchsia-200 transition-all hover:border-fuchsia-400 hover:bg-fuchsia-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(255,0,127,0.4)] shrink-0"
+              className="hidden xs:flex items-center gap-1 rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/15 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-fuchsia-200 transition-all hover:border-fuchsia-400 hover:bg-fuchsia-500/25 active:scale-95 shadow-[0_0_15px_-3px_rgba(255,0,127,0.4)] shrink-0"
             >
               <span className="text-fuchsia-400 font-extrabold">+</span>
               <span className="hidden lg:inline">Painel Parceiro</span>
-              <span className="lg:hidden text-[11px]">Parceiro</span>
+              <span className="lg:hidden text-[10px] xs:text-[11px]">Parceiro</span>
             </a>
           )}
 
@@ -362,7 +362,7 @@ export function Header({
           {user ? (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-white transition-all hover:bg-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 shrink-0"
+              className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-1 sm:px-2.5 sm:py-1.5 text-xs font-bold text-white transition-all hover:bg-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 shrink-0"
               title="Meu Perfil"
             >
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-fuchsia-500 text-[11px] font-black text-white shrink-0">
@@ -377,11 +377,11 @@ export function Header({
               title="Entrar na Conta"
             >
               <UserIcon className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-              <span className="text-[11px] sm:text-xs">Entrar</span>
+              <span className="text-[10px] xs:text-[11px] sm:text-xs">Entrar</span>
             </button>
           )}
 
-          {/* Theme Switcher Button (Escuro Original vs Claro) */}
+          {/* Theme Switcher Button (Desktop only) */}
           <button
             onClick={() => {
               const next = toggleTheme();
@@ -403,7 +403,7 @@ export function Header({
                 ? "Tema: Escuro Original (Toque para ativar Tema Claro)"
                 : "Tema: Claro (Toque para voltar ao Tema Escuro Original)"
             }
-            className={`flex items-center gap-1 sm:gap-1.5 rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-black transition-all cursor-pointer select-none active:scale-95 shrink-0 ${
+            className={`hidden sm:flex items-center gap-1 sm:gap-1.5 rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-black transition-all cursor-pointer select-none active:scale-95 shrink-0 ${
               theme === "dark"
                 ? "border-cyan-500/30 bg-white/5 text-cyan-300 hover:border-cyan-400 hover:bg-white/10 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
                 : "border-amber-400/80 bg-amber-50 text-amber-800 hover:bg-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
@@ -422,13 +422,13 @@ export function Header({
             )}
           </button>
 
-          {/* Instagram Oficial */}
+          {/* Instagram Oficial (Desktop only) */}
           <a
             href="https://www.instagram.com/radar.dorole"
             target="_blank"
             rel="noopener noreferrer"
             title="Siga @radar.dorole no Instagram"
-            className="flex items-center gap-1.5 rounded-xl border border-pink-500/40 bg-gradient-to-r from-amber-500/15 via-rose-500/20 to-purple-600/25 px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-bold text-pink-200 hover:border-pink-400 hover:text-white transition-all shadow-[0_0_12px_rgba(244,63,94,0.3)] active:scale-95 shrink-0 cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-pink-500/40 bg-gradient-to-r from-amber-500/15 via-rose-500/20 to-purple-600/25 px-2 py-1.5 sm:px-2.5 sm:py-2 text-xs font-bold text-pink-200 hover:border-pink-400 hover:text-white transition-all shadow-[0_0_12px_rgba(244,63,94,0.3)] active:scale-95 shrink-0 cursor-pointer"
           >
             <Instagram className="h-3.5 w-3.5 text-pink-400 shrink-0" />
             <span className="hidden md:inline text-[11px] font-black bg-gradient-to-r from-amber-300 via-rose-300 to-purple-300 bg-clip-text text-transparent">
@@ -437,7 +437,7 @@ export function Header({
             <span className="md:hidden text-[10px] font-black text-pink-300">Insta</span>
           </a>
 
-          {/* Baixar App Oficial */}
+          {/* Baixar App Oficial (Desktop only) */}
           <button
             type="button"
             onClick={() => {
@@ -446,12 +446,31 @@ export function Header({
               }
             }}
             title="Baixar e Instalar o App Radar do Rolê no Celular"
-            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-200 hover:border-cyan-300 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.35)] active:scale-95 shrink-0 cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-200 hover:border-cyan-300 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.35)] active:scale-95 shrink-0 cursor-pointer"
           >
             <Smartphone className="h-3.5 w-3.5 text-cyan-400 shrink-0 animate-pulse" />
             <span className="text-[11px] font-black bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
               Baixar App
             </span>
+          </button>
+
+          {/* Mobile Menu Toggle Button (⋮) */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`sm:hidden flex items-center justify-center h-8 w-8 rounded-xl border transition-all shrink-0 cursor-pointer ${
+              isMobileMenuOpen
+                ? "border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.4)]"
+                : "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:text-white active:scale-95"
+            }`}
+            title="Menu de Opções Rápidas"
+            aria-label="Abrir menu de opções rápidas"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-4 w-4 text-cyan-300" />
+            ) : (
+              <MoreVertical className="h-4 w-4 text-slate-300" />
+            )}
           </button>
 
           {/* Share - Desktop only */}
@@ -486,6 +505,174 @@ export function Header({
           </button>
         </div>
       </div>
+
+      {/* Mobile Actions Dropdown Sheet */}
+      {isMobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm sm:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="relative z-40 sm:hidden border-t border-white/10 bg-[#070a14]/98 backdrop-blur-2xl px-3.5 py-3 shadow-[0_15px_30px_rgba(0,0,0,0.9)] animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-white/10">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Opções Rápidas
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-slate-400 hover:text-white p-1"
+                aria-label="Fechar menu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Baixar App */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new CustomEvent("open-pwa-install"));
+                  }
+                }}
+                className="col-span-2 flex items-center justify-between rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 p-2.5 text-xs font-black text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:scale-95 text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-cyan-400 animate-pulse shrink-0" />
+                  <div>
+                    <div className="text-xs font-black text-white">Baixar Aplicativo</div>
+                    <div className="text-[10px] text-cyan-300">Instalar direto no celular</div>
+                  </div>
+                </div>
+                <Download className="h-4 w-4 text-cyan-300 shrink-0" />
+              </button>
+
+              {/* Tema Escuro / Claro */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = toggleTheme();
+                  if (next === "light") {
+                    toast.success("☀️ Tema Claro Ativado!");
+                  } else {
+                    toast.success("🌙 Tema Escuro Original Mantido!");
+                  }
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs font-bold text-slate-200 hover:bg-white/10 active:scale-95 text-left cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="h-4 w-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Tema Claro</div>
+                      <div className="text-[10px] text-slate-400">Mudar visual</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Tema Escuro</div>
+                      <div className="text-[10px] text-slate-400">Noturno original</div>
+                    </div>
+                  </>
+                )}
+              </button>
+
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/radar.dorole"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-xl border border-pink-500/30 bg-pink-500/10 p-2.5 text-xs font-bold text-pink-200 hover:bg-pink-500/20 active:scale-95 text-left cursor-pointer"
+              >
+                <Instagram className="h-4 w-4 text-pink-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-bold text-pink-200">Instagram</div>
+                  <div className="text-[10px] text-pink-300/80">@radar.dorole</div>
+                </div>
+              </a>
+
+              {/* Monte Seu Rolê */}
+              {onOpenCustomRole && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenCustomRole();
+                  }}
+                  className="col-span-2 flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-950/40 p-2.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/20 active:scale-95 text-left cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4 text-cyan-300 shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold text-cyan-200">Monte Seu Rolê</div>
+                    <div className="text-[10px] text-slate-400">Filtre por sinuca, narguilé, ao vivo, etc.</div>
+                  </div>
+                </button>
+              )}
+
+              {/* Portal Parceiro */}
+              <a
+                href="/parceiro"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="col-span-2 flex items-center justify-between rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/15 p-2.5 text-xs font-bold text-fuchsia-200 hover:bg-fuchsia-500/25 active:scale-95 text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-fuchsia-400 font-extrabold text-base leading-none">+</span>
+                  <div>
+                    <div className="text-xs font-bold text-fuchsia-200">
+                      {user && (user.role === "partner" || user.role === "admin")
+                        ? "Painel do Parceiro (Gerenciar)"
+                        : "Área do Parceiro (Cadastrar Local)"}
+                    </div>
+                    <div className="text-[10px] text-fuchsia-300/80">Para donos de bares, baladas e eventos</div>
+                  </div>
+                </div>
+                <span className="text-[11px] text-fuchsia-300 font-mono">→</span>
+              </a>
+
+              {/* Relatórios (if prop provided) */}
+              {onOpenAnalytics && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenAnalytics();
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs font-bold text-slate-200 hover:bg-white/10 active:scale-95 text-left cursor-pointer"
+                >
+                  <BarChart3 className="h-4 w-4 text-cyan-400 shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-200">Relatórios</div>
+                    <div className="text-[10px] text-slate-400">Métricas & dados</div>
+                  </div>
+                </button>
+              )}
+
+              {/* Compartilhar App */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleShare();
+                }}
+                className={`flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs font-bold text-slate-200 hover:bg-white/10 active:scale-95 text-left cursor-pointer ${!onOpenAnalytics ? "col-span-2" : ""}`}
+              >
+                <Share2 className="h-4 w-4 text-slate-300 shrink-0" />
+                <div>
+                  <div className="text-xs font-bold text-slate-200">Compartilhar</div>
+                  <div className="text-[10px] text-slate-400">Enviar link para amigos</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Mobile Location Dropdown overlay */}
       {isPickerOpen && (

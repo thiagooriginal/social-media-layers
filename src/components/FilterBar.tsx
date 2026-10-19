@@ -1,6 +1,6 @@
 import React from "react";
 import { Search, X, MapPin, Sparkles, SlidersHorizontal, Check } from "lucide-react";
-import { GENRES, CUISINES, MOTEL_STYLES, NEIGHBORHOODS } from "../data/venues";
+import { GENRES, CUISINES, BAR_VIBES, MOTEL_STYLES, NEIGHBORHOODS } from "../data/venues";
 import { MainCategory } from "./CategoryTabs";
 
 export type PriceFilterType =
@@ -18,13 +18,15 @@ export interface FilterBarProps {
   category: MainCategory;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  // 1. Por Estilo Musical / Culinária / Suíte
+  // 1. Por Estilo Musical / Culinária / Suíte / Vibe do Bar
   selectedGenre: string;
   onSelectGenre: (g: string) => void;
   selectedCuisine: string;
   onSelectCuisine: (c: string) => void;
   selectedMotelStyle: string;
   onSelectMotelStyle: (s: string) => void;
+  selectedBarVibe?: string;
+  onSelectBarVibe?: (v: string) => void;
   // 2. Por Distância
   maxDistanceKm: number | null;
   onSelectMaxDistanceKm: (km: number | null) => void;
@@ -61,6 +63,8 @@ export function FilterBar({
   onSelectCuisine,
   selectedMotelStyle,
   onSelectMotelStyle,
+  selectedBarVibe = "all",
+  onSelectBarVibe,
   maxDistanceKm,
   onSelectMaxDistanceKm,
   selectedNeighborhood,
@@ -85,12 +89,13 @@ export function FilterBar({
   hasActiveFilters = false,
 }: FilterBarProps) {
   const isBaladas = category === "baladas";
+  const isBares = category === "bares";
   const isMoteis = category === "moteis";
   const isRestaurantes = category === "restaurantes" || category === "kids";
 
   const getPlaceholder = () => {
     if (category === "baladas") return "Buscar por balada, DJ, funk, pagode, sertanejo...";
-    if (category === "bares") return "Buscar por barzinho, boteco, pub, espetinho, chopp...";
+    if (category === "bares") return "Buscar por narguilé, música ao vivo, espaço aberto, boteco, pub...";
     if (category === "tabacarias") return "Buscar por tabacaria, hookah lounge, narguilé, essências...";
     if (category === "sinucas") return "Buscar por casa de sinuca, snooker bar, bilhar...";
     if (category === "moteis") return "Buscar por motel, suíte, hidro, piscina, drive-in...";
@@ -148,15 +153,17 @@ export function FilterBar({
         </div>
 
         {/* ========================================================================= */}
-        {/* 1. POR ESTILO MUSICAL (ou Culinária / Suíte)                              */}
+        {/* 1. POR ESTILO MUSICAL (ou Culinária / Suíte / Vibe do Bar)                */}
         {/* ========================================================================= */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-              <span>{isBaladas ? "🎵" : isRestaurantes ? "🍽️" : "🏩"}</span>
+              <span>{isBaladas ? "🎵" : isBares ? "🍻" : isRestaurantes ? "🍽️" : "🏩"}</span>
               <span>
                 {isBaladas
                   ? "1. Por Estilo Musical"
+                  : isBares
+                  ? "1. Por Estilo & Vibe do Bar"
                   : isRestaurantes
                   ? "1. Por Culinária / Experiência"
                   : "1. Por Tipo de Suíte"}
@@ -169,6 +176,33 @@ export function FilterBar({
                 className="text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
               >
                 Ver todos
+              </button>
+            )}
+            {selectedBarVibe !== "all" && isBares && onSelectBarVibe && (
+              <button
+                type="button"
+                onClick={() => onSelectBarVibe("all")}
+                className="text-[10px] text-amber-300 hover:text-white underline cursor-pointer"
+              >
+                Ver todos os bares
+              </button>
+            )}
+            {selectedCuisine !== "all" && isRestaurantes && (
+              <button
+                type="button"
+                onClick={() => onSelectCuisine("all")}
+                className="text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
+              >
+                Ver todos
+              </button>
+            )}
+            {selectedMotelStyle !== "all" && isMoteis && (
+              <button
+                type="button"
+                onClick={() => onSelectMotelStyle("all")}
+                className="text-[10px] text-fuchsia-300 hover:text-white underline cursor-pointer"
+              >
+                Ver todas as suítes
               </button>
             )}
           </div>
@@ -192,6 +226,29 @@ export function FilterBar({
                     <span>{g.emoji}</span>
                     <span>{g.name}</span>
                     {active && <Check className="h-3 w-3 text-cyan-300 stroke-[3]" />}
+                  </button>
+                );
+              })}
+
+            {/* Bares: Vibe & Estilo (Narguilé, Música ao Vivo, Espaço Aberto, Espaço Fechado, Sinuca) */}
+            {isBares &&
+              BAR_VIBES.map((b) => {
+                const active = selectedBarVibe === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => onSelectBarVibe?.(b.id)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold transition-all cursor-pointer ${
+                      active
+                        ? (b.activeClass || "border-amber-400 bg-amber-500/25 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.4)]") + " scale-[1.03]"
+                        : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-white/20 hover:bg-[#121829]"
+                    }`}
+                    title={b.desc}
+                  >
+                    <span>{b.emoji}</span>
+                    <span>{b.name}</span>
+                    {active && <Check className="h-3 w-3 text-current stroke-[3]" />}
                   </button>
                 );
               })}

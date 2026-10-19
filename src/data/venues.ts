@@ -1,6 +1,7 @@
 import { VENUES_CATALOG_300 } from "./venuesCatalog300";
 import { VENUES_EXPANDED } from "./venuesExpanded";
 import { VENUES_MEGA_CATALOG } from "./venuesMegaCatalog";
+import { CURATED_BARS } from "./curatedBars";
 
 export interface Venue {
   id: string;
@@ -252,6 +253,55 @@ export const CUISINES = [
   },
 ];
 
+export const BAR_VIBES = [
+  {
+    id: "all",
+    name: "Todos os Bares",
+    emoji: "🍻",
+    desc: "Ver todos os bares, botecos, pubs e lounges de SP",
+    activeClass: "border-amber-400 bg-amber-500/20 text-amber-200 shadow-[0_0_18px_rgba(245,158,11,0.45)]",
+  },
+  {
+    id: "narguile",
+    name: "Com Narguilé",
+    emoji: "💨",
+    desc: "Bares e lounges com sessão de narguilé, essências e área hookah",
+    activeClass: "border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_18px_rgba(0,240,255,0.45)]",
+    badge: "Narguilé",
+  },
+  {
+    id: "musica_ao_vivo",
+    name: "Música ao Vivo",
+    emoji: "🎸",
+    desc: "Voz e violão, bandas de rock, sertanejo ao vivo e rodas de samba",
+    activeClass: "border-fuchsia-400 bg-fuchsia-500/20 text-fuchsia-200 shadow-[0_0_18px_rgba(255,0,127,0.45)]",
+    badge: "Ao Vivo",
+  },
+  {
+    id: "espaco_aberto",
+    name: "Espaço Aberto / Rooftop",
+    emoji: "🌇",
+    desc: "Terraços abertos, rooftops, varandas, mesas ao ar livre e calçada",
+    activeClass: "border-emerald-400 bg-emerald-500/20 text-emerald-200 shadow-[0_0_18px_rgba(16,185,129,0.45)]",
+    badge: "Ar Livre",
+  },
+  {
+    id: "espaco_fechado",
+    name: "Espaço Fechado",
+    emoji: "🏛️",
+    desc: "Ambiente fechado, acústico e climatizado com ar-condicionado",
+    activeClass: "border-purple-400 bg-purple-500/20 text-purple-200 shadow-[0_0_18px_rgba(168,85,247,0.45)]",
+    badge: "Climatizado",
+  },
+  {
+    id: "sinuca",
+    name: "Mesa de Sinuca",
+    emoji: "🎱",
+    desc: "Bares com mesas de sinuca e snooker oficial",
+    activeClass: "border-blue-400 bg-blue-500/20 text-blue-200 shadow-[0_0_18px_rgba(59,130,246,0.45)]",
+  },
+];
+
 export const MOTEL_STYLES = [
   {
     id: "all",
@@ -305,6 +355,7 @@ export const MOTEL_STYLES = [
 ];
 
 export const VENUES_DATA: Venue[] = [
+  ...CURATED_BARS,
   ...VENUES_CATALOG_300,
   ...VENUES_EXPANDED,
   ...VENUES_MEGA_CATALOG,

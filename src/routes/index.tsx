@@ -222,6 +222,7 @@ function IndexPage() {
   const [selectedGenre, setSelectedGenre] = useState(() => initialNav.selectedGenre || "all");
   const [selectedCuisine, setSelectedCuisine] = useState(() => initialNav.selectedCuisine || "all");
   const [selectedMotelStyle, setSelectedMotelStyle] = useState(() => initialNav.selectedMotelStyle || "all");
+  const [selectedBarVibe, setSelectedBarVibe] = useState<string>(() => initialNav.selectedBarVibe || "all");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(() => initialNav.selectedNeighborhood || "all");
   const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(() => (initialNav.maxDistanceKm !== undefined ? initialNav.maxDistanceKm : null));
   const [entryPriceFilter, setEntryPriceFilter] = useState<PriceFilterType>(() => initialNav.entryPriceFilter || "all");
@@ -448,6 +449,7 @@ function IndexPage() {
       selectedGenre,
       selectedCuisine,
       selectedMotelStyle,
+      selectedBarVibe,
       selectedNeighborhood,
       entryPriceFilter,
       maxDistanceKm,
@@ -467,6 +469,7 @@ function IndexPage() {
     selectedGenre,
     selectedCuisine,
     selectedMotelStyle,
+    selectedBarVibe,
     selectedNeighborhood,
     entryPriceFilter,
     maxDistanceKm,
@@ -490,6 +493,7 @@ function IndexPage() {
         selectedGenre,
         selectedCuisine,
         selectedMotelStyle,
+        selectedBarVibe,
         selectedNeighborhood,
         entryPriceFilter,
         maxDistanceKm,
@@ -522,6 +526,7 @@ function IndexPage() {
     selectedGenre,
     selectedCuisine,
     selectedMotelStyle,
+    selectedBarVibe,
     selectedNeighborhood,
     entryPriceFilter,
     maxDistanceKm,
@@ -842,13 +847,17 @@ function IndexPage() {
       const matchSubType = venue.subType.toLowerCase().includes(q);
       const matchTags = venue.tags.some((t) => t.toLowerCase().includes(q));
       const matchCategory = venue.category.toLowerCase().includes(q);
+      const matchAmenities = venue.amenities?.some((a) => a.toLowerCase().includes(q));
+      const matchHighlight = venue.highlight?.toLowerCase().includes(q);
       return (
         matchName ||
         matchNeighborhood ||
         matchTagline ||
         matchSubType ||
         matchTags ||
-        matchCategory
+        matchCategory ||
+        Boolean(matchAmenities) ||
+        Boolean(matchHighlight)
       );
     });
 
@@ -891,7 +900,15 @@ function IndexPage() {
       } else if (currentScreen === "baladas" || activeTab === "baladas") {
         if (venue.category !== "baladas") return false;
       } else if (currentScreen === "bares" || activeTab === "bares") {
-        if (venue.category !== "bares") return false;
+        if (selectedBarVibe === "narguile") {
+          // Permite bares com narguilé E tabacarias/hookah lounges com bar
+          if (venue.category !== "bares" && venue.category !== "tabacarias") return false;
+        } else if (selectedBarVibe === "sinuca") {
+          // Permite bares com sinuca E casas de sinuca/snooker bar
+          if (venue.category !== "bares" && venue.category !== "sinucas") return false;
+        } else {
+          if (venue.category !== "bares") return false;
+        }
       } else if (currentScreen === "tabacarias" || activeTab === "tabacarias") {
         if (venue.category !== "tabacarias") return false;
       } else if (currentScreen === "sinucas" || activeTab === "sinucas") {
@@ -909,6 +926,52 @@ function IndexPage() {
         venue.genre !== selectedGenre
       ) {
         return false;
+      }
+
+      // 2b. Bar Vibe filter (Bares: narguilé, música ao vivo, espaço aberto, espaço fechado, sinuca)
+      if (
+        (activeTab === "bares" || currentScreen === "bares") &&
+        selectedBarVibe !== "all"
+      ) {
+        const vAmenities = venue.amenities || [];
+        const vTags = (venue.tags || []).join(" ").toLowerCase();
+        const vTagline = (venue.tagline || "").toLowerCase();
+        const vName = venue.name.toLowerCase();
+        const vSub = (venue.subType || "").toLowerCase();
+        const vHighlight = (venue.highlight || "").toLowerCase();
+        const vAllText = `${vName} ${vTagline} ${vSub} ${vHighlight} ${vTags}`;
+
+        if (selectedBarVibe === "narguile") {
+          const hasHookah =
+            vAmenities.includes("narguile") ||
+            venue.category === "tabacarias" ||
+            /narguil|hookah|shisha|tabacaria|sessão/i.test(vAllText);
+          if (!hasHookah) return false;
+        } else if (selectedBarVibe === "musica_ao_vivo") {
+          const hasLiveMusic =
+            vAmenities.includes("musica_ao_vivo") ||
+            venue.genre !== undefined ||
+            /ao vivo|música ao vivo|musica ao vivo|banda|acústico|acustico|show|sertanejo|pagode|samba|rock|voz e violão|pop rock|chorinho/i.test(vAllText);
+          if (!hasLiveMusic) return false;
+        } else if (selectedBarVibe === "espaco_aberto") {
+          const isOpenAir =
+            vAmenities.includes("rooftop") ||
+            vAmenities.includes("espaco_aberto") ||
+            /aberto|ar livre|rooftop|varanda|calçada|calcada|terraço|terraco|quintal|deck|área externa|ao ar livre|mesas externas|espaço aberto/i.test(vAllText);
+          if (!isOpenAir) return false;
+        } else if (selectedBarVibe === "espaco_fechado") {
+          const isClosed =
+            vAmenities.includes("espaco_fechado") ||
+            /fechado|climatizado|indoor|pub|speakeasy|acústic|ar-condicionado|ambiente interno|subsolo|espaço fechado/i.test(vAllText) ||
+            (!vAmenities.includes("rooftop") && !/calçada|calcada|ar livre|terraço|terraco|varanda|quintal|deck|área externa/i.test(vTagline));
+          if (!isClosed) return false;
+        } else if (selectedBarVibe === "sinuca") {
+          const hasSnooker =
+            vAmenities.includes("sinuca") ||
+            venue.category === "sinucas" ||
+            /sinuca|snooker|bilhar|mesa de bilhar/i.test(vAllText);
+          if (!hasSnooker) return false;
+        }
       }
 
       // 3. Cuisine filter (Restaurantes)
@@ -985,12 +1048,16 @@ function IndexPage() {
         const matchTagline = venue.tagline.toLowerCase().includes(q);
         const matchSubType = venue.subType.toLowerCase().includes(q);
         const matchTags = venue.tags.some((t) => t.toLowerCase().includes(q));
+        const matchAmenities = venue.amenities?.some((a) => a.toLowerCase().includes(q));
+        const matchHighlight = venue.highlight?.toLowerCase().includes(q);
         if (
           !matchName &&
           !matchNeighborhood &&
           !matchTagline &&
           !matchSubType &&
-          !matchTags
+          !matchTags &&
+          !matchAmenities &&
+          !matchHighlight
         ) {
           return false;
         }
@@ -1094,6 +1161,7 @@ function IndexPage() {
     selectedGenre,
     selectedCuisine,
     selectedMotelStyle,
+    selectedBarVibe,
     selectedNeighborhood,
     maxDistanceKm,
     entryPriceFilter,
@@ -1118,6 +1186,7 @@ function IndexPage() {
     selectedGenre,
     selectedCuisine,
     selectedMotelStyle,
+    selectedBarVibe,
     selectedNeighborhood,
     maxDistanceKm,
     entryPriceFilter,
@@ -1146,6 +1215,7 @@ function IndexPage() {
     setSelectedGenre("all");
     setSelectedCuisine("all");
     setSelectedMotelStyle("all");
+    setSelectedBarVibe("all");
     setSelectedNeighborhood("all");
     setMaxDistanceKm(null);
     setEntryPriceFilter("all");
@@ -1164,6 +1234,7 @@ function IndexPage() {
     selectedGenre !== "all" ||
     selectedCuisine !== "all" ||
     selectedMotelStyle !== "all" ||
+    selectedBarVibe !== "all" ||
     selectedNeighborhood !== "all" ||
     maxDistanceKm !== null ||
     entryPriceFilter !== "all" ||
@@ -1844,6 +1915,8 @@ function IndexPage() {
                 onSelectCuisine={setSelectedCuisine}
                 selectedMotelStyle={selectedMotelStyle}
                 onSelectMotelStyle={setSelectedMotelStyle}
+                selectedBarVibe={selectedBarVibe}
+                onSelectBarVibe={setSelectedBarVibe}
                 maxDistanceKm={maxDistanceKm}
                 onSelectMaxDistanceKm={setMaxDistanceKm}
                 selectedNeighborhood={selectedNeighborhood}

@@ -9,6 +9,7 @@ export interface PersistedNavState {
   selectedGenre: string;
   selectedCuisine: string;
   selectedMotelStyle: string;
+  selectedBarVibe?: string;
   selectedNeighborhood: string;
   entryPriceFilter: PriceFilterType;
   maxDistanceKm: number | null;
@@ -82,6 +83,7 @@ export function savePersistedNavState(state: Partial<PersistedNavState>) {
       selectedGenre: state.selectedGenre ?? current.selectedGenre ?? "all",
       selectedCuisine: state.selectedCuisine ?? current.selectedCuisine ?? "all",
       selectedMotelStyle: state.selectedMotelStyle ?? current.selectedMotelStyle ?? "all",
+      selectedBarVibe: state.selectedBarVibe ?? current.selectedBarVibe ?? "all",
       selectedNeighborhood: state.selectedNeighborhood ?? current.selectedNeighborhood ?? "all",
       entryPriceFilter: state.entryPriceFilter ?? current.entryPriceFilter ?? "all",
       maxDistanceKm: state.maxDistanceKm !== undefined ? state.maxDistanceKm : current.maxDistanceKm ?? null,

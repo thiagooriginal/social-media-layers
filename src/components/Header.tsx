@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Sparkles, MapPin, Heart, Flame, Share2, Compass, User as UserIcon, BarChart3, Crosshair, Moon, Sun, Instagram, Smartphone, Download, MoreVertical, X } from "lucide-react";
 import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
@@ -54,10 +55,10 @@ export function Header({
   onOpenThemeModal,
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const [isPickerOpen, setIsPickerOpen] = React.useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const [isSuperScanning, setIsSuperScanning] = React.useState(false);
-  const [showScanToast, setShowScanToast] = React.useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSuperScanning, setIsSuperScanning] = useState(false);
+  const [showScanToast, setShowScanToast] = useState(false);
 
   const handleLogoClick = () => {
     setIsSuperScanning(true);

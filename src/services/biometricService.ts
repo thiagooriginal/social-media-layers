@@ -70,7 +70,21 @@ export function getStoredBiometrics(): BiometricRegistration | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_BIOMETRIC);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed: BiometricRegistration = JSON.parse(raw);
+    // Strict validation: Discard legacy/fake/fallback credentials that bypassed real hardware auth
+    if (
+      !parsed ||
+      !parsed.credentialId ||
+      parsed.credentialId.startsWith("bio_stored_") ||
+      parsed.credentialId.startsWith("bio_fallback_") ||
+      parsed.credentialId.startsWith("local_bio_") ||
+      !parsed.userEmail
+    ) {
+      localStorage.removeItem(STORAGE_KEY_BIOMETRIC);
+      return null;
+    }
+    return parsed;
   } catch (e) {
     return null;
   }
@@ -89,85 +103,56 @@ export async function registerDeviceBiometrics(
     return { success: false, error: "Usuário inválido para cadastro biométrico." };
   }
 
-  if (isBiometricsSupported()) {
-    try {
-      const hostname = window.location.hostname === "localhost" ? "localhost" : window.location.hostname;
-      const challenge = stringToUint8Array(`radardorole-reg-${Date.now()}`);
+  if (!isBiometricsSupported()) {
+    return {
+      success: false,
+      error: "Este dispositivo ou navegador não suporta leitura biométrica nativa (digital/Face ID).",
+    };
+  }
 
-      const createOptions: CredentialCreationOptions = {
-        publicKey: {
-          challenge: challenge as BufferSource,
-          rp: {
-            name: "Radar do Rolê",
-            id: hostname,
-          },
-          user: {
-            id: stringToUint8Array(user.id || user.email) as BufferSource,
-            name: user.email,
-            displayName: user.name || "Usuário VIP",
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },
-            { alg: -257, type: "public-key" },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "preferred",
-            requireResidentKey: false,
-          },
-          timeout: 60000,
-          attestation: "none",
+  try {
+    const hostname = window.location.hostname === "localhost" ? "localhost" : window.location.hostname;
+    // Generate secure 32-byte cryptographic challenge
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+
+    const createOptions: CredentialCreationOptions = {
+      publicKey: {
+        challenge: challenge as BufferSource,
+        rp: {
+          name: "Radar do Rolê",
+          id: hostname,
         },
+        user: {
+          id: stringToUint8Array(user.id || user.email) as BufferSource,
+          name: user.email,
+          displayName: user.name || "Usuário Radar",
+        },
+        pubKeyCredParams: [
+          { alg: -7, type: "public-key" },  // ES256
+          { alg: -257, type: "public-key" }, // RS256
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: "platform", // Native platform sensor (Fingerprint, TouchID, FaceID)
+          userVerification: "required", // STRICT: user MUST verify via biometric
+          requireResidentKey: false,
+        },
+        timeout: 60000,
+        attestation: "none",
+      },
+    };
+
+    const credential = (await navigator.credentials.create(createOptions)) as any;
+    if (!credential || !credential.rawId) {
+      return {
+        success: false,
+        error: "Leitura biométrica não concluída pelo sensor. Tente novamente.",
       };
-
-      const credential = (await navigator.credentials.create(createOptions)) as any;
-      const credentialId = credential ? bufferToBase64(credential.rawId) : `local_bio_${Date.now()}`;
-
-      const registration: BiometricRegistration = {
-        credentialId,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
-        userRole: user.role,
-        businessName: user.businessName,
-        venueCategory: user.venueCategory,
-        neighborhood: user.neighborhood,
-        createdAt: new Date().toISOString(),
-        deviceLabel: navigator.userAgent.includes("Android")
-          ? "Sensor de Digital Android"
-          : navigator.userAgent.includes("iPhone")
-          ? "Face ID / Touch ID Apple"
-          : "Biometria do Dispositivo",
-        enabled: true,
-      };
-
-      localStorage.setItem(STORAGE_KEY_BIOMETRIC, JSON.stringify(registration));
-      return { success: true };
-    } catch (err: any) {
-      if (err.name === "NotAllowedError" || err.message?.includes("canceled")) {
-        return { success: false, error: "Cadastro cancelado no sensor biométrico." };
-      }
-
-      console.warn("WebAuthn register fallback:", err);
-      const fallbackReg: BiometricRegistration = {
-        credentialId: `bio_fallback_${Date.now()}`,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
-        userRole: user.role,
-        businessName: user.businessName,
-        venueCategory: user.venueCategory,
-        neighborhood: user.neighborhood,
-        createdAt: new Date().toISOString(),
-        deviceLabel: "Biometria Rápida Salva",
-        enabled: true,
-      };
-      localStorage.setItem(STORAGE_KEY_BIOMETRIC, JSON.stringify(fallbackReg));
-      return { success: true };
     }
-  } else {
-    const fallbackReg: BiometricRegistration = {
-      credentialId: `bio_stored_${Date.now()}`,
+
+    const credentialId = bufferToBase64(credential.rawId);
+
+    const registration: BiometricRegistration = {
+      credentialId,
       userId: user.id,
       userEmail: user.email,
       userName: user.name,
@@ -176,105 +161,96 @@ export async function registerDeviceBiometrics(
       venueCategory: user.venueCategory,
       neighborhood: user.neighborhood,
       createdAt: new Date().toISOString(),
-      deviceLabel: "Acesso Rápido por Toque",
+      deviceLabel: navigator.userAgent.includes("Android")
+        ? "Sensor de Digital Android"
+        : navigator.userAgent.includes("iPhone")
+        ? "Face ID / Touch ID Apple"
+        : "Biometria do Dispositivo",
       enabled: true,
     };
-    localStorage.setItem(STORAGE_KEY_BIOMETRIC, JSON.stringify(fallbackReg));
+
+    localStorage.setItem(STORAGE_KEY_BIOMETRIC, JSON.stringify(registration));
     return { success: true };
+  } catch (err: any) {
+    console.warn("Biometric registration cancelled or failed:", err);
+    return {
+      success: false,
+      error: "Cadastro de biometria cancelado ou não concluído no sensor.",
+    };
   }
 }
 
 export async function authenticateWithBiometrics(
   expectedRole?: "user" | "partner" | "admin"
 ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
-  let stored = getStoredBiometrics();
+  // 1. Rigorous support check
+  if (!isBiometricsSupported()) {
+    return {
+      success: false,
+      error: "Este dispositivo ou navegador não suporta leitura biométrica nativa.",
+    };
+  }
 
-  // Se ainda não tem biometria registrada, recupera conta salva
-  if (!stored) {
-    const lastUser = getCurrentUser();
-    const rawCreds = typeof window !== "undefined" ? localStorage.getItem("baladaon_saved_credentials") : null;
-    let savedEmail = "";
-    let savedName = "";
-    let savedRole: "user" | "partner" | "admin" = "user";
-    let savedBusiness = "";
+  // 2. Must have a real, valid registered credential
+  const stored = getStoredBiometrics();
+  if (!stored || !stored.credentialId || !stored.enabled) {
+    return {
+      success: false,
+      error: "Nenhuma digital cadastrada ainda neste aparelho. Faça login com seu e-mail e senha para ativar a biometria.",
+    };
+  }
 
-    if (rawCreds) {
-      try {
-        const parsed = JSON.parse(rawCreds);
-        savedEmail = parsed.email || "";
-        savedName = parsed.name || "";
-        savedRole = parsed.role || "user";
-        savedBusiness = parsed.businessName || "";
-      } catch (e) {}
-    }
+  // 3. HARDWARE BIOMETRIC VERIFICATION PROMPT
+  try {
+    const hostname = window.location.hostname === "localhost" ? "localhost" : window.location.hostname;
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
 
-    const emailToUse = savedEmail || lastUser?.email;
-    if (emailToUse) {
-      stored = {
-        credentialId: `bio_stored_${Date.now()}`,
-        userId: lastUser?.id || "usr_" + Math.random().toString(36).substring(2, 9),
-        userEmail: emailToUse,
-        userName: savedName || lastUser?.name || "Usuário",
-        userRole: (expectedRole === "partner" ? "partner" : savedRole) || lastUser?.role || "user",
-        businessName: savedBusiness || lastUser?.businessName,
-        createdAt: new Date().toISOString(),
-        deviceLabel: "Biometria do Dispositivo",
-        enabled: true,
-      };
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEY_BIOMETRIC, JSON.stringify(stored));
-      }
-    } else {
+    let credIdBytes: Uint8Array;
+    try {
+      credIdBytes = base64ToUint8Array(stored.credentialId);
+    } catch {
+      localStorage.removeItem(STORAGE_KEY_BIOMETRIC);
       return {
         success: false,
-        error: "Nenhuma digital salva ainda neste aparelho. Faça o primeiro login com seu e-mail para ativar.",
+        error: "Chave biométrica inválida. Cadastre sua digital novamente nas configurações.",
       };
     }
-  }
 
-  // Se o dispositivo suporta WebAuthn nativo, dispara a leitura no sensor de digital
-  if (isBiometricsSupported() && stored.credentialId && !stored.credentialId.startsWith("bio_stored_")) {
-    try {
-      const hostname = window.location.hostname === "localhost" ? "localhost" : window.location.hostname;
-      const challenge = stringToUint8Array(`radardorole-auth-${Date.now()}`);
+    const getOptions: CredentialRequestOptions = {
+      publicKey: {
+        challenge: challenge as BufferSource,
+        rpId: hostname,
+        userVerification: "required", // STRICT: Hardware sensor MUST verify fingerprint/FaceID
+        allowCredentials: [
+          {
+            id: credIdBytes as BufferSource,
+            type: "public-key",
+            transports: ["internal"],
+          },
+        ],
+        timeout: 60000,
+      },
+    };
 
-      let allowCredentials: PublicKeyCredentialDescriptor[] | undefined = undefined;
-      try {
-        if (!stored.credentialId.startsWith("bio_fallback_")) {
-          allowCredentials = [
-            {
-              id: base64ToUint8Array(stored.credentialId) as BufferSource,
-              type: "public-key",
-            },
-          ];
-        }
-      } catch (e) {
-        // ignore
-      }
+    const assertion = (await navigator.credentials.get(getOptions)) as any;
 
-      const getOptions: CredentialRequestOptions = {
-        publicKey: {
-          challenge: challenge as BufferSource,
-          rpId: hostname,
-          userVerification: "preferred",
-          allowCredentials,
-          timeout: 60000,
-        },
+    // Strict validation: must return valid assertion from hardware sensor
+    if (!assertion || !assertion.rawId) {
+      return {
+        success: false,
+        error: "Digital não confirmada pelo sensor. Acesso cancelado.",
       };
-
-      await navigator.credentials.get(getOptions);
-    } catch (err: any) {
-      if (err.name === "NotAllowedError" || err.message?.includes("canceled")) {
-        return {
-          success: false,
-          error: "Leitura biométrica cancelada ou não reconhecida.",
-        };
-      }
-      console.warn("Biometric native prompt note:", err);
     }
+  } catch (err: any) {
+    // ANY cancellation, timeout, fingerprint mismatch or error -> REJECT LOGIN IMMEDIATELY!
+    console.warn("Biometric authentication aborted or failed:", err);
+    return {
+      success: false,
+      error: "Leitura biométrica cancelada ou não reconhecida. Por favor, confirme sua digital.",
+    };
   }
 
-  // Determina o papel do usuário de forma inteligente e flexível
+  // 4. ONLY EXECUTED IF SENSOR ACTUALLY SUCCEEDED:
   let targetRole: "user" | "partner" | "admin" = stored.userRole || "user";
   if (stored.userEmail.toLowerCase().includes("thiagooriginal2002")) {
     targetRole = expectedRole === "partner" ? "partner" : "admin";

@@ -316,7 +316,8 @@ function AdminDashboardPage() {
         });
       }, 400);
     } else {
-      setAuthError(res.error || "Não foi possível validar a digital de Administrador.");
+      setAdminBioSuccess(false);
+      setAuthError(res.error || "Leitura biométrica cancelada ou não reconhecida.");
     }
   };
 

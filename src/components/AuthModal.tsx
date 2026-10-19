@@ -97,13 +97,14 @@ export function AuthModal({
         setEmail(creds.email);
       }
 
-      // Auto-trigger biometric prompt like a bank app when login tab is opened
+      // Check if this device has a real registered biometric credential
+      const hasRealBio = Boolean(getStoredBiometrics());
       if (tab === "login") {
-        setShowManualLogin(false);
-        const timer = setTimeout(() => {
-          handleBiometricLogin();
-        }, 300);
-        return () => clearTimeout(timer);
+        if (!hasRealBio) {
+          setShowManualLogin(true);
+        } else {
+          setShowManualLogin(false);
+        }
       }
     }
   }, [isOpen, tab]);
@@ -121,9 +122,8 @@ export function AuthModal({
         onClose();
       }, 400);
     } else {
-      if (res.error && !res.error.toLowerCase().includes("cancelada")) {
-        setErrorMsg(res.error);
-      }
+      setBiometricSuccess(false);
+      setErrorMsg(res.error || "Leitura biométrica cancelada ou não reconhecida.");
     }
   };
 

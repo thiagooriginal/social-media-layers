@@ -141,11 +141,12 @@ function PartnerPortalPage() {
     }
 
     if (authMode === "login") {
-      setShowPartnerManual(false);
-      const timer = setTimeout(() => {
-        handlePartnerBiometricLogin();
-      }, 350);
-      return () => clearTimeout(timer);
+      const hasRealBio = Boolean(getStoredBiometrics());
+      if (!hasRealBio) {
+        setShowPartnerManual(true);
+      } else {
+        setShowPartnerManual(false);
+      }
     }
   }, [authMode]);
 
@@ -589,7 +590,8 @@ function PartnerPortalPage() {
         setCurrentUser(partnerUser);
       }, 400);
     } else {
-      setLoginError(res.error || "Não foi possível validar a digital do parceiro.");
+      setPartnerBioSuccess(false);
+      setLoginError(res.error || "Leitura biométrica cancelada ou não reconhecida.");
     }
   };
 

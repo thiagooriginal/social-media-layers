@@ -157,8 +157,12 @@ function AdminDashboardPage() {
   const [venues, setVenues] = useState<Venue[]>(VENUES_DATA);
   const [leads, setLeads] = useState<VipLeadRow[]>([]);
   const [confirmations, setConfirmations] = useState<ConfirmationRow[]>([]);
+  const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "venues" | "leads" | "confirmations" | "analytics" | "saas" | "whatsapp">("dashboard");
+  const [activeTab, setActiveTab] = useState<
+    "dashboard" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp"
+  >("dashboard");
 
   // Edit Venue state
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
@@ -299,6 +303,17 @@ function AdminDashboardPage() {
       if (confData) {
         setConfirmations(confData);
       }
+
+      // 4. Fetch Registered Profiles / Users
+      try {
+        const { data: usersData } = await (supabase as any)
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (usersData && usersData.length > 0) {
+          setRegisteredUsers(usersData);
+        }
+      } catch (e) {}
     } catch (err) {
       console.warn("Could not load full admin data:", err);
     } finally {
@@ -369,19 +384,6 @@ function AdminDashboardPage() {
     }
   };
 
-  // Quick 1-Click Master Access for Thiago
-  const handleQuickMasterLogin = async () => {
-    setAuthLoading(true);
-    const res = await loginUser("thiagooriginal2002@gmail.com");
-    setAuthLoading(false);
-    if (res.success && res.user) {
-      setCurrentUser({
-        ...res.user,
-        role: "admin",
-      });
-    }
-  };
-
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(null);
@@ -398,6 +400,21 @@ function AdminDashboardPage() {
       return matchSearch && matchCategory;
     });
   }, [venues, venueSearch, selectedCategory]);
+
+  // Filtered Registered Users
+  const filteredUsers = useMemo(() => {
+    return registeredUsers.filter((u) => {
+      const q = userSearch.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        (u.name && u.name.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.whatsapp && u.whatsapp.toLowerCase().includes(q)) ||
+        (u.cpf && u.cpf.toLowerCase().includes(q)) ||
+        (u.role && u.role.toLowerCase().includes(q))
+      );
+    });
+  }, [registeredUsers, userSearch]);
 
   // Financial Metrics Calculation
   const estimatedMRR = useMemo(() => {
@@ -792,7 +809,7 @@ function AdminDashboardPage() {
   };
 
   // Switch tab with smooth auto-scroll to section
-  const handleSwitchTab = (tab: "dashboard" | "venues" | "leads" | "confirmations" | "analytics" | "saas" | "whatsapp") => {
+  const handleSwitchTab = (tab: "dashboard" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp") => {
     setActiveTab(tab);
     setTimeout(() => {
       const el = document.getElementById("admin-tab-content");
@@ -800,6 +817,34 @@ function AdminDashboardPage() {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 50);
+  };
+
+  // Export Registered Users to CSV (Excel compatible)
+  const handleExportUsersCSV = () => {
+    if (registeredUsers.length === 0) {
+      alert("Nenhum usuário cadastrado no momento.");
+      return;
+    }
+    const headers = ["ID", "Nome Completo", "E-mail", "WhatsApp", "CPF", "Celular Validado", "Papel (Role)", "Data de Cadastro"];
+    const rows = registeredUsers.map((u) => [
+      `"${u.id || ""}"`,
+      `"${(u.name || "").replace(/"/g, '""')}"`,
+      `"${u.email || ""}"`,
+      `"${u.whatsapp || ""}"`,
+      `"${u.cpf || ""}"`,
+      `"${u.phone_verified ? "Validado (SMS/OTP)" : "Pendente"}"`,
+      `"${u.role || "user"}"`,
+      `"${u.created_at ? new Date(u.created_at).toLocaleString("pt-BR") : ""}"`,
+    ]);
+    const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `usuarios_cadastrados_radar_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Export Complete Executive Report to CSV (Excel compatible)
@@ -1026,19 +1071,10 @@ function AdminDashboardPage() {
             </button>
           </form>
 
-          {/* 1-Click Fast Pass for Thiago */}
           <div className="mt-6 border-t border-white/10 pt-4 text-center">
-            <button
-              type="button"
-              onClick={handleQuickMasterLogin}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 py-2.5 px-3 text-xs font-black text-amber-300 hover:bg-amber-500/20 hover:border-amber-300 transition-all cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-            >
-              <span>⚡ Acesso Rápido Master (Thiago Admin)</span>
-            </button>
-
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 mt-4 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Voltar ao App Público</span>
@@ -1270,6 +1306,19 @@ function AdminDashboardPage() {
 
             <button
               type="button"
+              onClick={() => handleSwitchTab("users")}
+              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
+                activeTab === "users"
+                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
+                  : "bg-white/5 text-slate-300 border border-white/10"
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              <span>Usuários ({registeredUsers.length})</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleSwitchTab("confirmations")}
               className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
                 activeTab === "confirmations"
@@ -1358,6 +1407,19 @@ function AdminDashboardPage() {
             >
               <Ticket className="h-4 w-4" />
               <span>Mural de Leads VIP ({leads.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSwitchTab("users")}
+              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
+                activeTab === "users"
+                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              <span>👥 Usuários ({registeredUsers.length})</span>
             </button>
 
             <button
@@ -1669,6 +1731,189 @@ function AdminDashboardPage() {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: REGISTERED USERS */}
+        {activeTab === "users" && (
+          <div className="mt-5 space-y-6">
+            {/* Header & Metrics */}
+            <div className="rounded-3xl border border-purple-500/30 bg-gradient-to-br from-purple-950/40 via-[#0e1424] to-indigo-950/40 p-5 sm:p-6 shadow-[0_0_35px_rgba(168,85,247,0.15)]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/20 border border-purple-500/40 px-2.5 py-0.5 text-[11px] font-extrabold text-purple-300 mb-2">
+                    👥 Base Geral de Usuários • LGPD & Supabase Auth
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black text-white">
+                    Usuários Cadastrados na Plataforma
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                    Consulte todos os baladeiros, clientes e parceiros registrados com Nome, E-mail, WhatsApp validado via código e CPF.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={loadDashboardData}
+                    disabled={isLoadingData}
+                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-bold text-slate-300 transition-all cursor-pointer"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoadingData ? "animate-spin text-purple-400" : ""}`} />
+                    <span>Atualizar</span>
+                  </button>
+
+                  <button
+                    onClick={handleExportUsersCSV}
+                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/50 px-3.5 py-2 text-xs font-black text-emerald-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    <span>Exportar Excel (CSV)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Metric Counters */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                  <div className="text-xs font-bold text-slate-400">Total Cadastrados</div>
+                  <div className="text-2xl font-black text-white mt-1">{registeredUsers.length}</div>
+                  <div className="text-[10px] text-purple-400 mt-0.5">Contas registradas</div>
+                </div>
+
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+                  <div className="text-xs font-bold text-emerald-300">WhatsApp Validado</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-1">
+                    {registeredUsers.filter((u) => u.phone_verified).length}
+                  </div>
+                  <div className="text-[10px] text-emerald-400/70 mt-0.5">Com código SMS / WA</div>
+                </div>
+
+                <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/20 p-4">
+                  <div className="text-xs font-bold text-cyan-300">Baladeiros (User)</div>
+                  <div className="text-2xl font-black text-cyan-400 mt-1">
+                    {registeredUsers.filter((u) => u.role === "user" || !u.role).length}
+                  </div>
+                  <div className="text-[10px] text-cyan-400/70 mt-0.5">Público final</div>
+                </div>
+
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-4">
+                  <div className="text-xs font-bold text-amber-300">Parceiros & Admins</div>
+                  <div className="text-2xl font-black text-amber-400 mt-1">
+                    {registeredUsers.filter((u) => u.role === "partner" || u.role === "admin").length}
+                  </div>
+                  <div className="text-[10px] text-amber-400/70 mt-0.5">Gestores & Parceiros</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Input */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome, email, CPF, fone..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <span className="text-xs text-slate-400">
+                Mostrando {filteredUsers.length} de {registeredUsers.length} usuários
+              </span>
+            </div>
+
+            {/* Users Table */}
+            {filteredUsers.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-[#0e1424] p-10 text-center text-slate-400">
+                <Users className="mx-auto h-8 w-8 text-purple-400 mb-2 opacity-50" />
+                <p className="text-sm font-bold text-slate-300">Nenhum usuário encontrado</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {registeredUsers.length === 0
+                    ? "Ainda não há usuários na tabela 'profiles'. Assim que os baladeiros se cadastrarem, aparecerão aqui instantaneamente."
+                    : "Nenhum usuário corresponde aos termos da pesquisa."}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0e1424]">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-white/5 text-[11px] font-black uppercase text-slate-400 border-b border-white/10">
+                    <tr>
+                      <th className="py-3 px-3">Nome</th>
+                      <th className="py-3 px-3">WhatsApp</th>
+                      <th className="py-3 px-3">E-mail</th>
+                      <th className="py-3 px-3">CPF</th>
+                      <th className="py-3 px-3">Validação Celular</th>
+                      <th className="py-3 px-3">Papel</th>
+                      <th className="py-3 px-3">Cadastro</th>
+                      <th className="py-3 px-3 text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-medium">
+                    {filteredUsers.map((u) => {
+                      const cleanPhone = (u.whatsapp || "").replace(/\D/g, "");
+                      return (
+                        <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3 px-3 font-bold text-white">
+                            {u.name || "Sem Nome"}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="font-mono text-slate-300">
+                              {u.whatsapp || "-"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-300">{u.email || "-"}</td>
+                          <td className="py-3 px-3 font-mono text-slate-400">{u.cpf || "-"}</td>
+                          <td className="py-3 px-3">
+                            {u.phone_verified ? (
+                              <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-500/30">
+                                <CheckCircle2 className="h-3 w-3" /> Validado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 text-amber-300 px-2 py-0.5 text-[10px] font-bold border border-amber-500/30">
+                                Pendente
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                u.role === "admin"
+                                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                                  : u.role === "partner"
+                                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                                  : "bg-slate-500/20 text-slate-300 border border-slate-500/30"
+                              }`}
+                            >
+                              {u.role || "user"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-400 text-[11px]">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : "-"}
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            {cleanPhone ? (
+                              <a
+                                href={`https://wa.me/55${cleanPhone}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"
+                                title="Conversar no WhatsApp"
+                              >
+                                <Phone className="h-3 w-3" />
+                                <span>WhatsApp</span>
+                              </a>
+                            ) : (
+                              <span className="text-slate-600 text-[10px]">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

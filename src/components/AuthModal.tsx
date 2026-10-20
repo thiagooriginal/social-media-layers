@@ -320,43 +320,6 @@ export function AuthModal({
     }
   };
 
-  // 1-Click Quick Demo accounts for fast testing
-  const handleQuickDemo = async (roleToUse: "client" | "partner") => {
-    setLoading(true);
-    if (roleToUse === "partner") {
-      const res = await registerUser({
-        name: "Gerente Vila JK",
-        email: "gestao.vilajk@baladaon.com.br",
-        whatsapp: "(11) 99999-8888",
-        cpf: "123.456.789-00",
-        phoneVerified: true,
-        role: "partner",
-        businessName: "Vila JK São Paulo",
-        venueCategory: "baladas",
-        neighborhood: "Itaim Bibi",
-      });
-      setLoading(false);
-      if (res.success && res.user) {
-        onSuccess(res.user);
-        onClose();
-      }
-    } else {
-      const res = await registerUser({
-        name: "Baladeiro VIP",
-        email: "vip@radardorole.com.br",
-        whatsapp: "(11) 98765-4321",
-        cpf: "987.654.321-99",
-        phoneVerified: true,
-        role: "user",
-      });
-      setLoading(false);
-      if (res.success && res.user) {
-        onSuccess(res.user);
-        onClose();
-      }
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 transition-all animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
@@ -879,34 +842,6 @@ export function AuthModal({
             </div>
           </form>
         )}
-
-        {/* Quick Demo Access (1-Click Test) */}
-        <div className="mt-5 border-t border-white/10 pt-4">
-          <div className="text-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              ⚡ Teste Rápido de Demonstração (1 Toque)
-            </span>
-          </div>
-
-          <div className="mt-2.5 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("client")}
-              disabled={loading}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/30 py-2 px-2.5 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all cursor-pointer"
-            >
-              <span>🪩 Demo Baladeiro VIP</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("partner")}
-              disabled={loading}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-fuchsia-500/30 bg-fuchsia-950/30 py-2 px-2.5 text-[11px] font-bold text-fuchsia-300 hover:bg-fuchsia-500/20 hover:border-fuchsia-400 transition-all cursor-pointer"
-            >
-              <span>🏢 Demo Estabelecimento</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

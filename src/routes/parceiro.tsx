@@ -742,27 +742,6 @@ function PartnerPortalPage() {
     setCurrentUser(userRes.user);
   };
 
-  // Demo 1-Click login for testing
-  const handleDemoPartnerLogin = async () => {
-    setLoginLoading(true);
-    const demoPartner: UserProfile = {
-      id: "partner-vilajk",
-      name: "Carlos Mendes",
-      email: "gestao@vilajk.com.br",
-      whatsapp: "(11) 98888-1234",
-      role: "partner",
-      businessName: "Vila JK",
-      venueCategory: "baladas",
-      neighborhood: "Vila Olímpia",
-      createdAt: new Date().toISOString(),
-    };
-    if (typeof window !== "undefined") {
-      localStorage.setItem("baladaon_auth_user", JSON.stringify(demoPartner));
-    }
-    setCurrentUser(demoPartner);
-    setLoginLoading(false);
-  };
-
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(null);
@@ -2647,17 +2626,6 @@ function PartnerPortalPage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </form>
-
-              {/* Demo 1-Click for Partner */}
-              <div className="mt-6 border-t border-white/10 pt-4 text-center">
-                <button
-                  type="button"
-                  onClick={handleDemoPartnerLogin}
-                  className="w-full py-2.5 px-3 rounded-xl border border-cyan-500/30 bg-cyan-950/30 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
-                >
-                  ⚡ Acesso Rápido de Teste (Parceiro Demo)
-                </button>
-              </div>
             </div>
             )
           )}

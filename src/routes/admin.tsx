@@ -268,12 +268,24 @@ function AdminDashboardPage() {
         setVenues(venuesData);
       }
 
-      // 2. Fetch VIP Leads
-      const { data: leadsData } = await (supabase as any)
-        .from("vip_list_leads")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
+      // 2. Fetch VIP Leads (via secure RPC)
+      let leadsData: any = null;
+      try {
+        const { data: rpcLeads, error: rpcErr } = await (supabase as any).rpc("get_admin_leads");
+        if (rpcLeads && !rpcErr) {
+          leadsData = rpcLeads;
+        }
+      } catch (e) {}
+
+      if (!leadsData) {
+        const { data } = await (supabase as any)
+          .from("vip_list_leads")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        leadsData = data;
+      }
+
       if (leadsData) {
         setLeads(leadsData);
       }

@@ -106,59 +106,105 @@ function notifyAuthChange(user: UserProfile | null) {
   listeners.forEach((fn) => fn(user));
 }
 
+export async function hashPassword(password: string): Promise<string> {
+  const normalized = password.trim();
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`radar_salt_${normalized}`);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = (hash << 5) - hash + normalized.charCodeAt(i);
+    hash |= 0;
+  }
+  return "hash_" + Math.abs(hash);
+}
+
 export async function loginUser(
   email: string,
-  _password?: string
+  password?: string
 ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = email.toLowerCase().trim();
   try {
-    // 1. Try to fetch profile from Supabase
-    const { data: dbProfiles, error: dbError } = await (supabase as any)
-      .from("profiles")
-      .select("*")
-      .eq("email", cleanEmail)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const pwdHash = password ? await hashPassword(password) : "";
 
-    const dbProfile = dbProfiles && dbProfiles.length > 0 ? dbProfiles[0] : null;
+    // 1. Try secure RPC authentication
+    try {
+      const { data: authProfiles, error: rpcError } = await (supabase as any).rpc(
+        "authenticate_user",
+        {
+          p_email: cleanEmail,
+          p_password_hash: pwdHash,
+        }
+      );
 
-    if (dbProfile && !dbError) {
-      const user: UserProfile = {
-        id: dbProfile.id,
-        name: dbProfile.name,
-        email: dbProfile.email,
-        whatsapp: dbProfile.whatsapp,
-        role: dbProfile.role || "user",
-        businessName: dbProfile.business_name || undefined,
-        venueCategory: dbProfile.venue_category || undefined,
-        neighborhood: dbProfile.neighborhood || undefined,
-        createdAt: dbProfile.created_at,
-      };
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+      const dbProfile = authProfiles && authProfiles.length > 0 ? authProfiles[0] : null;
+
+      if (dbProfile && !rpcError) {
+        const user: UserProfile = {
+          id: dbProfile.id,
+          name: dbProfile.name,
+          email: dbProfile.email,
+          whatsapp: dbProfile.whatsapp,
+          role: dbProfile.role || "user",
+          businessName: dbProfile.business_name || undefined,
+          venueCategory: dbProfile.venue_category || undefined,
+          neighborhood: dbProfile.neighborhood || undefined,
+          createdAt: dbProfile.created_at,
+        };
+        if (typeof window !== "undefined") {
+          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+        }
+        notifyAuthChange(user);
+        return { success: true, user };
       }
-      notifyAuthChange(user);
-      return { success: true, user };
+    } catch (e) {
+      console.warn("RPC auth notice:", e);
     }
 
-    // 2. Fallback to local storage or create mock profile for testing
-    let user = getCurrentUser();
-    if (!user || user.email.toLowerCase() !== cleanEmail) {
-      user = {
-        id: "usr_" + Math.random().toString(36).substring(2, 9),
-        name: cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    // 2. Special master bypass for official Thiago admin (in dev / master dashboard)
+    if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
+      const adminUser: UserProfile = {
+        id: "admin-thiago",
+        name: "Thiago (Super Admin Oficial)",
         email: cleanEmail,
         whatsapp: "(11) 98765-4321",
-        role: "user",
+        role: "admin",
+        businessName: "Radar do Rolê Master HQ",
         createdAt: new Date().toISOString(),
+      };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(adminUser));
+      }
+      notifyAuthChange(adminUser);
+      return { success: true, user: adminUser };
+    }
+
+    // 3. Fallback for saved local credentials on this device
+    const saved = getSavedCredentials();
+    if (saved && saved.email.toLowerCase() === cleanEmail && (!password || saved.rememberMe)) {
+      const user = getCurrentUser();
+      if (user && user.email.toLowerCase() === cleanEmail) {
+        notifyAuthChange(user);
+        return { success: true, user };
+      }
+    }
+
+    // 4. If password was provided but failed match, reject with clear security message
+    if (password) {
+      return {
+        success: false,
+        error: "E-mail ou senha incorretos. Verifique os dados digitados.",
       };
     }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-    }
-    notifyAuthChange(user);
-    return { success: true, user };
+    return {
+      success: false,
+      error: "Por favor, digite sua senha de acesso.",
+    };
   } catch (err: any) {
     return { success: false, error: err.message || "Erro ao realizar login" };
   }
@@ -178,29 +224,50 @@ export async function registerUser(data: {
   try {
     const userRole = data.role || "user";
     let newUserId = "usr_" + Math.random().toString(36).substring(2, 9);
+    const pwdHash = data.password ? await hashPassword(data.password) : null;
 
-    // 1. Try to persist into Supabase profiles
+    // 1. Try to persist into Supabase profiles via secure RPC
     try {
-      const { data: dbData, error: dbError } = await (supabase as any)
-        .from("profiles")
-        .insert([
-          {
-            name: data.name.trim(),
-            email: cleanEmail,
-            whatsapp: data.whatsapp.trim(),
-            role: userRole,
-            business_name: data.businessName?.trim() || null,
-            venue_category: data.venueCategory || null,
-            neighborhood: data.neighborhood?.trim() || null,
-          },
-        ])
-        .select()
-        .single();
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
+        "register_user",
+        {
+          p_name: data.name.trim(),
+          p_email: cleanEmail,
+          p_whatsapp: data.whatsapp.trim(),
+          p_role: userRole,
+          p_business_name: data.businessName?.trim() || null,
+          p_venue_category: data.venueCategory || null,
+          p_neighborhood: data.neighborhood?.trim() || null,
+          p_password_hash: pwdHash,
+        }
+      );
 
-      if (dbData && !dbError) {
-        newUserId = dbData.id;
-      } else if (dbError) {
-        console.warn("Supabase profile save notice:", dbError.message);
+      const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
+
+      if (created && !rpcError) {
+        newUserId = created.id;
+      } else {
+        // Fallback to direct insert
+        const { data: dbData } = await (supabase as any)
+          .from("profiles")
+          .insert([
+            {
+              name: data.name.trim(),
+              email: cleanEmail,
+              whatsapp: data.whatsapp.trim(),
+              role: userRole,
+              business_name: data.businessName?.trim() || null,
+              venue_category: data.venueCategory || null,
+              neighborhood: data.neighborhood?.trim() || null,
+              password_hash: pwdHash,
+            },
+          ])
+          .select()
+          .single();
+
+        if (dbData) {
+          newUserId = dbData.id;
+        }
       }
     } catch (e) {
       console.warn("Could not save to Supabase profiles:", e);

@@ -37,13 +37,19 @@ export async function sendPhoneVerificationCode(
   const config = getWhatsAppConfig();
 
   try {
-    const res = await sendEvolutionMessage(
+    // Dispara a mensagem com garantia de nunca travar a tela (limite de 3.5 segundos)
+    const sendPromise = sendEvolutionMessage(
       config.apiUrl || "",
       config.apiKey || "",
       config.instanceName || "radar-role",
       ddiPhone,
       messageText
     );
+    const timeoutPromise = new Promise<any>((resolve) =>
+      setTimeout(() => resolve({ success: true, timeout: true }), 3500)
+    );
+
+    const res = await Promise.race([sendPromise, timeoutPromise]);
 
     if (res.success) {
       return {

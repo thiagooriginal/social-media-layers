@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   Sparkles,
@@ -73,8 +73,16 @@ export function AuthModal({
   defaultPersona = "client",
   isGateMode = false,
 }: AuthModalProps) {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
   const [persona, setPersona] = useState<"client" | "partner">(defaultPersona);
   const [tab, setTab] = useState<"login" | "register">(defaultTab);
+
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => {
+      modalScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }, 50);
+  };
 
   // Common Registration Fields
   const [name, setName] = useState("");
@@ -162,39 +170,47 @@ export function AuthModal({
     setErrorMsg("");
 
     if (!name.trim() || name.trim().length < 3) {
-      setErrorMsg("Por favor, digite seu nome completo (mínimo 3 letras).");
+      showError("Por favor, digite seu nome completo (mínimo 3 letras).");
       return;
     }
 
     if (persona === "partner" && !businessName.trim()) {
-      setErrorMsg("Por favor, digite o nome do seu estabelecimento.");
+      showError("Por favor, digite o nome do seu estabelecimento.");
       return;
     }
 
     const digitsPhone = whatsapp.replace(/\D/g, "");
     if (digitsPhone.length < 10) {
-      setErrorMsg("Por favor, digite um número de celular/WhatsApp válido com DDD.");
+      showError("Por favor, digite seu número de WhatsApp completo com DDD (ex: 11 98765-4321).");
       return;
     }
 
     if (!email.trim() || !email.includes("@") || !email.includes(".")) {
-      setErrorMsg("Por favor, digite um e-mail válido.");
+      showError("Por favor, digite um e-mail válido (ex: seuemail@exemplo.com).");
       return;
     }
 
     const cleanCpf = cpf.replace(/\D/g, "");
+    if (cleanCpf.length === 0) {
+      showError("Por favor, informe seu CPF. Ele é obrigatório para as listas VIP e benefícios.");
+      return;
+    }
+    if (cleanCpf.length < 11) {
+      showError("O CPF deve conter todos os 11 dígitos numéricos.");
+      return;
+    }
     if (!validateCPF(cleanCpf)) {
-      setErrorMsg("Por favor, digite um CPF válido. O CPF é obrigatório para sua lista VIP.");
+      showError("CPF inválido. Por favor, confira os números digitados do seu CPF.");
       return;
     }
 
     if (!password || password.length < 6) {
-      setErrorMsg("A senha de acesso deve conter no mínimo 6 caracteres.");
+      showError("A senha de acesso deve conter no mínimo 6 caracteres.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("As senhas digitadas não coincidem. Digite a mesma senha nos dois campos.");
+      showError("As senhas digitadas não coincidem. Digite a mesma senha nos dois campos.");
       return;
     }
 
@@ -324,7 +340,7 @@ export function AuthModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 transition-all animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#0c101c] p-5 sm:p-6 text-slate-100 shadow-[0_0_50px_-10px_rgba(0,240,255,0.4)] z-10 animate-in zoom-in-95 duration-200">
+      <div ref={modalScrollRef} className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#0c101c] p-5 sm:p-6 text-slate-100 shadow-[0_0_50px_-10px_rgba(0,240,255,0.4)] z-10 animate-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -658,6 +674,15 @@ export function AuthModal({
                   className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all font-mono"
                 />
               </div>
+              {cpf.replace(/\D/g, "").length === 11 && (
+                <div className="mt-1 text-[11px] font-bold">
+                  {validateCPF(cpf) ? (
+                    <span className="text-emerald-400">✓ CPF válido</span>
+                  ) : (
+                    <span className="text-rose-400">⚠️ CPF inválido. Verifique os dígitos digitados.</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Email */}
@@ -724,6 +749,16 @@ export function AuthModal({
               </div>
             </div>
 
+            {confirmPassword && (
+              <div className="text-[11px] font-bold">
+                {password === confirmPassword ? (
+                  <span className="text-emerald-400">✓ Senhas conferem</span>
+                ) : (
+                  <span className="text-rose-400">⚠️ As senhas não coincidem</span>
+                )}
+              </div>
+            )}
+
             {/* Checkboxes: Salvar Login & Biometria */}
             <div className="space-y-2 pt-1 pb-1">
               <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
@@ -736,6 +771,14 @@ export function AuthModal({
                 <span>Salvar login no aparelho para não precisar digitar novamente</span>
               </label>
             </div>
+
+            {/* Mensagem de Erro destacada acima do botão para nunca ficar oculta no scroll */}
+            {errorMsg && (
+              <div className="rounded-xl border border-rose-500/50 bg-rose-500/20 p-3 text-xs font-bold text-rose-300 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
             {/* Botão de Avançar para Validação */}
             <button

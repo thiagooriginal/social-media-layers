@@ -454,6 +454,107 @@ function AdminDashboardPage() {
     }
   };
 
+  // Delete Specific User Handler
+  const handleDeleteUser = async (user: { id: string; name?: string; email?: string }) => {
+    if (
+      user.email === "thiagooriginal2002@gmail.com" ||
+      user.email === "thiago@radardorole.com.br"
+    ) {
+      alert("Não é permitido excluir a conta do Super Administrador.");
+      return;
+    }
+
+    const confirmMsg = `Tem certeza que deseja excluir o usuário "${user.name || "Sem nome"}" (${user.email || ""})?\n\nEsta ação removerá o perfil do banco de dados definitivamente.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      // 1. Try secure RPC delete_admin_user
+      let rpcSuccess = false;
+      try {
+        const { error } = await (supabase as any).rpc("delete_admin_user", {
+          p_user_id: user.id,
+          p_email: user.email || null,
+        });
+        if (!error) rpcSuccess = true;
+      } catch (e) {}
+
+      // 2. Direct fallback
+      if (!rpcSuccess) {
+        try {
+          await (supabase as any)
+            .from("profiles")
+            .delete()
+            .eq("id", user.id);
+        } catch (e) {}
+      }
+
+      // Optimistically update local state
+      setRegisteredUsers((prev) => prev.filter((u) => u.id !== user.id && u.email !== user.email));
+      alert(`✓ Usuário "${user.name || user.email}" excluído com sucesso.`);
+    } catch (err: any) {
+      alert("Erro ao excluir usuário: " + (err?.message || "Tente novamente"));
+    }
+  };
+
+  // Cleanup All Test / Fictitious Users Handler
+  const handleCleanupTestUsers = async () => {
+    const isTestEmail = (email: string) => {
+      const e = (email || "").toLowerCase();
+      if (
+        e === "thiagooriginal2002@gmail.com" ||
+        e === "thiago@radardorole.com.br" ||
+        e === "raphaelafafinha18@gmail.com"
+      ) {
+        return false;
+      }
+      return (
+        e.includes("@teste.com") ||
+        e.startsWith("teste_") ||
+        e.includes("test") ||
+        e.startsWith("auditoria_") ||
+        e === "vip@radardorole.com.br" ||
+        e.startsWith("usuario.real.")
+      );
+    };
+
+    const testUsers = registeredUsers.filter((u) => isTestEmail(u.email));
+    if (testUsers.length === 0) {
+      alert("Nenhum usuário fictício ou de teste encontrado.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Deseja realmente excluir todos os ${testUsers.length} usuários fictícios/de teste?\n\nAs contas reais (Thiago e Raphaela) serão preservadas.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // 1. Try secure RPC cleanup_test_users
+      try {
+        await (supabase as any).rpc("cleanup_test_users");
+      } catch (e) {}
+
+      // 2. Individual fallback for each test user
+      for (const tu of testUsers) {
+        try {
+          await (supabase as any).rpc("delete_admin_user", {
+            p_user_id: tu.id,
+            p_email: tu.email,
+          });
+        } catch (e) {}
+      }
+
+      // Update state
+      setRegisteredUsers((prev) => prev.filter((u) => !isTestEmail(u.email)));
+      alert(`✓ ${testUsers.length} usuários fictícios foram excluídos com sucesso!`);
+    } catch (err: any) {
+      alert("Erro na limpeza: " + (err?.message || "Tente novamente"));
+    }
+  };
+
   // Gateway Config Save Handler
   const handleSaveGateway = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1779,6 +1880,15 @@ function AdminDashboardPage() {
                   </button>
 
                   <button
+                    onClick={handleCleanupTestUsers}
+                    className="flex items-center gap-1.5 rounded-xl border border-rose-500/40 bg-rose-950/40 hover:bg-rose-900/50 px-3.5 py-2 text-xs font-black text-rose-300 transition-all shadow-[0_0_15px_rgba(244,63,94,0.2)] cursor-pointer"
+                    title="Excluir todos os cadastros fictícios gerados durante os testes"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Excluir Fictícios</span>
+                  </button>
+
+                  <button
                     onClick={handleExportUsersCSV}
                     className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/50 px-3.5 py-2 text-xs font-black text-emerald-300 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
                   >
@@ -1908,20 +2018,31 @@ function AdminDashboardPage() {
                             {u.created_at ? new Date(u.created_at).toLocaleDateString("pt-BR") : "-"}
                           </td>
                           <td className="py-3 px-3 text-right">
-                            {cleanPhone ? (
-                              <a
-                                href={`https://wa.me/55${cleanPhone}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"
-                                title="Conversar no WhatsApp"
-                              >
-                                <Phone className="h-3 w-3" />
-                                <span>WhatsApp</span>
-                              </a>
-                            ) : (
-                              <span className="text-slate-600 text-[10px]">-</span>
-                            )}
+                            <div className="flex items-center justify-end gap-1.5">
+                              {cleanPhone && (
+                                <a
+                                  href={`https://wa.me/55${cleanPhone}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"
+                                  title="Conversar no WhatsApp"
+                                >
+                                  <Phone className="h-3 w-3" />
+                                  <span>WhatsApp</span>
+                                </a>
+                              )}
+                              {u.email !== "thiagooriginal2002@gmail.com" && u.email !== "thiago@radardorole.com.br" && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteUser(u)}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[11px] font-bold text-rose-300 hover:bg-rose-500/20 hover:border-rose-400 transition-all cursor-pointer"
+                                  title={`Excluir usuário ${u.name || u.email}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  <span>Excluir</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );

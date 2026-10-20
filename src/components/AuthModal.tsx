@@ -340,54 +340,97 @@ export function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 transition-all animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClickCapture={(e) => e.stopPropagation()}
+      className="auth-modal-container auth-gate-allow fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 transition-all animate-in fade-in duration-200"
+    >
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div ref={modalScrollRef} className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#0c101c] p-5 sm:p-6 text-slate-100 shadow-[0_0_50px_-10px_rgba(0,240,255,0.4)] z-10 animate-in zoom-in-95 duration-200">
+      <div
+        ref={modalScrollRef}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#0c101c] p-5 sm:p-6 text-slate-100 shadow-[0_0_50px_-10px_rgba(0,240,255,0.4)] z-10 animate-in zoom-in-95 duration-200"
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors"
+          type="button"
+          aria-label="Fechar"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer z-20"
         >
           <X className="h-4 w-4" />
         </button>
 
-        {/* Gate Mode Warning Pill */}
-        {isGateMode && (
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-300">
-            <Lock className="h-3 w-3 text-amber-400 animate-pulse" />
-            <span>Cadastro Obrigatório para Navegar</span>
-          </div>
-        )}
-
         {/* Modal Header */}
         <div className="flex items-center gap-3 pr-8">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-fuchsia-600 text-2xl shadow-[0_0_25px_-5px_rgba(0,240,255,0.6)]">
-            {persona === "client" ? "🪩" : "🏢"}
+            {tab === "login" ? "🔑" : persona === "client" ? "🪩" : "🏢"}
           </div>
           <div>
             <h3 className="text-lg sm:text-xl font-black text-white leading-tight">
               {tab === "register"
                 ? registerStep === "verify_phone"
                   ? "Validar Celular"
-                  : "Criar Conta Oficial"
+                  : persona === "partner"
+                  ? "Cadastrar Estabelecimento"
+                  : "Criar Conta de Baladeiro"
                 : "Acessar Radar do Rolê"}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               {tab === "register"
                 ? registerStep === "verify_phone"
                   ? "Confirme o código de segurança enviado para seu celular"
+                  : persona === "partner"
+                  ? "Cadastre sua casa noturna, bar ou restaurante parceiro"
                   : "Cadastre-se para liberar listas VIP, descontos e reservas"
-                : "Entre com suas credenciais ou biometria cadastrada"}
+                : "Entre com seu e-mail e senha cadastrados"}
             </p>
           </div>
         </div>
 
-        {/* 1. SELECT PERSONA (Apenas na etapa de preenchimento) */}
+        {/* 1. MAIN ACTION TABS: Entrar vs Criar Conta */}
         {registerStep === "fill_data" && (
-          <div className="mt-5">
+          <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-black/60 p-1.5 shadow-inner">
+            <button
+              type="button"
+              onClick={() => {
+                setTab("login");
+                setErrorMsg("");
+                setRegisterStep("fill_data");
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-black transition-all cursor-pointer ${
+                tab === "login"
+                  ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] border border-cyan-400/40"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              <span>🔑 Já tenho conta (Entrar)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTab("register");
+                setErrorMsg("");
+                setRegisterStep("fill_data");
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-black transition-all cursor-pointer ${
+                tab === "register"
+                  ? "bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(255,0,127,0.4)] border border-fuchsia-400/40"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              <span>✨ Criar nova conta</span>
+            </button>
+          </div>
+        )}
+
+        {/* 2. SELECT PERSONA (Apenas na etapa de cadastro 'register') */}
+        {tab === "register" && registerStep === "fill_data" && (
+          <div className="mt-3.5">
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
-              Selecione o seu perfil de acesso:
+              Selecione seu perfil de cadastro:
             </label>
             <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1.5">
               <button
@@ -396,13 +439,13 @@ export function AuthModal({
                   setPersona("client");
                   setErrorMsg("");
                 }}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-black transition-all ${
+                className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-black transition-all cursor-pointer ${
                   persona === "client"
-                    ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(0,240,255,0.5)] border border-cyan-400/40"
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <PartyPopper className="h-4 w-4 shrink-0" />
+                <PartyPopper className="h-4 w-4 shrink-0 text-cyan-400" />
                 <span>Sou Baladeiro</span>
               </button>
 
@@ -412,52 +455,16 @@ export function AuthModal({
                   setPersona("partner");
                   setErrorMsg("");
                 }}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-black transition-all ${
+                className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-black transition-all cursor-pointer ${
                   persona === "partner"
-                    ? "bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(255,0,127,0.5)] border border-fuchsia-400/40"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-400/50 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <Building2 className="h-4 w-4 shrink-0" />
+                <Building2 className="h-4 w-4 shrink-0 text-fuchsia-400" />
                 <span>Estabelecimento</span>
               </button>
             </div>
-          </div>
-        )}
-
-        {/* 2. SELECT ACTION: Entrar vs Criar Conta (Apenas na etapa de preenchimento) */}
-        {registerStep === "fill_data" && (
-          <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-black/40 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setTab("login");
-                setErrorMsg("");
-                setRegisterStep("fill_data");
-              }}
-              className={`rounded-lg py-2 text-xs font-bold transition-all ${
-                tab === "login"
-                  ? "bg-white/15 text-white shadow-sm font-black"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              Já tenho conta (Entrar)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTab("register");
-                setErrorMsg("");
-                setRegisterStep("fill_data");
-              }}
-              className={`rounded-lg py-2 text-xs font-bold transition-all ${
-                tab === "register"
-                  ? "bg-white/15 text-white shadow-sm font-black"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              Criar nova conta
-            </button>
           </div>
         )}
 
@@ -555,21 +562,86 @@ export function AuthModal({
           /* VIEW 2: CADASTRO - ETAPA 1 (DADOS PESSOAIS + CPF) */
           <form onSubmit={handleStartPhoneVerification} className="mt-4 space-y-3">
             {persona === "partner" && (
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-                  Nome do Estabelecimento *
-                </label>
-                <div className="relative">
-                  <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-fuchsia-400" />
-                  <input
-                    type="text"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Ex: Vila JK, D-Edge, Tatu Bola..."
-                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-fuchsia-400 focus:bg-white/10 focus:outline-none transition-all"
-                  />
+              <>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 mb-1 block">
+                    Nome do Estabelecimento *
+                  </label>
+                  <div className="relative">
+                    <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-fuchsia-400" />
+                    <input
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="Ex: Vila JK, D-Edge, Tatu Bola..."
+                      className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-fuchsia-400 focus:bg-white/10 focus:outline-none transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {/* Categoria do Local */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 mb-1 block">
+                    Categoria da Casa / Local *
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setVenueCategory("baladas")}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer flex flex-col items-center gap-1 ${
+                        venueCategory === "baladas"
+                          ? "bg-fuchsia-500/25 border-fuchsia-400 text-white shadow-[0_0_15px_rgba(255,0,127,0.3)]"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-sm">🪩</span>
+                      <span>Balada</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVenueCategory("restaurantes")}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer flex flex-col items-center gap-1 ${
+                        venueCategory === "restaurantes"
+                          ? "bg-cyan-500/25 border-cyan-400 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-sm">🍸</span>
+                      <span>Bar / Rest.</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVenueCategory("moteis")}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer flex flex-col items-center gap-1 ${
+                        venueCategory === "moteis"
+                          ? "bg-purple-500/25 border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-sm">🏩</span>
+                      <span>Motel</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bairro em SP */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 mb-1 block">
+                    Bairro em São Paulo *
+                  </label>
+                  <select
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                    className="w-full rounded-xl border border-white/15 bg-[#121829] py-2.5 px-3 text-sm text-white focus:border-fuchsia-400 focus:outline-none transition-all cursor-pointer"
+                  >
+                    {NEIGHBORHOODS.map((n) => (
+                      <option key={n.name} value={n.name} className="bg-[#0c101c] text-white">
+                        📍 {n.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
             )}
 
             {/* Nome Completo */}

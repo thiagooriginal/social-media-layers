@@ -1268,7 +1268,6 @@ function IndexPage() {
 
   return (
     <div
-      onClickCapture={handleGlobalGateClick}
       className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-cyan-500 selection:text-black w-full max-w-full overflow-x-hidden"
     >
       {/* Radar Intro Splash Animation (Abertura estilo scanner de satélite) */}

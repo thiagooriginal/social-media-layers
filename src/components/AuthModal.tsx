@@ -343,7 +343,6 @@ export function AuthModal({
     <div
       role="dialog"
       aria-modal="true"
-      onClickCapture={(e) => e.stopPropagation()}
       className="auth-modal-container auth-gate-allow fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 transition-all animate-in fade-in duration-200"
     >
       <div className="absolute inset-0" onClick={onClose} />
@@ -355,10 +354,13 @@ export function AuthModal({
       >
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           type="button"
           aria-label="Fechar"
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer z-20"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer z-30"
         >
           <X className="h-4 w-4" />
         </button>

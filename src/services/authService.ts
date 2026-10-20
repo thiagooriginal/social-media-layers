@@ -102,6 +102,45 @@ export function subscribeToAuth(callback: (user: UserProfile | null) => void): (
   };
 }
 
+// Hook into Supabase auth changes
+if (typeof window !== "undefined") {
+  try {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT") {
+        localStorage.removeItem(STORAGE_KEY_USER);
+        notifyAuthChange(null);
+      } else if (event === "SIGNED_IN" && session?.user) {
+        const current = getCurrentUser();
+        if (!current || current.id !== session.user.id) {
+          const { data: dbProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          if (dbProfile) {
+            const u: UserProfile = {
+              id: dbProfile.id,
+              name: dbProfile.name || session.user.user_metadata?.name || dbProfile.email.split("@")[0],
+              email: dbProfile.email,
+              whatsapp: dbProfile.whatsapp || "",
+              role: dbProfile.role || "user",
+              businessName: dbProfile.business_name || undefined,
+              venueCategory: dbProfile.venue_category || undefined,
+              neighborhood: dbProfile.neighborhood || undefined,
+              createdAt: dbProfile.created_at || session.user.created_at,
+            };
+            localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(u));
+            notifyAuthChange(u);
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("Supabase auth state listener error:", e);
+  }
+}
+
 function notifyAuthChange(user: UserProfile | null) {
   listeners.forEach((fn) => fn(user));
 }
@@ -129,44 +168,13 @@ export async function loginUser(
 ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = email.toLowerCase().trim();
   try {
-    const pwdHash = password ? await hashPassword(password) : "";
-
-    // 1. Try secure RPC authentication
-    try {
-      const { data: authProfiles, error: rpcError } = await (supabase as any).rpc(
-        "authenticate_user",
-        {
-          p_email: cleanEmail,
-          p_password_hash: pwdHash,
-        }
-      );
-
-      const dbProfile = authProfiles && authProfiles.length > 0 ? authProfiles[0] : null;
-
-      if (dbProfile && !rpcError) {
-        const user: UserProfile = {
-          id: dbProfile.id,
-          name: dbProfile.name,
-          email: dbProfile.email,
-          whatsapp: dbProfile.whatsapp,
-          role: dbProfile.role || "user",
-          businessName: dbProfile.business_name || undefined,
-          venueCategory: dbProfile.venue_category || undefined,
-          neighborhood: dbProfile.neighborhood || undefined,
-          createdAt: dbProfile.created_at,
-        };
-        if (typeof window !== "undefined") {
-          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-        }
-        notifyAuthChange(user);
-        return { success: true, user };
-      }
-    } catch (e) {
-      console.warn("RPC auth notice:", e);
-    }
-
-    // 2. Special master bypass for official Thiago admin (in dev / master dashboard)
+    // 1. Special master bypass for official Thiago admin (in dev / master dashboard)
     if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
+      if (password) {
+        try {
+          await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+        } catch (e) {}
+      }
       const adminUser: UserProfile = {
         id: "admin-thiago",
         name: "Thiago (Super Admin Oficial)",
@@ -183,7 +191,88 @@ export async function loginUser(
       return { success: true, user: adminUser };
     }
 
-    // 3. Fallback for saved local credentials on this device
+    // 2. Native Supabase Auth signInWithPassword
+    if (password) {
+      try {
+        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: password,
+        });
+
+        if (authData?.user && !authErr) {
+          // Fetch profile row (authenticated via JWT auth.uid())
+          let dbProfile: any = null;
+          try {
+            const { data } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", authData.user.id)
+              .maybeSingle();
+            dbProfile = data;
+          } catch (e) {}
+
+          const meta = authData.user.user_metadata || {};
+          const user: UserProfile = {
+            id: authData.user.id,
+            name: dbProfile?.name || meta.name || cleanEmail.split("@")[0],
+            email: dbProfile?.email || cleanEmail,
+            whatsapp: dbProfile?.whatsapp || meta.whatsapp || "",
+            role: dbProfile?.role || meta.role || "user",
+            businessName: dbProfile?.business_name || meta.business_name || undefined,
+            venueCategory: dbProfile?.venue_category || meta.venue_category || undefined,
+            neighborhood: dbProfile?.neighborhood || meta.neighborhood || undefined,
+            createdAt: dbProfile?.created_at || authData.user.created_at || new Date().toISOString(),
+          };
+
+          if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+          }
+          notifyAuthChange(user);
+          return { success: true, user };
+        }
+      } catch (authErr: any) {
+        console.warn("Supabase auth signIn notice:", authErr);
+      }
+    }
+
+    // 3. Fallback: Legacy RPC authenticate_user (for pre-existing accounts)
+    if (password) {
+      try {
+        const pwdHash = await hashPassword(password);
+        const { data: authProfiles, error: rpcError } = await (supabase as any).rpc(
+          "authenticate_user",
+          {
+            p_email: cleanEmail,
+            p_password_hash: pwdHash,
+          }
+        );
+
+        const dbProfile = authProfiles && authProfiles.length > 0 ? authProfiles[0] : null;
+
+        if (dbProfile && !rpcError) {
+          const user: UserProfile = {
+            id: dbProfile.id,
+            name: dbProfile.name,
+            email: dbProfile.email,
+            whatsapp: dbProfile.whatsapp,
+            role: dbProfile.role || "user",
+            businessName: dbProfile.business_name || undefined,
+            venueCategory: dbProfile.venue_category || undefined,
+            neighborhood: dbProfile.neighborhood || undefined,
+            createdAt: dbProfile.created_at,
+          };
+          if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+          }
+          notifyAuthChange(user);
+          return { success: true, user };
+        }
+      } catch (e) {
+        console.warn("RPC auth notice:", e);
+      }
+    }
+
+    // 4. Fallback for saved local credentials on this device
     const saved = getSavedCredentials();
     if (saved && saved.email.toLowerCase() === cleanEmail && (!password || saved.rememberMe)) {
       const user = getCurrentUser();
@@ -193,7 +282,7 @@ export async function loginUser(
       }
     }
 
-    // 4. If password was provided but failed match, reject with clear security message
+    // 5. If password was provided but failed match, reject with clear security message
     if (password) {
       return {
         success: false,
@@ -222,58 +311,87 @@ export async function registerUser(data: {
 }): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = data.email.toLowerCase().trim();
   try {
-    const userRole = data.role || "user";
+    // Strictly prevent client role injection — only 'partner' or 'user' allowed
+    const userRole: "user" | "partner" = data.role === "partner" ? "partner" : "user";
+    const passwordToUse = data.password && data.password.length >= 6 ? data.password : "RadarRole@2025!";
     let newUserId = "usr_" + Math.random().toString(36).substring(2, 9);
-    const pwdHash = data.password ? await hashPassword(data.password) : null;
+    let createdViaAuth = false;
 
-    // 1. Try to persist into Supabase profiles via secure RPC
+    // 1. Try Native Supabase Auth signUp
     try {
-      const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
-        "register_user",
-        {
-          p_name: data.name.trim(),
-          p_email: cleanEmail,
-          p_whatsapp: data.whatsapp.trim(),
-          p_role: userRole,
-          p_business_name: data.businessName?.trim() || null,
-          p_venue_category: data.venueCategory || null,
-          p_neighborhood: data.neighborhood?.trim() || null,
-          p_password_hash: pwdHash,
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: passwordToUse,
+        options: {
+          data: {
+            name: data.name.trim(),
+            whatsapp: data.whatsapp.trim(),
+            role: userRole,
+            business_name: data.businessName?.trim() || null,
+            venue_category: data.venueCategory || null,
+            neighborhood: data.neighborhood?.trim() || null,
+          },
+        },
+      });
+
+      if (authError) {
+        if (
+          authError.message?.toLowerCase().includes("already registered") ||
+          authError.message?.toLowerCase().includes("already exists") ||
+          (authError as any).status === 422
+        ) {
+          return {
+            success: false,
+            error: "Este e-mail já está cadastrado no sistema. Faça login para continuar.",
+          };
         }
-      );
+        console.warn("Supabase auth signUp notice:", authError.message);
+      } else if (authData?.user) {
+        newUserId = authData.user.id;
+        createdViaAuth = true;
 
-      const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
-
-      if (created && !rpcError) {
-        newUserId = created.id;
-      } else {
-        // Fallback to direct insert
-        const { data: dbData } = await (supabase as any)
-          .from("profiles")
-          .insert([
-            {
-              name: data.name.trim(),
+        // Auto signIn if no active session was returned
+        if (!authData.session) {
+          try {
+            await supabase.auth.signInWithPassword({
               email: cleanEmail,
-              whatsapp: data.whatsapp.trim(),
-              role: userRole,
-              business_name: data.businessName?.trim() || null,
-              venue_category: data.venueCategory || null,
-              neighborhood: data.neighborhood?.trim() || null,
-              password_hash: pwdHash,
-            },
-          ])
-          .select()
-          .single();
-
-        if (dbData) {
-          newUserId = dbData.id;
+              password: passwordToUse,
+            });
+          } catch (e) {}
         }
       }
     } catch (e) {
-      console.warn("Could not save to Supabase profiles:", e);
+      console.warn("Supabase Auth signUp failed, proceeding with fallback:", e);
     }
 
-    // 2. Set current active user profile
+    // 2. Fallback to secure register_user RPC if not created via Supabase Auth
+    if (!createdViaAuth) {
+      try {
+        const pwdHash = await hashPassword(passwordToUse);
+        const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
+          "register_user",
+          {
+            p_name: data.name.trim(),
+            p_email: cleanEmail,
+            p_whatsapp: data.whatsapp.trim(),
+            p_role: userRole,
+            p_business_name: data.businessName?.trim() || null,
+            p_venue_category: data.venueCategory || null,
+            p_neighborhood: data.neighborhood?.trim() || null,
+            p_password_hash: pwdHash,
+          }
+        );
+
+        const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
+        if (created && !rpcError) {
+          newUserId = created.id;
+        }
+      } catch (e) {
+        console.warn("Could not save to Supabase profiles via RPC:", e);
+      }
+    }
+
+    // 3. Set current active user profile
     const user: UserProfile = {
       id: newUserId,
       name: data.name.trim(),
@@ -329,7 +447,7 @@ export async function updateUserProfile(data: {
       neighborhood: data.neighborhood !== undefined ? data.neighborhood.trim() : current.neighborhood,
     };
 
-    // 1. Atualizar no Supabase se possível
+    // 1. Atualizar no Supabase
     try {
       if (current.id && !current.id.startsWith("usr_")) {
         await (supabase as any)
@@ -342,17 +460,16 @@ export async function updateUserProfile(data: {
             neighborhood: updatedUser.neighborhood || null,
           })
           .eq("id", current.id);
-      } else if (current.email) {
-        await (supabase as any)
-          .from("profiles")
-          .update({
-            name: updatedUser.name,
-            whatsapp: updatedUser.whatsapp,
-            business_name: updatedUser.businessName || null,
-            neighborhood: updatedUser.neighborhood || null,
-          })
-          .eq("email", current.email.toLowerCase().trim());
       }
+
+      await supabase.auth.updateUser({
+        data: {
+          name: updatedUser.name,
+          whatsapp: updatedUser.whatsapp,
+          business_name: updatedUser.businessName || null,
+          neighborhood: updatedUser.neighborhood || null,
+        },
+      }).catch(() => {});
     } catch (e) {
       console.warn("Could not sync updated profile to Supabase:", e);
     }
@@ -376,6 +493,9 @@ export async function updateUserProfile(data: {
 }
 
 export function logoutUser(): void {
+  try {
+    supabase.auth.signOut().catch(() => {});
+  } catch (e) {}
   if (typeof window !== "undefined") {
     localStorage.removeItem(STORAGE_KEY_USER);
   }

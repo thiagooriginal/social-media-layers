@@ -404,13 +404,36 @@ export async function registerUser(data: {
       console.warn("Supabase Auth signUp failed, proceeding with fallback:", e);
     }
 
-    // 2. Fallback to secure register_user RPC if not created via Supabase Auth
-    if (!createdViaAuth) {
+    // 2. Persist profile row in Supabase profiles (via register_user RPC)
+    try {
+      const pwdHash = await hashPassword(passwordToUse);
+      
+      // Try calling with 10 params (including CPF and phone_verified)
+      let rpcData: any = null;
+      let rpcError: any = null;
       try {
-        const pwdHash = await hashPassword(passwordToUse);
-        const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
-          "register_user",
-          {
+        const res = await (supabase as any).rpc("register_user", {
+          p_name: data.name.trim(),
+          p_email: cleanEmail,
+          p_whatsapp: data.whatsapp.trim(),
+          p_role: userRole,
+          p_business_name: data.businessName?.trim() || null,
+          p_venue_category: data.venueCategory || null,
+          p_neighborhood: data.neighborhood?.trim() || null,
+          p_password_hash: pwdHash,
+          p_cpf: data.cpf?.trim() || null,
+          p_phone_verified: Boolean(data.phoneVerified),
+        });
+        rpcData = res.data;
+        rpcError = res.error;
+      } catch (e) {
+        rpcError = e;
+      }
+
+      // If 10-param signature failed, fallback to standard 8-param signature
+      if (rpcError || !rpcData) {
+        try {
+          const res8 = await (supabase as any).rpc("register_user", {
             p_name: data.name.trim(),
             p_email: cleanEmail,
             p_whatsapp: data.whatsapp.trim(),
@@ -419,29 +442,35 @@ export async function registerUser(data: {
             p_venue_category: data.venueCategory || null,
             p_neighborhood: data.neighborhood?.trim() || null,
             p_password_hash: pwdHash,
-          }
-        );
+          });
+          rpcData = res8.data;
+          rpcError = res8.error;
+        } catch (e) {
+          rpcError = e;
+        }
+      }
 
-        const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
-        if (created && !rpcError) {
+      const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
+      if (created && !rpcError) {
+        if (!createdViaAuth) {
           newUserId = created.id;
         }
-
-        // Sync cpf & phone_verified into profiles table
-        if (data.cpf) {
-          try {
-            await (supabase as any)
-              .from("profiles")
-              .update({
-                cpf: data.cpf.trim(),
-                phone_verified: Boolean(data.phoneVerified),
-              })
-              .eq("id", newUserId);
-          } catch (e) {}
-        }
-      } catch (e) {
-        console.warn("Could not save to Supabase profiles via RPC:", e);
       }
+
+      // Attempt to save CPF and phone_verified directly if available
+      if (data.cpf || data.phoneVerified) {
+        try {
+          await (supabase as any)
+            .from("profiles")
+            .update({
+              cpf: data.cpf?.trim() || null,
+              phone_verified: Boolean(data.phoneVerified),
+            })
+            .eq("email", cleanEmail);
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.warn("Could not save to Supabase profiles via RPC:", e);
     }
 
     // 3. Set current active user profile

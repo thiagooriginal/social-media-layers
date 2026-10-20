@@ -304,16 +304,28 @@ function AdminDashboardPage() {
         setConfirmations(confData);
       }
 
-      // 4. Fetch Registered Profiles / Users
+      // 4. Fetch Registered Profiles / Users (via get_admin_users RPC or direct table query)
+      let usersData: any = null;
       try {
-        const { data: usersData } = await (supabase as any)
-          .from("profiles")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (usersData && usersData.length > 0) {
-          setRegisteredUsers(usersData);
+        const { data: rpcUsers, error: rpcErr } = await (supabase as any).rpc("get_admin_users");
+        if (rpcUsers && !rpcErr) {
+          usersData = rpcUsers;
         }
       } catch (e) {}
+
+      if (!usersData) {
+        try {
+          const { data } = await (supabase as any)
+            .from("profiles")
+            .select("*")
+            .order("created_at", { ascending: false });
+          usersData = data;
+        } catch (e) {}
+      }
+
+      if (usersData && usersData.length > 0) {
+        setRegisteredUsers(usersData);
+      }
     } catch (err) {
       console.warn("Could not load full admin data:", err);
     } finally {

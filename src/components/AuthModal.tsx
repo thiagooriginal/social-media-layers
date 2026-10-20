@@ -116,7 +116,7 @@ export function AuthModal({
   const [savedCreds, setSavedCreds] = useState<SavedCredentials | null>(() => getSavedCredentials());
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [biometricSuccess, setBiometricSuccess] = useState(false);
-  const [showManualLogin, setShowManualLogin] = useState(false);
+  const [showManualLogin, setShowManualLogin] = useState(true);
 
   // Countdown timer para reenvio do código
   useEffect(() => {
@@ -136,11 +136,7 @@ export function AuthModal({
       if (creds?.email && !email) {
         setEmail(creds.email);
       }
-
-      const hasRealBio = Boolean(getStoredBiometrics());
-      if (tab === "login") {
-        setShowManualLogin(!hasRealBio);
-      }
+      setShowManualLogin(true);
     }
   }, [isOpen, tab]);
 
@@ -165,7 +161,7 @@ export function AuthModal({
   if (!isOpen) return null;
 
   // 1. Etapa 1: Validação dos dados preenchidos e disparo do código SMS/WhatsApp
-  const handleStartPhoneVerification = async (e: React.FormEvent) => {
+  const handleStartPhoneVerification = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -195,12 +191,8 @@ export function AuthModal({
       showError("Por favor, informe seu CPF. Ele é obrigatório para as listas VIP e benefícios.");
       return;
     }
-    if (cleanCpf.length < 11) {
+    if (cleanCpf.length !== 11) {
       showError("O CPF deve conter todos os 11 dígitos numéricos.");
-      return;
-    }
-    if (!validateCPF(cleanCpf)) {
-      showError("CPF inválido. Por favor, confira os números digitados do seu CPF.");
       return;
     }
 
@@ -214,18 +206,29 @@ export function AuthModal({
       return;
     }
 
-    // Gerar código de 6 dígitos e disparar mensagem
-    setSendingOtp(true);
+    // Gerar código de 6 dígitos e link de contingência
     const code = generateOtpCode();
     setGeneratedOtp(code);
 
-    const otpRes = await sendPhoneVerificationCode(whatsapp, name, code);
-    setSendingOtp(false);
+    const ddiPhone = digitsPhone.startsWith("55") ? digitsPhone : "55" + digitsPhone;
+    const directLink = `https://api.whatsapp.com/send?phone=${ddiPhone}&text=${encodeURIComponent(
+      `Olá, meu código de validação no Radar do Rolê é: ${code}`
+    )}`;
+    setDirectWaLink(directLink);
 
-    setDirectWaLink(otpRes.directWaLink);
+    // Avança imediatamente para a tela de validação sem travar a interface
     setRegisterStep("verify_phone");
     setResendTimer(30);
     setInputOtp("");
+
+    // Dispara envio do código via WhatsApp em segundo plano
+    setSendingOtp(true);
+    sendPhoneVerificationCode(whatsapp, name, code)
+      .then((otpRes) => {
+        if (otpRes?.directWaLink) setDirectWaLink(otpRes.directWaLink);
+      })
+      .catch((err) => console.warn("Erro ao disparar WhatsApp OTP:", err))
+      .finally(() => setSendingOtp(false));
   };
 
   // Reenviar código
@@ -468,139 +471,86 @@ export function AuthModal({
 
         {/* VIEW 1: LOGIN FLOW */}
         {tab === "login" ? (
-          !showManualLogin ? (
-            <div className="mt-4 rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0c1322] via-[#090d18] to-[#070a12] p-6 text-center shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex items-center justify-center gap-1.5 mb-3">
-                <span className="rounded-full bg-cyan-500/15 border border-cyan-400/30 px-2.5 py-0.5 text-[10px] font-black text-cyan-300 uppercase tracking-wider">
-                  {persona === "partner" ? "Acesso de Estabelecimento" : "Acesso de Baladeiro VIP"}
-                </span>
-              </div>
-
-              <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 via-purple-600 to-fuchsia-600 text-2xl font-black text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] mb-2">
-                {savedCreds?.name ? savedCreds.name[0].toUpperCase() : persona === "partner" ? "🏢" : "👤"}
-              </div>
-
-              <h3 className="text-lg font-black text-white">
-                Olá, {savedCreds?.name || (persona === "partner" ? "Gestor Parceiro" : "Baladeiro VIP")}!
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5 truncate max-w-xs mx-auto">
-                {savedCreds?.email || email || "Identificação Biométrica Rápida"}
-              </p>
-
-              <div className="my-7 flex flex-col items-center justify-center">
-                <button
-                  type="button"
-                  onClick={handleBiometricLogin}
-                  disabled={biometricLoading}
-                  className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-cyan-400/60 bg-cyan-950/40 hover:bg-cyan-900/50 hover:border-cyan-300 active:scale-95 transition-all shadow-[0_0_35px_rgba(6,182,212,0.4)] cursor-pointer group"
-                >
-                  <span className="absolute inset-0 rounded-full border border-cyan-400/40 animate-ping opacity-60" />
-                  <span className="absolute -inset-2.5 rounded-full border border-purple-500/30 animate-pulse" />
-
-                  {biometricSuccess ? (
-                    <div className="flex flex-col items-center justify-center text-emerald-400">
-                      <Check className="h-12 w-12 stroke-[3]" />
-                    </div>
-                  ) : (
-                    <Fingerprint
-                      className={`h-12 w-12 text-cyan-400 group-hover:scale-110 transition-transform ${
-                        biometricLoading ? "animate-pulse text-cyan-200 scale-110" : ""
-                      }`}
-                    />
-                  )}
-                </button>
-
-                <div className="mt-4">
-                  <span className="text-xs font-black text-cyan-300 block">
-                    {biometricLoading ? "Toque no sensor do seu celular..." : "Toque na digital para entrar"}
-                  </span>
-                </div>
-              </div>
-
+          <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3.5 animate-in fade-in">
+            {getStoredBiometrics() && (
               <button
                 type="button"
-                onClick={() => setShowManualLogin(true)}
-                className="text-xs text-slate-400 hover:text-cyan-400 transition-colors underline cursor-pointer"
+                onClick={handleBiometricLogin}
+                disabled={biometricLoading}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/40 bg-cyan-950/40 py-2.5 px-4 text-xs font-bold text-cyan-300 hover:bg-cyan-900/50 hover:border-cyan-300 transition-all cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.2)] mb-1"
               >
-                Entrar digitando e-mail e senha
+                <Fingerprint className="h-4 w-4 text-cyan-400" />
+                <span>{biometricLoading ? "Lendo biometria..." : "Entrar com Digital / Face ID"}</span>
               </button>
+            )}
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-300 mb-1 block">Seu E-mail *</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seuemail@exemplo.com"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
+                />
+              </div>
             </div>
-          ) : (
-            <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3.5">
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 mb-1 block">Seu E-mail *</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seuemail@exemplo.com"
-                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
-                  />
-                </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-300 mb-1 block">Senha de Acesso *</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-11 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 text-slate-400 hover:text-cyan-400 focus:outline-none cursor-pointer flex items-center justify-center transition-colors"
+                  title={showPassword ? "Ocultar senha" : "Ver senha"}
+                  aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
+            </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[11px] font-bold text-slate-300 block">Senha de Acesso *</label>
-                  {password && (
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      <span>{showPassword ? "Ocultar" : "Visualizar"}</span>
-                    </button>
-                  )}
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
-                  />
-                </div>
+            <div className="space-y-2 pt-1 pb-1">
+              <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-cyan-500"
+                />
+                <span>Salvar login neste aparelho</span>
+              </label>
+            </div>
+
+            {/* Mensagem de Erro destacada acima do botão */}
+            {errorMsg && (
+              <div className="rounded-xl border border-rose-500/50 bg-rose-500/20 p-3 text-xs font-bold text-rose-300 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+                <span>{errorMsg}</span>
               </div>
+            )}
 
-              <div className="space-y-2 pt-1 pb-1">
-                <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-white/10 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-cyan-500"
-                  />
-                  <span>Salvar login neste aparelho</span>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-sm font-black text-white transition-all shadow-lg cursor-pointer bg-gradient-to-r from-cyan-600 via-cyan-500 to-fuchsia-600 hover:brightness-110 active:scale-95 shadow-[0_0_25px_rgba(0,240,255,0.4)]"
-              >
-                <span>{loading ? "Entrando..." : "Entrar no Radar do Rolê"}</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-
-              {getStoredBiometrics() && (
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowManualLogin(false)}
-                    className="text-xs text-cyan-400 hover:underline cursor-pointer"
-                  >
-                    ← Voltar para entrada por Digital
-                  </button>
-                </div>
-              )}
-            </form>
-          )
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-sm font-black text-white transition-all shadow-lg cursor-pointer bg-gradient-to-r from-cyan-600 via-cyan-500 to-fuchsia-600 hover:brightness-110 active:scale-95 shadow-[0_0_25px_rgba(0,240,255,0.4)]"
+            >
+              <span>{loading ? "Entrando..." : "Entrar no Radar do Rolê"}</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </form>
         ) : registerStep === "fill_data" ? (
           /* VIEW 2: CADASTRO - ETAPA 1 (DADOS PESSOAIS + CPF) */
           <form onSubmit={handleStartPhoneVerification} className="mt-4 space-y-3">
@@ -711,14 +661,17 @@ export function AuthModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-9 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-11 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 text-slate-400 hover:text-cyan-400 focus:outline-none cursor-pointer flex items-center justify-center transition-colors"
+                    title={showPassword ? "Ocultar senha" : "Ver senha"}
+                    aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
                   >
-                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -732,7 +685,7 @@ export function AuthModal({
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repita a senha"
-                    className={`w-full rounded-xl border bg-white/5 py-2.5 pl-10 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none ${
+                    className={`w-full rounded-xl border bg-white/5 py-2.5 pl-10 pr-11 text-sm text-white placeholder-slate-500 focus:outline-none [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
                       confirmPassword && confirmPassword === password
                         ? "border-emerald-500/60 focus:border-emerald-400"
                         : "border-white/15 focus:border-cyan-400"
@@ -740,10 +693,13 @@ export function AuthModal({
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    tabIndex={-1}
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 text-slate-400 hover:text-cyan-400 focus:outline-none cursor-pointer flex items-center justify-center transition-colors"
+                    title={showConfirmPassword ? "Ocultar confirmação de senha" : "Ver senha"}
+                    aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Ver senha"}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>

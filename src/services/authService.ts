@@ -5,6 +5,8 @@ export interface UserProfile {
   name: string;
   email: string;
   whatsapp: string;
+  cpf?: string;
+  phoneVerified?: boolean;
   avatarUrl?: string;
   role: "user" | "partner" | "admin";
   businessName?: string;
@@ -145,6 +147,38 @@ function notifyAuthChange(user: UserProfile | null) {
   listeners.forEach((fn) => fn(user));
 }
 
+export function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;
+}
+
+export function validateCPF(cpfRaw: string): boolean {
+  const cpf = cpfRaw.replace(/\D/g, "");
+  if (cpf.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cpf.charAt(i), 10) * (10 - i);
+  }
+  let rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(9), 10)) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cpf.charAt(i), 10) * (11 - i);
+  }
+  rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(10), 10)) return false;
+
+  return true;
+}
+
 export async function hashPassword(password: string): Promise<string> {
   const normalized = password.trim();
   if (typeof crypto !== "undefined" && crypto.subtle) {
@@ -217,6 +251,8 @@ export async function loginUser(
             name: dbProfile?.name || meta.name || cleanEmail.split("@")[0],
             email: dbProfile?.email || cleanEmail,
             whatsapp: dbProfile?.whatsapp || meta.whatsapp || "",
+            cpf: dbProfile?.cpf || meta.cpf,
+            phoneVerified: Boolean(dbProfile?.phone_verified ?? meta.phone_verified),
             role: dbProfile?.role || meta.role || "user",
             businessName: dbProfile?.business_name || meta.business_name || undefined,
             venueCategory: dbProfile?.venue_category || meta.venue_category || undefined,
@@ -303,6 +339,8 @@ export async function registerUser(data: {
   name: string;
   email: string;
   whatsapp: string;
+  cpf?: string;
+  phoneVerified?: boolean;
   password?: string;
   role?: "user" | "partner" | "admin";
   businessName?: string;
@@ -326,6 +364,8 @@ export async function registerUser(data: {
           data: {
             name: data.name.trim(),
             whatsapp: data.whatsapp.trim(),
+            cpf: data.cpf?.trim() || null,
+            phone_verified: Boolean(data.phoneVerified),
             role: userRole,
             business_name: data.businessName?.trim() || null,
             venue_category: data.venueCategory || null,
@@ -386,6 +426,19 @@ export async function registerUser(data: {
         if (created && !rpcError) {
           newUserId = created.id;
         }
+
+        // Sync cpf & phone_verified into profiles table
+        if (data.cpf) {
+          try {
+            await (supabase as any)
+              .from("profiles")
+              .update({
+                cpf: data.cpf.trim(),
+                phone_verified: Boolean(data.phoneVerified),
+              })
+              .eq("id", newUserId);
+          } catch (e) {}
+        }
       } catch (e) {
         console.warn("Could not save to Supabase profiles via RPC:", e);
       }
@@ -397,6 +450,8 @@ export async function registerUser(data: {
       name: data.name.trim(),
       email: cleanEmail,
       whatsapp: data.whatsapp.trim(),
+      cpf: data.cpf?.trim(),
+      phoneVerified: Boolean(data.phoneVerified),
       role: userRole,
       businessName: data.businessName?.trim(),
       venueCategory: data.venueCategory,

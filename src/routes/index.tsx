@@ -1246,8 +1246,31 @@ function IndexPage() {
     onlyTrending ||
     onlySnookerHookah;
 
+  // Global Gate: se o visitante não possui cadastro, qualquer clique intercepta e abre o modal de cadastro
+  const handleGlobalGateClick = (e: React.MouseEvent) => {
+    if (user) return; // Se já está autenticado, navega 100% livre!
+
+    const target = e.target as HTMLElement;
+    // Permite interações que estejam dentro de modais abertos ou elementos específicos
+    if (
+      target.closest('[role="dialog"]') ||
+      target.closest(".auth-modal-container") ||
+      target.closest(".auth-gate-allow")
+    ) {
+      return;
+    }
+
+    // Intercepta qualquer clique de navegação, card, botão, filtro, etc.
+    e.preventDefault();
+    e.stopPropagation();
+    handleOpenAuthModal();
+  };
+
   return (
-    <div className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-cyan-500 selection:text-black w-full max-w-full overflow-x-hidden">
+    <div
+      onClickCapture={handleGlobalGateClick}
+      className="min-h-screen bg-[#070a11] text-slate-100 pb-24 sm:pb-16 selection:bg-cyan-500 selection:text-black w-full max-w-full overflow-x-hidden"
+    >
       {/* Radar Intro Splash Animation (Abertura estilo scanner de satélite) */}
       {showRadarIntro && (
         <RadarIntroSplash
@@ -2197,6 +2220,8 @@ function IndexPage() {
       {/* Auth / Login / Signup Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
+        isGateMode={!user}
+        defaultTab="register"
         onClose={() => {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("has_seen_login_prompt", "true");
@@ -2404,6 +2429,33 @@ function IndexPage() {
         onClose={() => setIsLegalModalOpen(false)}
         initialTab={legalModalTab}
       />
+
+      {/* Floating Registration Prompt Banner when not logged in */}
+      {!user && (
+        <div className="fixed bottom-16 sm:bottom-4 left-3 right-3 sm:left-auto sm:right-4 sm:max-w-md z-40 animate-in slide-in-from-bottom duration-300 auth-gate-allow">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-400/50 bg-[#0d1322]/95 p-3.5 backdrop-blur-xl shadow-[0_0_40px_rgba(0,240,255,0.35)]">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-fuchsia-600 text-lg shadow-[0_0_15px_rgba(0,240,255,0.5)]">
+                🔒
+              </div>
+              <div className="pr-1">
+                <p className="text-xs font-black text-white leading-tight">
+                  Cadastro Obrigatório
+                </p>
+                <p className="text-[11px] text-cyan-300 mt-0.5">
+                  Crie sua conta para liberar baladas, VIP e reservas
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleOpenAuthModal}
+              className="shrink-0 rounded-xl bg-gradient-to-r from-cyan-500 to-fuchsia-600 py-2 px-3 text-xs font-black text-white shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+            >
+              Cadastrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

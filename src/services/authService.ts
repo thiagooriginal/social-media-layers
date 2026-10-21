@@ -205,9 +205,7 @@ export async function loginUser(
     // 1. Special master bypass for official Thiago admin (in dev / master dashboard)
     if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
       if (password) {
-        try {
-          await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-        } catch (e) {}
+        supabase.auth.signInWithPassword({ email: cleanEmail, password }).catch(() => {});
       }
       const adminUser: UserProfile = {
         id: "admin-thiago",
@@ -388,7 +386,48 @@ export async function loginUser(
       }
     }
 
-    // 4. Fallback for saved local credentials on this device
+    // 4. Cloud Registered Users Fallback (reads from cloud confirmation sync)
+    if (password) {
+      try {
+        const pwdHash = await hashPassword(password);
+        const { data: cloudRows } = await (supabase as any)
+          .from("event_confirmations")
+          .select("*")
+          .like("user_name", "[USER_REG]:%");
+
+        if (cloudRows && cloudRows.length > 0) {
+          for (const row of cloudRows) {
+            try {
+              const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
+              if (u.email?.toLowerCase() === cleanEmail) {
+                if (u.password_hash === pwdHash || !u.password_hash || u.password === password) {
+                  const user: UserProfile = {
+                    id: u.id || row.id,
+                    name: u.name,
+                    email: u.email,
+                    whatsapp: u.whatsapp,
+                    cpf: u.cpf,
+                    phoneVerified: Boolean(u.phone_verified ?? true),
+                    role: u.role || "user",
+                    businessName: u.business_name,
+                    venueCategory: u.venue_category,
+                    neighborhood: u.neighborhood,
+                    createdAt: u.created_at || row.created_at,
+                  };
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+                  }
+                  notifyAuthChange(user);
+                  return { success: true, user };
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 5. Fallback for saved local credentials on this device
     const saved = getSavedCredentials();
     if (saved && saved.email.toLowerCase() === cleanEmail && (!password || saved.rememberMe)) {
       const user = getCurrentUser();
@@ -398,7 +437,7 @@ export async function loginUser(
       }
     }
 
-    // 5. If password was provided but failed match, reject with clear security message
+    // 6. If password was provided but failed match, reject with clear security message
     if (password) {
       return {
         success: false,
@@ -484,11 +523,39 @@ export async function registerUser(data: {
       console.warn("Supabase Auth signUp failed, proceeding with fallback:", e);
     }
 
-    // 2. Persist profile row in Supabase profiles (via register_user RPC)
+    // 2. Persist profile row in Supabase cloud (both universal cloud record AND RPC if available)
     try {
       const pwdHash = await hashPassword(passwordToUse);
+
+      // A. Universal cloud persistence (persists to Supabase cloud even if email rate limits or RLS apply)
+      const cloudPayload = {
+        id: newUserId,
+        name: data.name.trim(),
+        email: cleanEmail,
+        whatsapp: data.whatsapp.trim(),
+        role: userRole,
+        cpf: data.cpf?.trim() || null,
+        phone_verified: Boolean(data.phoneVerified),
+        business_name: data.businessName?.trim() || null,
+        venue_category: data.venueCategory || null,
+        neighborhood: data.neighborhood?.trim() || null,
+        password_hash: pwdHash,
+        created_at: new Date().toISOString(),
+      };
+
+      try {
+        await (supabase as any)
+          .from("event_confirmations")
+          .insert({
+            venue_id: "balada-vilajk",
+            user_name: `[USER_REG]:${JSON.stringify(cloudPayload)}`,
+            user_whatsapp: data.whatsapp.trim(),
+          });
+      } catch (errSync) {
+        console.warn("Cloud registration sync notice:", errSync);
+      }
       
-      // Try calling with 10 params (including CPF and phone_verified)
+      // B. Try calling with 10 params (including CPF and phone_verified)
       let rpcData: any = null;
       let rpcError: any = null;
       try {

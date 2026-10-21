@@ -149,7 +149,7 @@ function AdminDashboardPage() {
 
   // Biometrics & Saved credentials for Super Admin
   const [adminRememberMe, setAdminRememberMe] = useState(true);
-  const [adminEnableBio, setAdminEnableBio] = useState(true);
+  const [adminEnableBio, setAdminEnableBio] = useState(false);
   const [adminBioLoading, setAdminBioLoading] = useState(false);
   const [adminBioSuccess, setAdminBioSuccess] = useState(false);
 
@@ -259,73 +259,145 @@ function AdminDashboardPage() {
     };
   }, [venues]);
 
-  // Load Admin Data from Supabase
+  // Load Admin Data from Supabase concurrently
   const loadDashboardData = async () => {
     setIsLoadingData(true);
     try {
-      // 1. Fetch Venues
-      const { data: venuesData } = await (supabase as any)
-        .from("venues")
-        .select("*")
-        .order("name", { ascending: true });
-      if (venuesData && venuesData.length > 0) {
-        setVenues(venuesData);
-      }
-
-      // 2. Fetch VIP Leads (via secure RPC)
-      let leadsData: any = null;
-      try {
-        const { data: rpcLeads, error: rpcErr } = await (supabase as any).rpc("get_admin_leads");
-        if (rpcLeads && !rpcErr) {
-          leadsData = rpcLeads;
-        }
-      } catch (e) {}
-
-      if (!leadsData) {
-        const { data } = await (supabase as any)
-          .from("vip_list_leads")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(100);
-        leadsData = data;
-      }
-
-      if (leadsData) {
-        setLeads(leadsData);
-      }
-
-      // 3. Fetch Confirmations
-      const { data: confData } = await (supabase as any)
-        .from("event_confirmations")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (confData) {
-        setConfirmations(confData);
-      }
-
-      // 4. Fetch Registered Profiles / Users (via get_admin_users RPC or direct table query)
-      let usersData: any = null;
-      try {
-        const { data: rpcUsers, error: rpcErr } = await (supabase as any).rpc("get_admin_users");
-        if (rpcUsers && !rpcErr) {
-          usersData = rpcUsers;
-        }
-      } catch (e) {}
-
-      if (!usersData) {
+      // 1. Venues Promise
+      const venuesPromise = (async () => {
         try {
-          const { data } = await (supabase as any)
-            .from("profiles")
+          const { data: venuesData } = await (supabase as any)
+            .from("venues")
             .select("*")
-            .order("created_at", { ascending: false });
-          usersData = data;
+            .order("name", { ascending: true });
+          if (venuesData && venuesData.length > 0) {
+            setVenues(venuesData);
+          }
         } catch (e) {}
-      }
+      })();
 
-      if (usersData && usersData.length > 0) {
-        setRegisteredUsers(usersData);
-      }
+      // 2. VIP Leads Promise
+      const leadsPromise = (async () => {
+        try {
+          let leadsData: any = null;
+          try {
+            const { data: rpcLeads, error: rpcErr } = await (supabase as any).rpc("get_admin_leads");
+            if (rpcLeads && !rpcErr) {
+              leadsData = rpcLeads;
+            }
+          } catch (e) {}
+
+          if (!leadsData) {
+            const { data } = await (supabase as any)
+              .from("vip_list_leads")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .limit(100);
+            leadsData = data;
+          }
+
+          if (leadsData) {
+            setLeads(leadsData);
+          }
+        } catch (e) {}
+      })();
+
+      // 3. Confirmations Promise (filtering out internal user registration records)
+      const confPromise = (async () => {
+        try {
+          const { data: confData } = await (supabase as any)
+            .from("event_confirmations")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(100);
+          if (confData) {
+            const filteredConfs = confData.filter(
+              (c: any) => !c.user_name || !c.user_name.startsWith("[USER_REG]:")
+            );
+            setConfirmations(filteredConfs);
+          }
+        } catch (e) {}
+      })();
+
+      // 4. Registered Users Promise (combines get_admin_users RPC, profiles table, and cloud sync records)
+      const usersPromise = (async () => {
+        try {
+          const usersMap = new Map<string, any>();
+
+          // A. Fetch via secure RPC get_admin_users
+          try {
+            const { data: rpcUsers } = await (supabase as any).rpc("get_admin_users");
+            if (rpcUsers && Array.isArray(rpcUsers)) {
+              rpcUsers.forEach((u: any) => {
+                if (u.email) {
+                  usersMap.set(u.email.toLowerCase().trim(), u);
+                }
+              });
+            }
+          } catch (e) {}
+
+          // B. Fetch direct from profiles table
+          try {
+            const { data: directProfiles } = await (supabase as any)
+              .from("profiles")
+              .select("*")
+              .order("created_at", { ascending: false });
+            if (directProfiles && Array.isArray(directProfiles)) {
+              directProfiles.forEach((u: any) => {
+                if (u.email) {
+                  const key = u.email.toLowerCase().trim();
+                  if (!usersMap.has(key)) {
+                    usersMap.set(key, u);
+                  }
+                }
+              });
+            }
+          } catch (e) {}
+
+          // C. Fetch from universal cloud registration sync in event_confirmations
+          try {
+            const { data: cloudRows } = await (supabase as any)
+              .from("event_confirmations")
+              .select("*")
+              .like("user_name", "[USER_REG]:%")
+              .order("created_at", { ascending: false });
+
+            if (cloudRows && Array.isArray(cloudRows)) {
+              cloudRows.forEach((row: any) => {
+                try {
+                  const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
+                  if (u.email) {
+                    const key = u.email.toLowerCase().trim();
+                    if (!usersMap.has(key)) {
+                      usersMap.set(key, {
+                        id: u.id || row.id,
+                        name: u.name,
+                        email: u.email,
+                        whatsapp: u.whatsapp,
+                        role: u.role || "user",
+                        cpf: u.cpf,
+                        phone_verified: Boolean(u.phone_verified ?? true),
+                        business_name: u.business_name,
+                        venue_category: u.venue_category,
+                        neighborhood: u.neighborhood,
+                        created_at: u.created_at || row.created_at,
+                        sync_confirmation_id: row.id,
+                      });
+                    }
+                  }
+                } catch (e) {}
+              });
+            }
+          } catch (e) {}
+
+          const allUsers = Array.from(usersMap.values());
+          if (allUsers.length > 0) {
+            setRegisteredUsers(allUsers);
+          }
+        } catch (e) {}
+      })();
+
+      await Promise.allSettled([venuesPromise, leadsPromise, confPromise, usersPromise]);
     } catch (err) {
       console.warn("Could not load full admin data:", err);
     } finally {
@@ -383,9 +455,6 @@ function AdminDashboardPage() {
             rememberMe: true,
             biometricsEnabled: adminEnableBio,
           });
-          if (adminEnableBio) {
-            registerDeviceBiometrics(adminUser);
-          }
         }
         setCurrentUser(adminUser);
       } else {
@@ -488,6 +557,23 @@ function AdminDashboardPage() {
         } catch (e) {}
       }
 
+      // 3. Delete from universal cloud confirmation sync
+      if (user.sync_confirmation_id) {
+        try {
+          await (supabase as any)
+            .from("event_confirmations")
+            .delete()
+            .eq("id", user.sync_confirmation_id);
+        } catch (e) {}
+      } else if (user.email) {
+        try {
+          await (supabase as any)
+            .from("event_confirmations")
+            .delete()
+            .like("user_name", `%${user.email}%`);
+        } catch (e) {}
+      }
+
       // Optimistically update local state
       setRegisteredUsers((prev) => prev.filter((u) => u.id !== user.id && u.email !== user.email));
       alert(`✓ Usuário "${user.name || user.email}" excluído com sucesso.`);
@@ -545,6 +631,21 @@ function AdminDashboardPage() {
             p_email: tu.email,
           });
         } catch (e) {}
+        if (tu.sync_confirmation_id) {
+          try {
+            await (supabase as any)
+              .from("event_confirmations")
+              .delete()
+              .eq("id", tu.sync_confirmation_id);
+          } catch (e) {}
+        } else if (tu.email) {
+          try {
+            await (supabase as any)
+              .from("event_confirmations")
+              .delete()
+              .like("user_name", `%${tu.email}%`);
+          } catch (e) {}
+        }
       }
 
       // Update state

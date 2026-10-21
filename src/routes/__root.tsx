@@ -159,9 +159,31 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { Toaster } from "sonner";
+import { trackPageView, subscribeToRealtimePresence } from "../services/siteMetricsService";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Record real pageview for this visit
+    trackPageView(window.location.pathname);
+
+    // 2. Connect to Supabase Realtime Presence channel for live visitor counting
+    const unsubPresence = subscribeToRealtimePresence(() => {});
+
+    // 3. Track in-app route changes
+    const handlePopState = () => {
+      trackPageView(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      unsubPresence();
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

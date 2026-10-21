@@ -54,7 +54,7 @@ interface AdminVisualDashboardProps {
   leads: any[];
   confirmations: any[];
   subscriptions: SaasSubscription[];
-  onNavigateTab: (tab: "venues" | "leads" | "confirmations" | "analytics" | "saas" | "whatsapp") => void;
+  onNavigateTab: (tab: "venues" | "leads" | "confirmations" | "analytics" | "saas" | "whatsapp" | "metrics") => void;
   onOpenNewVenueModal: () => void;
   onSelectVenueForInspection?: (venueId: string) => void;
 }

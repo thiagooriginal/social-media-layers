@@ -49,6 +49,13 @@ import {
   RotateCcw,
   Eye,
   EyeOff,
+  Globe,
+  Activity,
+  Compass,
+  Smartphone,
+  Laptop,
+  Monitor,
+  Clock,
 } from "lucide-react";
 import {
   getCurrentUser,
@@ -58,6 +65,13 @@ import {
   getSavedCredentials,
   saveCredentials,
 } from "../services/authService";
+import { AdminSiteMetricsTab } from "../components/AdminSiteMetricsTab";
+import {
+  fetchRealSiteMetrics,
+  subscribeToRealtimePresence,
+  RealSiteMetricsSummary,
+  RealPresenceVisitor,
+} from "../services/siteMetricsService";
 import {
   authenticateWithBiometrics,
   registerDeviceBiometrics,
@@ -407,8 +421,14 @@ function AdminDashboardMain({
   const [userSearch, setUserSearch] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp"
+    "dashboard" | "metrics" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp"
   >("dashboard");
+
+  // Real-time Site Traffic & Metrics State (Zero Fictitious Numbers)
+  const [siteMetrics, setSiteMetrics] = useState<RealSiteMetricsSummary | null>(null);
+  const [onlineVisitors, setOnlineVisitors] = useState<RealPresenceVisitor[]>([]);
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+  const [lastMetricsUpdate, setLastMetricsUpdate] = useState<Date>(new Date());
 
   // Edit Venue state
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
@@ -548,7 +568,7 @@ function AdminDashboardMain({
         } catch (e) {}
       })();
 
-      // 3. Confirmations Promise (filtering out internal user registration records)
+      // 3. Confirmations Promise (filtering out internal user registration and site traffic records)
       const confPromise = (async () => {
         try {
           const { data: confData } = await (supabase as any)
@@ -558,7 +578,11 @@ function AdminDashboardMain({
             .limit(100);
           if (confData) {
             const filteredConfs = confData.filter(
-              (c: any) => !c.user_name || !c.user_name.startsWith("[USER_REG]:")
+              (c: any) =>
+                !c.user_name ||
+                (!c.user_name.startsWith("[USER_REG]:") &&
+                  !c.user_name.startsWith("[SITE_PAGEVIEW]:") &&
+                  !c.user_name.startsWith("[SITE_EVENT]:"))
             );
             setConfirmations(filteredConfs);
           }
@@ -646,9 +670,39 @@ function AdminDashboardMain({
     }
   };
 
+  // Load Real Site Metrics from Database (Zero Fictitious Numbers)
+  const loadRealSiteMetrics = async () => {
+    setIsLoadingMetrics(true);
+    try {
+      const summary = await fetchRealSiteMetrics();
+      setSiteMetrics(summary);
+      setLastMetricsUpdate(new Date());
+    } catch (e) {
+      console.warn("Could not load real site metrics:", e);
+    } finally {
+      setIsLoadingMetrics(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       loadDashboardData();
+      loadRealSiteMetrics();
+
+      // Subscribe to Supabase Realtime Presence channel for live visitor counting
+      const unsubPresence = subscribeToRealtimePresence((presences) => {
+        setOnlineVisitors(presences);
+      });
+
+      // Auto-refresh real site metrics every 30 seconds
+      const metricsInterval = setInterval(() => {
+        loadRealSiteMetrics();
+      }, 30000);
+
+      return () => {
+        unsubPresence();
+        clearInterval(metricsInterval);
+      };
     }
   }, [isAdmin]);
 
@@ -1224,7 +1278,7 @@ function AdminDashboardMain({
   };
 
   // Switch tab with smooth auto-scroll to section
-  const handleSwitchTab = (tab: "dashboard" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp") => {
+  const handleSwitchTab = (tab: "dashboard" | "metrics" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp") => {
     setActiveTab(tab);
     setTimeout(() => {
       const el = document.getElementById("admin-tab-content");
@@ -1452,6 +1506,23 @@ function AdminDashboardMain({
 
             <button
               type="button"
+              onClick={() => handleSwitchTab("metrics")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                activeTab === "metrics"
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)]"
+                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+              }`}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <Activity className="h-3.5 w-3.5" />
+              <span>🌐 Métricas ({onlineVisitors.length} online)</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleSwitchTab("whatsapp")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 activeTab === "whatsapp"
@@ -1505,6 +1576,23 @@ function AdminDashboardMain({
             >
               <BarChart3 className="h-4 w-4" />
               <span>📊 Dashboard & Gráficos Master</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSwitchTab("metrics")}
+              className={`col-span-2 flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all cursor-pointer ${
+                activeTab === "metrics"
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] border border-emerald-300"
+                  : "bg-emerald-950/40 text-emerald-300 border border-emerald-500/40"
+              }`}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <Activity className="h-4 w-4" />
+              <span>🌐 Métricas do Site (Ao Vivo • {onlineVisitors.length} online)</span>
             </button>
 
             <button
@@ -1610,6 +1698,23 @@ function AdminDashboardMain({
             >
               <BarChart3 className="h-4 w-4 text-purple-400" />
               <span>📊 Dashboard Geral & Gráficos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSwitchTab("metrics")}
+              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+                activeTab === "metrics"
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] font-black"
+                  : "text-emerald-400 hover:text-white hover:bg-emerald-950/30 border border-emerald-500/30"
+              }`}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <Activity className="h-4 w-4" />
+              <span>🌐 Métricas do Site (Ao Vivo • {onlineVisitors.length})</span>
             </button>
 
             <button
@@ -1730,6 +1835,17 @@ function AdminDashboardMain({
                 setSelectedAnalyticsVenueId(venueId);
                 setIsAdminAnalyticsModalOpen(true);
               }}
+            />
+          )}
+
+          {/* TAB: REAL-TIME SITE AUDIENCE & TRAFFIC METRICS (ZERO FICTITIOUS NUMBERS) */}
+          {activeTab === "metrics" && (
+            <AdminSiteMetricsTab
+              metrics={siteMetrics}
+              onlineVisitors={onlineVisitors}
+              isLoading={isLoadingMetrics}
+              onRefresh={loadRealSiteMetrics}
+              lastUpdated={lastMetricsUpdate}
             />
           )}
           {/* TAB 1: VENUES MANAGEMENT */}

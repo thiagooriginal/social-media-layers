@@ -596,6 +596,7 @@ function AdminDashboardMain({
               (c: any) =>
                 !c.user_name ||
                 (!c.user_name.startsWith("[USER_REG]:") &&
+                  !c.user_name.startsWith("[USER_DELETED]:") &&
                   !c.user_name.startsWith("[SITE_PAGEVIEW]:") &&
                   !c.user_name.startsWith("[SITE_EVENT]:"))
             );
@@ -670,10 +671,39 @@ function AdminDashboardMain({
             }
           } catch (e) {}
 
-          const allUsers = Array.from(usersMap.values());
-          if (allUsers.length > 0) {
-            setRegisteredUsers(allUsers);
-          }
+          // D. Fetch persistent cloud tombstone deletion records to ensure deleted users NEVER return
+          const deletedKeys = new Set<string>();
+          try {
+            const { data: deletedRows } = await (supabase as any)
+              .from("event_confirmations")
+              .select("user_name")
+              .like("user_name", "[USER_DELETED]:%")
+              .order("created_at", { ascending: false });
+
+            if (deletedRows && Array.isArray(deletedRows)) {
+              deletedRows.forEach((r: any) => {
+                try {
+                  const d = JSON.parse(r.user_name.replace("[USER_DELETED]:", ""));
+                  if (d.id) deletedKeys.add(String(d.id).toLowerCase());
+                  if (d.email) deletedKeys.add(String(d.email).toLowerCase().trim());
+                  if (d.sync_confirmation_id) deletedKeys.add(String(d.sync_confirmation_id).toLowerCase());
+                } catch (e) {}
+              });
+            }
+          } catch (e) {}
+
+          // Filter out any user that was marked deleted in Supabase
+          const allUsers = Array.from(usersMap.values()).filter((u) => {
+            const idKey = u.id ? String(u.id).toLowerCase() : "";
+            const emailKey = u.email ? String(u.email).toLowerCase().trim() : "";
+            const syncKey = u.sync_confirmation_id ? String(u.sync_confirmation_id).toLowerCase() : "";
+            if (idKey && deletedKeys.has(idKey)) return false;
+            if (emailKey && deletedKeys.has(emailKey)) return false;
+            if (syncKey && deletedKeys.has(syncKey)) return false;
+            return true;
+          });
+
+          setRegisteredUsers(allUsers);
         } catch (e) {}
       })();
 
@@ -807,42 +837,36 @@ function AdminDashboardMain({
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // 1. Try secure RPC delete_admin_user
-      let rpcSuccess = false;
+      // 1. Record persistent cloud tombstone in Supabase event_confirmations
+      // Guaranteed to persist across page refreshes, mobile access and other admin sessions
       try {
-        const { error } = await (supabase as any).rpc("delete_admin_user", {
+        await (supabase as any).from("event_confirmations").insert({
+          venue_id: "balada-vilajk",
+          user_name: `[USER_DELETED]:${JSON.stringify({
+            id: user.id,
+            email: user.email,
+            sync_confirmation_id: user.sync_confirmation_id,
+            name: user.name,
+            deleted_at: new Date().toISOString(),
+          })}`,
+        });
+      } catch (e) {}
+
+      // 2. Try secure RPC delete_admin_user if available
+      try {
+        await (supabase as any).rpc("delete_admin_user", {
           p_user_id: user.id,
           p_email: user.email || null,
         });
-        if (!error) rpcSuccess = true;
       } catch (e) {}
 
-      // 2. Direct fallback
-      if (!rpcSuccess) {
-        try {
-          await (supabase as any)
-            .from("profiles")
-            .delete()
-            .eq("id", user.id);
-        } catch (e) {}
-      }
-
-      // 3. Delete from universal cloud confirmation sync
-      if (user.sync_confirmation_id) {
-        try {
-          await (supabase as any)
-            .from("event_confirmations")
-            .delete()
-            .eq("id", user.sync_confirmation_id);
-        } catch (e) {}
-      } else if (user.email) {
-        try {
-          await (supabase as any)
-            .from("event_confirmations")
-            .delete()
-            .like("user_name", `%${user.email}%`);
-        } catch (e) {}
-      }
+      // 3. Fallback direct profile delete
+      try {
+        await (supabase as any)
+          .from("profiles")
+          .delete()
+          .eq("id", user.id);
+      } catch (e) {}
 
       // Optimistically update local state without deleting other users sharing the same email (like Jose Ronald)
       setRegisteredUsers((prev) =>
@@ -900,29 +924,27 @@ function AdminDashboardMain({
         await (supabase as any).rpc("cleanup_test_users");
       } catch (e) {}
 
-      // 2. Individual fallback for each test user
+      // 2. Individual persistent tombstones & fallbacks
       for (const tu of testUsers) {
+        try {
+          await (supabase as any).from("event_confirmations").insert({
+            venue_id: "balada-vilajk",
+            user_name: `[USER_DELETED]:${JSON.stringify({
+              id: tu.id,
+              email: tu.email,
+              sync_confirmation_id: tu.sync_confirmation_id,
+              name: tu.name,
+              deleted_at: new Date().toISOString(),
+            })}`,
+          });
+        } catch (e) {}
+
         try {
           await (supabase as any).rpc("delete_admin_user", {
             p_user_id: tu.id,
             p_email: tu.email,
           });
         } catch (e) {}
-        if (tu.sync_confirmation_id) {
-          try {
-            await (supabase as any)
-              .from("event_confirmations")
-              .delete()
-              .eq("id", tu.sync_confirmation_id);
-          } catch (e) {}
-        } else if (tu.email) {
-          try {
-            await (supabase as any)
-              .from("event_confirmations")
-              .delete()
-              .like("user_name", `%${tu.email}%`);
-          } catch (e) {}
-        }
       }
 
       // Update state

@@ -64,13 +64,13 @@ export function AdminSiteMetricsTab({
 
   // Export real traffic report to CSV
   const handleExportCSV = () => {
-    if (!metrics || metrics.recentLogs.length === 0) {
+    if (recentLogs.length === 0) {
       alert("Nenhum dado de acesso registrado para exportação.");
       return;
     }
 
     const headers = ["Data e Hora", "Página", "Dispositivo", "Navegador", "Origem", "ID do Visitante"];
-    const rows = metrics.recentLogs.map((log) => [
+    const rows = recentLogs.map((log) => [
       `"${new Date(log.timestamp).toLocaleString("pt-BR")}"`,
       `"${log.path}"`,
       `"${log.device}"`,
@@ -90,25 +90,31 @@ export function AdminSiteMetricsTab({
     document.body.removeChild(link);
   };
 
+  const hourlyEvolution = metrics?.hourlyEvolution || [];
+  const dailyEvolution = metrics?.dailyEvolution || [];
+  const topPages = metrics?.topPages || [];
+  const recentLogs = metrics?.recentLogs || [];
+  const deviceBreakdown = metrics?.deviceBreakdown || { mobile: 0, desktop: 0, tablet: 0 };
+
   const currentHour = new Date().getHours();
   const maxHourlyCount = Math.max(
-    ...(metrics?.hourlyEvolution.map((h) => h.count) || [1]),
+    ...(hourlyEvolution.map((h) => h.count).length > 0 ? hourlyEvolution.map((h) => h.count) : [1]),
     1
   );
 
   const totalDeviceHits =
-    (metrics?.deviceBreakdown.mobile || 0) +
-    (metrics?.deviceBreakdown.desktop || 0) +
-    (metrics?.deviceBreakdown.tablet || 0);
+    (deviceBreakdown.mobile || 0) +
+    (deviceBreakdown.desktop || 0) +
+    (deviceBreakdown.tablet || 0);
 
   const mobilePercent =
     totalDeviceHits > 0
-      ? Math.round(((metrics?.deviceBreakdown.mobile || 0) / totalDeviceHits) * 100)
+      ? Math.round(((deviceBreakdown.mobile || 0) / totalDeviceHits) * 100)
       : 0;
 
   const desktopPercent =
     totalDeviceHits > 0
-      ? Math.round(((metrics?.deviceBreakdown.desktop || 0) / totalDeviceHits) * 100)
+      ? Math.round(((deviceBreakdown.desktop || 0) / totalDeviceHits) * 100)
       : 0;
 
   return (
@@ -361,7 +367,7 @@ export function AdminSiteMetricsTab({
         {/* 24-hour bar chart */}
         <div className="overflow-x-auto pb-2">
           <div className="min-w-[650px] flex items-end gap-2 h-44 pt-6 px-2 border-b border-white/10">
-            {metrics?.hourlyEvolution.map((h, i) => {
+            {hourlyEvolution.map((h, i) => {
               const heightPercent = h.count > 0 ? Math.max((h.count / maxHourlyCount) * 100, 8) : 0;
               const isCurrent = i === currentHour;
 
@@ -432,8 +438,8 @@ export function AdminSiteMetricsTab({
           </div>
 
           <div className="space-y-3">
-            {metrics?.dailyEvolution.map((day) => {
-              const maxDay = Math.max(...(metrics?.dailyEvolution.map((d) => d.count) || [1]), 1);
+            {dailyEvolution.map((day) => {
+              const maxDay = Math.max(...(dailyEvolution.map((d) => d.count).length > 0 ? dailyEvolution.map((d) => d.count) : [1]), 1);
               const barPercent = Math.max((day.count / maxDay) * 100, 2);
 
               return (
@@ -467,11 +473,11 @@ export function AdminSiteMetricsTab({
             </h3>
             <p className="text-xs text-slate-400 mb-4">Rotas com maior atração de público</p>
 
-            {(!metrics || metrics.topPages.length === 0) ? (
+            {topPages.length === 0 ? (
               <p className="text-xs text-slate-500 py-4 text-center">Nenhuma página registrada ainda</p>
             ) : (
               <div className="space-y-2.5">
-                {metrics.topPages.map((page) => (
+                {topPages.map((page) => (
                   <div
                     key={page.path}
                     className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 text-xs"
@@ -508,7 +514,7 @@ export function AdminSiteMetricsTab({
                   <span className="text-xs font-black text-white">{mobilePercent}%</span>
                 </div>
                 <div className="text-xl font-black text-white">
-                  {metrics?.deviceBreakdown.mobile || 0}
+                  {deviceBreakdown.mobile || 0}
                 </div>
                 <p className="text-[10px] text-slate-400 mt-0.5">iOS e Android</p>
               </div>
@@ -522,7 +528,7 @@ export function AdminSiteMetricsTab({
                   <span className="text-xs font-black text-white">{desktopPercent}%</span>
                 </div>
                 <div className="text-xl font-black text-white">
-                  {metrics?.deviceBreakdown.desktop || 0}
+                  {deviceBreakdown.desktop || 0}
                 </div>
                 <p className="text-[10px] text-slate-400 mt-0.5">Desktop & Notebooks</p>
               </div>
@@ -544,11 +550,11 @@ export function AdminSiteMetricsTab({
             </p>
           </div>
           <span className="text-xs font-bold text-slate-400">
-            Últimos {metrics?.recentLogs.length || 0} registros
+            Últimos {recentLogs.length} registros
           </span>
         </div>
 
-        {(!metrics || metrics.recentLogs.length === 0) ? (
+        {recentLogs.length === 0 ? (
           <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8 text-center text-slate-400">
             <p className="text-sm font-bold text-slate-300">Aguardando novos acessos de visitantes</p>
             <p className="text-xs text-slate-500 mt-1">
@@ -569,7 +575,7 @@ export function AdminSiteMetricsTab({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {metrics.recentLogs.map((log) => (
+                {recentLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="py-2.5 px-3 font-semibold text-white whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString("pt-BR")}

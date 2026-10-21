@@ -139,40 +139,53 @@ let lastTrackedTime = 0;
 export async function trackPageView(pathOverride?: string): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const currentPath = pathOverride || window.location.pathname || "/";
-  const now = Date.now();
-
-  // Deduplicate exact same path within 3 seconds (avoid duplicate mount triggers)
-  if (currentPath === lastTrackedPath && now - lastTrackedTime < 3000) {
-    return;
-  }
-
-  lastTrackedPath = currentPath;
-  lastTrackedTime = now;
-
-  const pageview: RealPageview = {
-    id: "pv_" + now + "_" + Math.random().toString(36).substring(2, 6),
-    visitorId: getVisitorId(),
-    path: currentPath,
-    referrer: document.referrer ? new URL(document.referrer, window.location.origin).hostname : "Acesso Direto",
-    device: detectDevice(),
-    browser: detectBrowser(),
-    timestamp: new Date().toISOString(),
-  };
-
-  // 1. Save in local buffer immediately
-  const localList = getLocalPageviews();
-  localList.push(pageview);
-  saveLocalPageviews(localList);
-
-  // 2. Persist to Supabase in background
   try {
-    await (supabase as any).from("event_confirmations").insert({
-      venue_id: "balada-vilajk", // guaranteed valid venue foreign key
-      user_name: `[SITE_PAGEVIEW]:${JSON.stringify(pageview)}`,
-    });
+    const currentPath = pathOverride || window.location.pathname || "/";
+    const now = Date.now();
+
+    // Deduplicate exact same path within 3 seconds (avoid duplicate mount triggers)
+    if (currentPath === lastTrackedPath && now - lastTrackedTime < 3000) {
+      return;
+    }
+
+    lastTrackedPath = currentPath;
+    lastTrackedTime = now;
+
+    let ref = "Acesso Direto";
+    try {
+      if (document.referrer) {
+        ref = new URL(document.referrer, window.location.origin).hostname || "Direto";
+      }
+    } catch (e) {
+      ref = "Acesso Direto";
+    }
+
+    const pageview: RealPageview = {
+      id: "pv_" + now + "_" + Math.random().toString(36).substring(2, 6),
+      visitorId: getVisitorId(),
+      path: currentPath,
+      referrer: ref,
+      device: detectDevice(),
+      browser: detectBrowser(),
+      timestamp: new Date().toISOString(),
+    };
+
+    // 1. Save in local buffer immediately
+    const localList = getLocalPageviews();
+    localList.push(pageview);
+    saveLocalPageviews(localList);
+
+    // 2. Persist to Supabase in background
+    try {
+      await (supabase as any).from("event_confirmations").insert({
+        venue_id: "balada-vilajk", // guaranteed valid venue foreign key
+        user_name: `[SITE_PAGEVIEW]:${JSON.stringify(pageview)}`,
+      });
+    } catch (err) {
+      // Silent fail if network is flaky; local buffer preserved
+    }
   } catch (err) {
-    // Silent fail if network is flaky; local buffer preserved
+    console.warn("trackPageView warning:", err);
   }
 }
 
@@ -184,112 +197,139 @@ export async function trackRealSiteEvent(
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const event: RealEvent = {
-    id: "evt_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-    visitorId: getVisitorId(),
-    type,
-    target,
-    path: pathOverride || window.location.pathname || "/",
-    timestamp: new Date().toISOString(),
-  };
-
-  // 1. Local buffer
-  const local = getLocalEvents();
-  local.push(event);
-  saveLocalEvents(local);
-
-  // 2. Supabase persistence
   try {
-    await (supabase as any).from("event_confirmations").insert({
-      venue_id: "balada-vilajk",
-      user_name: `[SITE_EVENT]:${JSON.stringify(event)}`,
-    });
+    const event: RealEvent = {
+      id: "evt_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+      visitorId: getVisitorId(),
+      type,
+      target,
+      path: pathOverride || window.location.pathname || "/",
+      timestamp: new Date().toISOString(),
+    };
+
+    // 1. Local buffer
+    const local = getLocalEvents();
+    local.push(event);
+    saveLocalEvents(local);
+
+    // 2. Supabase persistence
+    try {
+      await (supabase as any).from("event_confirmations").insert({
+        venue_id: "balada-vilajk",
+        user_name: `[SITE_EVENT]:${JSON.stringify(event)}`,
+      });
+    } catch (e) {}
   } catch (e) {}
 }
 
 // Supabase Realtime Presence Client for Live Visitors
 let liveChannel: any = null;
+const presenceListeners: Set<(activePresences: RealPresenceVisitor[]) => void> = new Set();
 
 export function subscribeToRealtimePresence(
   onSync: (activePresences: RealPresenceVisitor[]) => void
 ): () => void {
   if (typeof window === "undefined") return () => {};
 
-  const visitorId = getVisitorId();
-  const device = detectDevice();
-  const currentPath = window.location.pathname || "/";
+  try {
+    presenceListeners.add(onSync);
+    const visitorId = getVisitorId();
+    const device = detectDevice();
+    const currentPath = window.location.pathname || "/";
 
-  liveChannel = supabase.channel("site_realtime_presence", {
-    config: {
-      presence: {
-        key: visitorId,
-      },
-    },
-  });
-
-  const extractPresences = (): RealPresenceVisitor[] => {
-    if (!liveChannel) return [];
-    const state = liveChannel.presenceState();
-    const result: RealPresenceVisitor[] = [];
-    Object.keys(state).forEach((key) => {
-      const items = state[key] as any[];
-      if (Array.isArray(items) && items.length > 0) {
-        const p = items[items.length - 1];
-        result.push({
-          visitorId: key,
-          path: p.path || "/",
-          device: p.device || "desktop",
-          enteredAt: p.enteredAt || new Date().toISOString(),
-          lastPing: p.lastPing || new Date().toISOString(),
-        });
-      }
-    });
-    return result;
-  };
-
-  liveChannel
-    .on("presence", { event: "sync" }, () => {
-      onSync(extractPresences());
-    })
-    .on("presence", { event: "join" }, () => {
-      onSync(extractPresences());
-    })
-    .on("presence", { event: "leave" }, () => {
-      onSync(extractPresences());
-    })
-    .subscribe(async (status: string) => {
-      if (status === "SUBSCRIBED") {
-        await liveChannel.track({
-          visitorId,
-          path: currentPath,
-          device,
-          enteredAt: new Date().toISOString(),
-          lastPing: new Date().toISOString(),
-        });
-        onSync(extractPresences());
-      }
-    });
-
-  // Keep presence alive with heartbeat every 20 seconds
-  const heartbeatTimer = setInterval(async () => {
-    if (liveChannel && liveChannel.state === "joined") {
-      await liveChannel.track({
-        visitorId,
-        path: window.location.pathname || "/",
-        device,
-        lastPing: new Date().toISOString(),
-      });
-    }
-  }, 20000);
-
-  return () => {
-    clearInterval(heartbeatTimer);
-    if (liveChannel) {
+    const extractPresences = (): RealPresenceVisitor[] => {
+      if (!liveChannel) return [];
       try {
-        liveChannel.unsubscribe();
-      } catch (e) {}
+        const state = liveChannel.presenceState();
+        const result: RealPresenceVisitor[] = [];
+        Object.keys(state).forEach((key) => {
+          const items = state[key] as any[];
+          if (Array.isArray(items) && items.length > 0) {
+            const p = items[items.length - 1];
+            result.push({
+              visitorId: key,
+              path: p?.path || "/",
+              device: p?.device || "desktop",
+              enteredAt: p?.enteredAt || new Date().toISOString(),
+              lastPing: p?.lastPing || new Date().toISOString(),
+            });
+          }
+        });
+        return result;
+      } catch (e) {
+        return [];
+      }
+    };
+
+    const notifyListeners = () => {
+      const presences = extractPresences();
+      presenceListeners.forEach((listener) => {
+        try {
+          listener(presences);
+        } catch (e) {}
+      });
+    };
+
+    if (!liveChannel) {
+      liveChannel = supabase.channel("site_realtime_presence", {
+        config: {
+          presence: {
+            key: visitorId,
+          },
+        },
+      });
+
+      liveChannel
+        .on("presence", { event: "sync" }, notifyListeners)
+        .on("presence", { event: "join" }, notifyListeners)
+        .on("presence", { event: "leave" }, notifyListeners)
+        .subscribe(async (status: string) => {
+          if (status === "SUBSCRIBED" && liveChannel) {
+            try {
+              await liveChannel.track({
+                visitorId,
+                path: currentPath,
+                device,
+                enteredAt: new Date().toISOString(),
+                lastPing: new Date().toISOString(),
+              });
+              notifyListeners();
+            } catch (e) {}
+          }
+        });
+    } else {
+      // Channel already exists, immediately notify with current state
+      setTimeout(notifyListeners, 100);
     }
-  };
+
+    // Keep presence alive with heartbeat every 20 seconds
+    const heartbeatTimer = setInterval(async () => {
+      if (liveChannel && liveChannel.state === "joined") {
+        try {
+          await liveChannel.track({
+            visitorId,
+            path: window.location.pathname || "/",
+            device,
+            lastPing: new Date().toISOString(),
+          });
+        } catch (e) {}
+      }
+    }, 20000);
+
+    return () => {
+      clearInterval(heartbeatTimer);
+      presenceListeners.delete(onSync);
+      if (presenceListeners.size === 0 && liveChannel) {
+        try {
+          liveChannel.unsubscribe();
+          liveChannel = null;
+        } catch (e) {}
+      }
+    };
+  } catch (err) {
+    console.warn("subscribeToRealtimePresence error:", err);
+    return () => {};
+  }
 }
 
 // Fetch all REAL metrics without any simulated or fictitious numbers

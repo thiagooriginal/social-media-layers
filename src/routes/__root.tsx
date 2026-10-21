@@ -8,10 +8,12 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
+import { trackPageView, subscribeToRealtimePresence } from "../services/siteMetricsService";
 
 function NotFoundComponent() {
   return (
@@ -158,29 +160,37 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-import { Toaster } from "sonner";
-import { trackPageView, subscribeToRealtimePresence } from "../services/siteMetricsService";
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Record real pageview for this visit
-    trackPageView(window.location.pathname);
+    let unsubPresence: (() => void) | null = null;
+    try {
+      // 1. Record real pageview for this visit
+      trackPageView(window.location.pathname).catch(() => {});
 
-    // 2. Connect to Supabase Realtime Presence channel for live visitor counting
-    const unsubPresence = subscribeToRealtimePresence(() => {});
+      // 2. Connect to Supabase Realtime Presence channel for live visitor counting
+      unsubPresence = subscribeToRealtimePresence(() => {});
+    } catch (e) {
+      console.warn("Tracker init warning:", e);
+    }
 
     // 3. Track in-app route changes
     const handlePopState = () => {
-      trackPageView(window.location.pathname);
+      try {
+        trackPageView(window.location.pathname).catch(() => {});
+      } catch (e) {}
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => {
-      unsubPresence();
+      if (unsubPresence) {
+        try {
+          unsubPresence();
+        } catch (e) {}
+      }
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);

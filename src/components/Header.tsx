@@ -4,6 +4,7 @@ import { NEIGHBORHOODS, NeighborhoodCoord } from "../data/venues";
 import { UserProfile } from "../services/authService";
 import { useTheme } from "../services/themeService";
 import { toast } from "sonner";
+import { triggerPwaInstall } from "./PwaInstallPrompt";
 
 interface HeaderProps {
   currentNeighborhood: NeighborhoodCoord;
@@ -441,11 +442,7 @@ export function Header({
           {/* Baixar App Oficial (Desktop only) */}
           <button
             type="button"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("open-pwa-install"));
-              }
-            }}
+            onClick={triggerPwaInstall}
             title="Baixar e Instalar o App Radar do Rolê no Celular"
             className="hidden sm:flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-cyan-200 hover:border-cyan-300 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.35)] active:scale-95 shrink-0 cursor-pointer"
           >
@@ -535,9 +532,7 @@ export function Header({
                 type="button"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("open-pwa-install"));
-                  }
+                  triggerPwaInstall();
                 }}
                 className="col-span-2 flex items-center justify-between rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 via-purple-600/20 to-pink-500/20 p-2.5 text-xs font-black text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:scale-95 text-left cursor-pointer"
               >

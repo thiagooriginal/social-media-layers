@@ -39,6 +39,7 @@ import {
 import { getVenues } from "../services/venueService";
 import { getCurrentUser, subscribeToAuth, UserProfile } from "../services/authService";
 import { registerFavoriteOptIn, removeFavoriteOptIn } from "../services/favoritesPermissionService";
+import { triggerPwaInstall } from "../components/PwaInstallPrompt";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -1492,11 +1493,7 @@ function IndexPage() {
                 <div className="mb-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.dispatchEvent(new CustomEvent("open-pwa-install"));
-                      }
-                    }}
+                    onClick={triggerPwaInstall}
                     className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/80 via-[#071324]/90 to-purple-950/80 p-3 sm:p-3.5 text-left transition-all duration-300 hover:border-cyan-300 hover:shadow-[0_6px_25px_rgba(6,182,212,0.35)] active:scale-[0.99] cursor-pointer shadow-lg"
                   >
                     <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-cyan-500/10 blur-xl pointer-events-none" />

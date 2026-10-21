@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Download, X, Smartphone, Share, PlusSquare, MoreVertical, Sparkles, Check, ArrowRight } from "lucide-react";
+import {
+  Download,
+  X,
+  Smartphone,
+  Share,
+  PlusSquare,
+  MoreVertical,
+  Sparkles,
+  Check,
+  ArrowRight,
+  ExternalLink,
+  Copy,
+  Globe,
+  AlertCircle,
+} from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -11,16 +25,28 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(() => {
+    if (typeof window !== "undefined") {
+      return (window as any).__pwaDeferredPrompt || null;
+    }
+    return null;
+  });
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+
   const [showBanner, setShowBanner] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
+  const [showInAppGuide, setShowInAppGuide] = useState(false);
   const [installedSuccess, setInstalledSuccess] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     // 1. Detect if running standalone (already installed as PWA)
     const standaloneMode =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -30,23 +56,29 @@ export function PwaInstallPrompt() {
     setIsStandalone(standaloneMode);
     if (standaloneMode) return;
 
-    // 2. Detect mobile device & OS
+    // 2. Detect mobile device, OS & In-App Webviews (Instagram, Facebook, TikTok, WhatsApp)
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     const isAndroidDevice = /android/.test(userAgent);
     const isMobileDevice = isIosDevice || isAndroidDevice || window.innerWidth < 768;
+    const inApp = /instagram|fbav|fban|tiktok|micromessenger|threads|wv/i.test(userAgent);
 
     setIsIos(isIosDevice);
+    setIsAndroid(isAndroidDevice);
     setIsMobile(isMobileDevice);
+    setIsInAppBrowser(inApp);
 
-    // 3. Check dismissal expiry (12 hours instead of 5 days so users on mobile actually see it)
+    // 3. Check dismissal expiry (12 hours)
     const dismissedUntil = localStorage.getItem("radar_pwa_dismissed_until");
     const isDismissed = dismissedUntil && Date.now() < Number(dismissedUntil);
 
-    // 4. Capture native beforeinstallprompt (Android / Chrome)
+    // 4. Capture native beforeinstallprompt (Android / Chrome / Edge)
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(promptEvent);
+      (window as any).__pwaDeferredPrompt = promptEvent;
+
       if (!isDismissed) {
         setTimeout(() => setShowBanner(true), 1200);
       }
@@ -54,34 +86,65 @@ export function PwaInstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
-    // 5. Always trigger the banner on mobile after 1.5 seconds if not dismissed
+    // 5. Trigger the banner on mobile after 2s if not dismissed and not in standalone
     if (isMobileDevice && !isDismissed) {
-      const timer = setTimeout(() => setShowBanner(true), 1500);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-      };
+      const timer = setTimeout(() => {
+        setShowBanner(true);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
 
     // 6. Detect successful app installation
     const handleAppInstalled = () => {
       setInstalledSuccess(true);
       setShowBanner(false);
+      setShowAndroidGuide(false);
+      setShowIosGuide(false);
+      setShowInAppGuide(false);
       setDeferredPrompt(null);
+      (window as any).__pwaDeferredPrompt = null;
       setTimeout(() => setInstalledSuccess(false), 5000);
     };
 
     window.addEventListener("appinstalled", handleAppInstalled);
 
-    // 7. Global listener for manual trigger (e.g. from Header or buttons)
-    const handleManualOpen = () => {
-      setShowBanner(true);
+    // 7. Global listener for manual trigger (Header 3-dots, feed banner, buttons)
+    const handleManualOpen = async () => {
+      const activePrompt = (window as any).__pwaDeferredPrompt || deferredPrompt;
+
+      // If in-app browser (Instagram / TikTok), show breakout guide immediately
+      if (inApp) {
+        setShowBanner(false);
+        setShowInAppGuide(true);
+        return;
+      }
+
+      // If native deferred prompt is ready, trigger browser prompt directly!
+      if (activePrompt) {
+        try {
+          await activePrompt.prompt();
+          const choice = await activePrompt.userChoice;
+          if (choice.outcome === "accepted") {
+            setInstalledSuccess(true);
+            setShowBanner(false);
+          }
+          setDeferredPrompt(null);
+          (window as any).__pwaDeferredPrompt = null;
+          return;
+        } catch (err) {
+          console.warn("Manual PWA install prompt failed:", err);
+        }
+      }
+
+      // Otherwise show device-specific guide
+      setShowBanner(false);
       if (isIosDevice) {
         setShowIosGuide(true);
-      } else if (!deferredPrompt && isAndroidDevice) {
+      } else {
         setShowAndroidGuide(true);
       }
     };
+
     window.addEventListener("open-pwa-install", handleManualOpen);
 
     return () => {
@@ -89,37 +152,78 @@ export function PwaInstallPrompt() {
       window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("open-pwa-install", handleManualOpen);
     };
-  }, [deferredPrompt]);
+  }, []); // Run once on mount!
 
-  // Handle Install Action Click
+  // Handle Install Action Click from Banner
   const handleInstallClick = async () => {
-    if (isIos) {
-      setShowIosGuide(true);
+    const activePrompt = (window as any).__pwaDeferredPrompt || deferredPrompt;
+
+    if (isInAppBrowser) {
+      setShowBanner(false);
+      setShowInAppGuide(true);
       return;
     }
 
-    if (deferredPrompt) {
+    if (activePrompt) {
       try {
-        await deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
+        await activePrompt.prompt();
+        const choice = await activePrompt.userChoice;
         if (choice.outcome === "accepted") {
           setInstalledSuccess(true);
           setShowBanner(false);
         }
         setDeferredPrompt(null);
+        (window as any).__pwaDeferredPrompt = null;
+        return;
       } catch (err) {
         console.warn("PWA install error:", err);
-        setShowAndroidGuide(true);
       }
+    }
+
+    setShowBanner(false);
+    if (isIos) {
+      setShowIosGuide(true);
     } else {
-      // Fallback for Android/Chrome/Samsung when native prompt is delayed or in webview
       setShowAndroidGuide(true);
     }
   };
 
-  // Dismiss for 12 hours
+  // Launch external Chrome via Android Intent (breaks out of Instagram webview)
+  const openInExternalChrome = () => {
+    try {
+      const host = window.location.host;
+      const path = window.location.pathname || "/";
+      const search = window.location.search || "";
+      const chromeIntent = `intent://${host}${path}${search}#Intent;scheme=https;package=com.android.chrome;end`;
+      window.location.href = chromeIntent;
+
+      // Fallback after 1 second if intent doesn't trigger
+      setTimeout(() => {
+        window.open(window.location.href, "_system");
+      }, 1000);
+    } catch (e) {
+      window.open(window.location.href, "_blank");
+    }
+  };
+
+  // Copy app link with visual feedback
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText("https://radardorole.com.br");
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    } catch (e) {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    }
+  };
+
+  // Dismiss banner and avoid re-prompting on this session
   const handleDismiss = () => {
     setShowBanner(false);
+    setShowAndroidGuide(false);
+    setShowIosGuide(false);
+    setShowInAppGuide(false);
     const twelveHoursMs = 12 * 60 * 60 * 1000;
     localStorage.setItem("radar_pwa_dismissed_until", String(Date.now() + twelveHoursMs));
   };
@@ -139,7 +243,7 @@ export function PwaInstallPrompt() {
       )}
 
       {/* Floating PWA Install Banner (positioned safely above mobile bottom nav) */}
-      {showBanner && (
+      {showBanner && !showAndroidGuide && !showIosGuide && !showInAppGuide && (
         <div className="fixed bottom-20 left-3 right-3 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-6 duration-300">
           <div className="relative overflow-hidden rounded-3xl border border-cyan-500/40 bg-gradient-to-br from-[#0c1020]/95 via-[#080d1a]/95 to-[#160924]/95 backdrop-blur-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)]">
             {/* Ambient Glow */}
@@ -148,7 +252,7 @@ export function PwaInstallPrompt() {
 
             <button
               onClick={handleDismiss}
-              className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-slate-400 hover:text-white hover:bg-white/20 transition-colors"
+              className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-slate-400 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
               title="Fechar"
             >
               <X className="h-4 w-4" />
@@ -174,7 +278,7 @@ export function PwaInstallPrompt() {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-300 mt-1 leading-snug">
-                  Adicione à sua tela inicial para navegar sem navegador, mais rápido e com modo tela cheia!
+                  Adicione à sua tela inicial para navegar sem navegador, mais rápido e em tela cheia!
                 </p>
               </div>
             </div>
@@ -192,7 +296,7 @@ export function PwaInstallPrompt() {
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="rounded-2xl border border-white/15 bg-white/5 px-3.5 py-3 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                className="rounded-2xl border border-white/15 bg-white/5 px-3.5 py-3 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 Depois
               </button>
@@ -201,7 +305,171 @@ export function PwaInstallPrompt() {
         </div>
       )}
 
-      {/* iOS Step-by-Step Installation Modal */}
+      {/* MODAL 1: INSTAGRAM / TIKTOK IN-APP BROWSER (CRUCIAL BREAKOUT) */}
+      {showInAppGuide && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
+          <div className="absolute inset-0" onClick={() => setShowInAppGuide(false)} />
+          <div className="relative w-full max-w-sm rounded-3xl border border-pink-500/40 bg-gradient-to-b from-[#140b20] via-[#0c101c] to-[#080d18] p-6 text-slate-100 shadow-[0_0_50px_rgba(236,72,153,0.35)] z-10 animate-in slide-in-from-bottom-8">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500/30 to-purple-500/30 text-pink-400 border border-pink-500/40">
+                  <Smartphone className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-white">Instalar o App no Celular</h3>
+                  <p className="text-[11px] text-pink-300 font-semibold">Navegador do Instagram Detectado</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInAppGuide(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] text-amber-200 font-medium leading-relaxed flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <span>
+                O Instagram não permite instalar aplicativos diretamente na tela dentro dele. Toque no botão abaixo para abrir no <strong>Google Chrome</strong> e baixar!
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-4 space-y-2.5">
+              <button
+                type="button"
+                onClick={openInExternalChrome}
+                className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(6,182,212,0.5)] cursor-pointer"
+              >
+                <Globe className="h-4 w-4" />
+                <span>Abrir no Google Chrome Agora</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 px-3 text-xs font-bold text-slate-200 hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="h-4 w-4 text-emerald-400" />
+                    <span className="text-emerald-300">Link Copiado! Cole no Chrome</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 text-slate-400" />
+                    <span>Copiar Link do Aplicativo</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Visual fallback steps */}
+            <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-slate-400 space-y-2">
+              <p className="font-bold text-slate-300">Ou faça manualmente pelo Instagram:</p>
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 font-black text-white shrink-0">1</span>
+                <span>Toque nos <strong>3 pontinhos [ ⋮ ]</strong> no topo direito da tela do Instagram.</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 font-black text-white shrink-0">2</span>
+                <span>Escolha <strong>"Abrir no navegador externo"</strong> ou <strong>"Abrir no Chrome"</strong>.</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowInAppGuide(false)}
+              className="mt-4 w-full text-center text-[11px] font-bold text-slate-400 hover:text-white py-1 cursor-pointer"
+            >
+              Continuar navegando no Instagram
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: ANDROID CHROME STEP-BY-STEP INSTALLATION */}
+      {showAndroidGuide && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
+          <div className="absolute inset-0" onClick={() => setShowAndroidGuide(false)} />
+          <div className="relative w-full max-w-sm rounded-3xl border border-cyan-500/40 bg-[#0c101c] p-6 text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.35)] z-10 animate-in slide-in-from-bottom-8">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
+                  <Smartphone className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-white">Como Baixar no Android</h3>
+                  <p className="text-[11px] text-slate-400">Direto pelo seu navegador:</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAndroidGuide(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3 text-xs text-slate-300">
+              <div className="flex items-start gap-3 rounded-2xl border border-cyan-500/30 bg-cyan-950/30 p-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300 font-black">
+                  1
+                </div>
+                <div>
+                  <p className="font-bold text-white flex items-center gap-1.5">
+                    Toque nos 3 Pontinhos do Navegador
+                    <MoreVertical className="h-3.5 w-3.5 text-cyan-400" />
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    No canto superior direito da tela do Google Chrome (ao lado do endereço do site).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-purple-500/30 bg-purple-950/30 p-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 text-purple-300 font-black">
+                  2
+                </div>
+                <div>
+                  <p className="font-bold text-white flex items-center gap-1.5">
+                    Selecione "Instalar aplicativo" ou "Adicionar à tela inicial"
+                    <PlusSquare className="h-3.5 w-3.5 text-purple-400" />
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    O app será baixado automaticamente com ícone oficial na tela inicial do seu celular!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <button
+                type="button"
+                onClick={openInExternalChrome}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-3 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer"
+              >
+                <Globe className="h-4 w-4" />
+                <span>Abrir no Google Chrome</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowAndroidGuide(false)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+              >
+                Fechar Instruções
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: IOS SAFARI STEP-BY-STEP INSTALLATION */}
       {showIosGuide && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
           <div className="absolute inset-0" onClick={() => setShowIosGuide(false)} />
@@ -219,7 +487,7 @@ export function PwaInstallPrompt() {
               <button
                 type="button"
                 onClick={() => setShowIosGuide(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -263,73 +531,6 @@ export function PwaInstallPrompt() {
               className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] cursor-pointer"
             >
               Entendi, vou adicionar!
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Android Step-by-Step Installation Modal (quando o prompt nativo não abre sozinho) */}
-      {showAndroidGuide && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
-          <div className="absolute inset-0" onClick={() => setShowAndroidGuide(false)} />
-          <div className="relative w-full max-w-sm rounded-3xl border border-cyan-500/40 bg-[#0c101c] p-6 text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.35)] z-10 animate-in slide-in-from-bottom-8">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
-                  <Smartphone className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="text-sm font-black text-white">Instalar no Android</h3>
-                  <p className="text-[11px] text-slate-400">Pelo Chrome ou Samsung Internet:</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAndroidGuide(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3.5 text-xs text-slate-300">
-              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300 font-black">
-                  1
-                </div>
-                <div>
-                  <p className="font-bold text-white flex items-center gap-1.5">
-                    Toque nos 3 Pontinhos do Navegador
-                    <MoreVertical className="h-3.5 w-3.5 text-cyan-400" />
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Geralmente no canto superior direito da tela do Chrome.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 text-purple-300 font-black">
-                  2
-                </div>
-                <div>
-                  <p className="font-bold text-white flex items-center gap-1.5">
-                    Toque em "Instalar aplicativo" ou "Adicionar à tela inicial"
-                    <PlusSquare className="h-3.5 w-3.5 text-purple-400" />
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    O aplicativo será baixado com ícone oficial na sua tela inicial!
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowAndroidGuide(false)}
-              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-3 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer"
-            >
-              Entendi, vou instalar!
             </button>
           </div>
         </div>

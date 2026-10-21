@@ -332,21 +332,44 @@ export function PwaInstallPrompt() {
             <div className="mt-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] text-amber-200 font-medium leading-relaxed flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <span>
-                O Instagram não permite instalar aplicativos diretamente na tela dentro dele. Toque no botão abaixo para abrir no <strong>Google Chrome</strong> e baixar!
+                {isIos ? (
+                  <>
+                    No iPhone, o Instagram não permite salvar na tela diretamente. Toque nos <strong>3 pontinhos (...)</strong> no topo do Instagram e escolha <strong>"Abrir no Safari"</strong>!
+                  </>
+                ) : (
+                  <>
+                    O Instagram não permite instalar aplicativos diretamente dentro dele. Toque no botão abaixo para abrir no <strong>Google Chrome</strong> e baixar!
+                  </>
+                )}
               </span>
             </div>
 
             {/* Action Buttons */}
             <div className="mt-4 space-y-2.5">
-              <button
-                type="button"
-                onClick={openInExternalChrome}
-                className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(6,182,212,0.5)] cursor-pointer"
-              >
-                <Globe className="h-4 w-4" />
-                <span>Abrir no Google Chrome Agora</span>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </button>
+              {isIos ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInAppGuide(false);
+                    setShowIosGuide(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(168,85,247,0.5)] cursor-pointer"
+                >
+                  <Share className="h-4 w-4" />
+                  <span>Ver Passo a Passo para iPhone</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openInExternalChrome}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(6,182,212,0.5)] cursor-pointer"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>Abrir no Google Chrome Agora</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </button>
+              )}
 
               <button
                 type="button"

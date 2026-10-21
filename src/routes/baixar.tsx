@@ -91,6 +91,11 @@ export function BaixarAppPage() {
 
   // Trigger Installation Action
   const handleInstallClick = async () => {
+    if (isIos) {
+      setShowGuide(true);
+      return;
+    }
+
     if (isInAppBrowser) {
       openExternalChrome();
       return;
@@ -212,10 +217,18 @@ export function BaixarAppPage() {
             <div className="mt-5 rounded-2xl border border-pink-500/40 bg-pink-950/30 p-3.5 text-left text-xs text-pink-200 space-y-1">
               <div className="flex items-center gap-1.5 font-bold text-white">
                 <span className="h-2 w-2 rounded-full bg-pink-400 animate-ping"></span>
-                <span>Navegador do Instagram Detectado</span>
+                <span>{isIos ? "Navegador do Instagram no iPhone" : "Navegador do Instagram Detectado"}</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                O Instagram não permite instalar apps por dentro dele. Toque no botão abaixo para abrir no <strong>Google Chrome</strong> e baixar com 1 toque!
+                {isIos ? (
+                  <>
+                    No iPhone, toque nos <strong>3 pontinhos (...)</strong> no topo do Instagram e escolha <strong>"Abrir no Safari"</strong>. Depois toque em <strong>Compartilhar ⬆️</strong> e em <strong>"Adicionar à Tela de Início"</strong>!
+                  </>
+                ) : (
+                  <>
+                    O Instagram não permite instalar apps por dentro dele. Toque no botão abaixo para abrir no <strong>Google Chrome</strong> e baixar com 1 toque!
+                  </>
+                )}
               </p>
             </div>
           )}
@@ -223,15 +236,27 @@ export function BaixarAppPage() {
           {/* Primary Action Button */}
           <div className="mt-6 space-y-3">
             {isInAppBrowser ? (
-              <button
-                type="button"
-                onClick={openExternalChrome}
-                className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-4 px-6 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(6,182,212,0.6)] cursor-pointer"
-              >
-                <Globe className="h-5 w-5" />
-                <span>Abrir no Google Chrome para Baixar</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              isIos ? (
+                <button
+                  type="button"
+                  onClick={() => setShowGuide(true)}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 py-4 px-6 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(168,85,247,0.6)] cursor-pointer"
+                >
+                  <Share className="h-5 w-5" />
+                  <span>Ver Como Instalar no iPhone</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openExternalChrome}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-4 px-6 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(6,182,212,0.6)] cursor-pointer"
+                >
+                  <Globe className="h-5 w-5" />
+                  <span>Abrir no Google Chrome para Baixar</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              )
             ) : (
               <button
                 type="button"
@@ -239,7 +264,7 @@ export function BaixarAppPage() {
                 className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 py-4 px-6 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(6,182,212,0.6)] cursor-pointer"
               >
                 <Download className="h-5 w-5 animate-bounce" />
-                <span>{isIos ? "Adicionar à Tela de Início (iPhone)" : "BAIXAR / INSTALAR AGORA"}</span>
+                <span>{isIos ? "ADICIONAR À TELA DE INÍCIO (IPHONE)" : "BAIXAR / INSTALAR AGORA"}</span>
               </button>
             )}
 

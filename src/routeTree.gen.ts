@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BaixarRouteImport } from './routes/baixar'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as Projeto2RouteImport } from './routes/projeto2'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaixarRoute = BaixarRouteImport.update({
+  id: '/baixar',
+  path: '/baixar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParceiroRoute = ParceiroRouteImport.update({
@@ -38,12 +44,14 @@ const Projeto2Route = Projeto2RouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/baixar': typeof BaixarRoute
   '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/baixar': typeof BaixarRoute
   '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/baixar': typeof BaixarRoute
   '/parceiro': typeof ParceiroRoute
   '/projeto2': typeof Projeto2Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/parceiro' | '/projeto2'
+  fullPaths: '/' | '/admin' | '/baixar' | '/parceiro' | '/projeto2'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/parceiro' | '/projeto2'
-  id: '__root__' | '/' | '/admin' | '/parceiro' | '/projeto2'
+  to: '/' | '/admin' | '/baixar' | '/parceiro' | '/projeto2'
+  id: '__root__' | '/' | '/admin' | '/baixar' | '/parceiro' | '/projeto2'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  BaixarRoute: typeof BaixarRoute
   ParceiroRoute: typeof ParceiroRoute
   Projeto2Route: typeof Projeto2Route
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/baixar': {
+      id: '/baixar'
+      path: '/baixar'
+      fullPath: '/baixar'
+      preLoaderRoute: typeof BaixarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parceiro': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  BaixarRoute: BaixarRoute,
   ParceiroRoute: ParceiroRoute,
   Projeto2Route: Projeto2Route,
 }

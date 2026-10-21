@@ -139,20 +139,266 @@ interface ConfirmationRow {
   created_at: string;
 }
 
-function AdminDashboardPage() {
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getCurrentUser());
+function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) => void }) {
   const [adminEmail, setAdminEmail] = useState("thiagooriginal2002@gmail.com");
   const [adminPassword, setAdminPassword] = useState("");
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-
-  // Biometrics & Saved credentials for Super Admin
   const [adminRememberMe, setAdminRememberMe] = useState(true);
   const [adminEnableBio, setAdminEnableBio] = useState(false);
   const [adminBioLoading, setAdminBioLoading] = useState(false);
   const [adminBioSuccess, setAdminBioSuccess] = useState(false);
 
+  const handleAdminBiometricLogin = async () => {
+    setAuthError("");
+    setAdminBioLoading(true);
+    const res = await authenticateWithBiometrics("admin");
+    setAdminBioLoading(false);
+
+    if (res.success && res.user) {
+      setAdminBioSuccess(true);
+      setTimeout(() => {
+        onLoginSuccess({
+          ...res.user!,
+          role: "admin",
+        });
+      }, 400);
+    } else {
+      setAdminBioSuccess(false);
+      setAuthError(res.error || "Leitura biométrica cancelada ou não reconhecida.");
+    }
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading(true);
+
+    const res = await loginUser(adminEmail, adminPassword);
+    setAuthLoading(false);
+
+    if (res.success && res.user) {
+      if (res.user.role === "admin" || adminEmail.includes("thiagooriginal2002")) {
+        const adminUser: UserProfile = {
+          ...res.user,
+          role: "admin",
+        };
+        if (adminRememberMe) {
+          saveCredentials({
+            email: adminUser.email,
+            name: adminUser.name,
+            role: "admin",
+            rememberMe: true,
+            biometricsEnabled: adminEnableBio,
+          });
+        }
+        onLoginSuccess(adminUser);
+      } else {
+        setAuthError("Esta conta não possui permissão de Super Administrador.");
+      }
+    } else {
+      setAuthError(res.error || "Credenciais inválidas.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#06080f] text-slate-100 flex flex-col justify-center items-center px-4 relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-tr from-amber-600/20 via-purple-600/20 to-cyan-500/20 blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-md rounded-3xl border border-amber-500/30 bg-[#0c101c] p-7 shadow-[0_0_60px_-15px_rgba(245,158,11,0.3)] z-10 animate-in zoom-in-95 duration-200">
+        <div className="text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 via-purple-600 to-cyan-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] text-3xl">
+            👑
+          </div>
+          <h1 className="mt-4 text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+            <span>Painel Master</span>
+            <span className="text-amber-400">Admin</span>
+          </h1>
+          <p className="mt-1 text-xs text-slate-400 font-medium">
+            Radar do Rolê • Acesso Restrito aos Donos da Plataforma
+          </p>
+        </div>
+
+        {authError && (
+          <div className="mt-4 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
+            {authError}
+          </div>
+        )}
+
+        <div className="mt-5 space-y-2.5">
+          <button
+            type="button"
+            onClick={handleAdminBiometricLogin}
+            disabled={adminBioLoading}
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-950/60 via-purple-950/40 to-amber-950/60 py-3 px-4 text-sm font-black text-amber-300 hover:text-white hover:border-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95 transition-all cursor-pointer group"
+          >
+            <div className="relative flex items-center justify-center">
+              <Fingerprint
+                className={`h-5 w-5 text-amber-400 group-hover:scale-110 transition-transform ${
+                  adminBioLoading ? "animate-pulse" : ""
+                }`}
+              />
+              {adminBioSuccess && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+              )}
+            </div>
+            <span>
+              {adminBioLoading
+                ? "Posicione o dedo no sensor..."
+                : adminBioSuccess
+                ? "Digital Master Reconhecida!"
+                : "Entrar com Digital Master (Biometria)"}
+            </span>
+          </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-500">
+              ou digite as credenciais
+            </span>
+            <div className="flex-grow border-t border-white/10"></div>
+          </div>
+        </div>
+
+        <form onSubmit={handleAdminLogin} className="mt-4 space-y-4">
+          <div>
+            <label className="text-[11px] font-bold text-slate-300 mb-1 block">
+              E-mail do Administrador
+            </label>
+            <input
+              type="email"
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              placeholder="admin@radardorole.com.br"
+              className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3.5 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
+              required
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-bold text-slate-300 block">
+                Senha Master
+              </label>
+              {adminPassword && (
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+                >
+                  {showAdminPassword ? (
+                    <>
+                      <EyeOff className="h-3 w-3" />
+                      <span>Ocultar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3 w-3" />
+                      <span>Visualizar senha</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                type={showAdminPassword ? "text" : "password"}
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAdminPassword(!showAdminPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                title={showAdminPassword ? "Ocultar senha" : "Visualizar senha"}
+              >
+                {showAdminPassword ? (
+                  <EyeOff className="h-4 w-4 text-amber-400" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-1 pb-1">
+            <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={adminRememberMe}
+                onChange={(e) => setAdminRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
+              />
+              <span>Salvar credenciais Master neste dispositivo</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={adminEnableBio}
+                onChange={(e) => setAdminEnableBio(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
+              />
+              <span className="flex items-center gap-1.5 text-amber-300">
+                <Fingerprint className="h-3.5 w-3.5" />
+                Habilitar entrada com digital Master
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={authLoading}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-cyan-500 py-3 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] cursor-pointer"
+          >
+            <span>{authLoading ? "Validando Acesso..." : "Acessar Portal Master"}</span>
+            <Crown className="h-4 w-4" />
+          </button>
+        </form>
+
+        <div className="mt-6 border-t border-white/10 pt-4 text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Voltar ao App Público</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboardPage() {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getCurrentUser());
+  const isAdmin = currentUser?.role === "admin";
+
+  if (!isAdmin) {
+    return <AdminLoginView onLoginSuccess={(u) => setCurrentUser(u)} />;
+  }
+
+  return (
+    <AdminDashboardMain
+      currentUser={currentUser!}
+      onLogout={() => {
+        logoutUser();
+        setCurrentUser(null);
+      }}
+    />
+  );
+}
+
+function AdminDashboardMain({
+  currentUser,
+  onLogout,
+}: {
+  currentUser: UserProfile;
+  onLogout: () => void;
+}) {
   // Dashboard Data State
   const [venues, setVenues] = useState<Venue[]>(VENUES_DATA);
   const [leads, setLeads] = useState<VipLeadRow[]>([]);
@@ -406,63 +652,9 @@ function AdminDashboardPage() {
     }
   }, [isAdmin]);
 
-  // Biometric Login for Super Admin
-  const handleAdminBiometricLogin = async () => {
-    setAuthError("");
-    setAdminBioLoading(true);
-    const res = await authenticateWithBiometrics("admin");
-    setAdminBioLoading(false);
-
-    if (res.success && res.user) {
-      setAdminBioSuccess(true);
-      setTimeout(() => {
-        setCurrentUser({
-          ...res.user!,
-          role: "admin",
-        });
-      }, 400);
-    } else {
-      setAdminBioSuccess(false);
-      setAuthError(res.error || "Leitura biométrica cancelada ou não reconhecida.");
-    }
-  };
-
-  // Admin Login Handler
-  const handleAdminLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError("");
-    setAuthLoading(true);
-
-    const res = await loginUser(adminEmail, adminPassword);
-    setAuthLoading(false);
-
-    if (res.success && res.user) {
-      if (res.user.role === "admin" || adminEmail.includes("thiagooriginal2002")) {
-        const adminUser: UserProfile = {
-          ...res.user,
-          role: "admin",
-        };
-        if (adminRememberMe) {
-          saveCredentials({
-            email: adminUser.email,
-            name: adminUser.name,
-            role: "admin",
-            rememberMe: true,
-            biometricsEnabled: adminEnableBio,
-          });
-        }
-        setCurrentUser(adminUser);
-      } else {
-        setAuthError("Esta conta não possui permissão de Super Administrador.");
-      }
-    } else {
-      setAuthError(res.error || "Credenciais inválidas.");
-    }
-  };
-
   const handleLogout = () => {
     logoutUser();
-    setCurrentUser(null);
+    onLogout();
   };
 
   // Filtered Venues
@@ -519,12 +711,19 @@ function AdminDashboardPage() {
   };
 
   // Delete Specific User Handler
-  const handleDeleteUser = async (user: { id: string; name?: string; email?: string }) => {
-    if (
-      user.email === "thiagooriginal2002@gmail.com" ||
-      user.email === "thiago@radardorole.com.br"
-    ) {
-      alert("Não é permitido excluir a conta do Super Administrador.");
+  const handleDeleteUser = async (user: {
+    id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    sync_confirmation_id?: string;
+  }) => {
+    const isProtectedAdmin =
+      (user.role === "admin" && (user.name?.toLowerCase().includes("thiago") || user.email === "thiago@radardorole.com.br")) ||
+      (user.role === "admin" && user.email === "thiagooriginal2002@gmail.com");
+
+    if (isProtectedAdmin) {
+      alert("Não é permitido excluir a conta principal do Super Administrador.");
       return;
     }
 
@@ -569,8 +768,15 @@ function AdminDashboardPage() {
         } catch (e) {}
       }
 
-      // Optimistically update local state
-      setRegisteredUsers((prev) => prev.filter((u) => u.id !== user.id && u.email !== user.email));
+      // Optimistically update local state without deleting other users sharing the same email (like Jose Ronald)
+      setRegisteredUsers((prev) =>
+        prev.filter((u) => {
+          if (user.id && u.id === user.id) return false;
+          if (user.sync_confirmation_id && u.sync_confirmation_id === user.sync_confirmation_id) return false;
+          if (!user.id && !user.sync_confirmation_id && user.email && u.email === user.email) return false;
+          return true;
+        })
+      );
       alert(`✓ Usuário "${user.name || user.email}" excluído com sucesso.`);
     } catch (err: any) {
       alert("Erro ao excluir usuário: " + (err?.message || "Tente novamente"));
@@ -1111,192 +1317,6 @@ function AdminDashboardPage() {
   // Print Executive Report via Browser Native Dialog
   const handlePrintExecutiveReport = () => {
     window.print();
-  };
-
-  // =========================================================================
-  // VIEW 1: ADMIN LOGIN SCREEN (If not authenticated as admin)
-  // =========================================================================
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-[#06080f] text-slate-100 flex flex-col justify-center items-center px-4 relative overflow-hidden">
-        {/* Background glow effects */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-tr from-amber-600/20 via-purple-600/20 to-cyan-500/20 blur-3xl pointer-events-none" />
-
-        <div className="relative w-full max-w-md rounded-3xl border border-amber-500/30 bg-[#0c101c] p-7 shadow-[0_0_60px_-15px_rgba(245,158,11,0.3)] z-10 animate-in zoom-in-95 duration-200">
-          {/* Header */}
-          <div className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 via-purple-600 to-cyan-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] text-3xl">
-              👑
-            </div>
-            <h1 className="mt-4 text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-              <span>Painel Master</span>
-              <span className="text-amber-400">Admin</span>
-            </h1>
-            <p className="mt-1 text-xs text-slate-400 font-medium">
-              Radar do Rolê • Acesso Restrito aos Donos da Plataforma
-            </p>
-          </div>
-
-          {/* Error Message */}
-          {authError && (
-            <div className="mt-4 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
-              {authError}
-            </div>
-          )}
-
-          {/* Biometric Quick Login for Master Admin */}
-          <div className="mt-5 space-y-2.5">
-            <button
-              type="button"
-              onClick={handleAdminBiometricLogin}
-              disabled={adminBioLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-950/60 via-purple-950/40 to-amber-950/60 py-3 px-4 text-sm font-black text-amber-300 hover:text-white hover:border-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95 transition-all cursor-pointer group"
-            >
-              <div className="relative flex items-center justify-center">
-                <Fingerprint
-                  className={`h-5 w-5 text-amber-400 group-hover:scale-110 transition-transform ${
-                    adminBioLoading ? "animate-pulse" : ""
-                  }`}
-                />
-                {adminBioSuccess && (
-                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-                )}
-              </div>
-              <span>
-                {adminBioLoading
-                  ? "Posicione o dedo no sensor..."
-                  : adminBioSuccess
-                  ? "Digital Master Reconhecida!"
-                  : "Entrar com Digital Master (Biometria)"}
-              </span>
-            </button>
-
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-white/10"></div>
-              <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-500">
-                ou digite as credenciais
-              </span>
-              <div className="flex-grow border-t border-white/10"></div>
-            </div>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleAdminLogin} className="mt-4 space-y-4">
-            <div>
-              <label className="text-[11px] font-bold text-slate-300 mb-1 block">
-                E-mail do Administrador
-              </label>
-              <input
-                type="email"
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="admin@radardorole.com.br"
-                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3.5 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
-                required
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-bold text-slate-300 block">
-                  Senha Master
-                </label>
-                {adminPassword && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminPassword(!showAdminPassword)}
-                    className="flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
-                  >
-                    {showAdminPassword ? (
-                      <>
-                        <EyeOff className="h-3 w-3" />
-                        <span>Ocultar</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-3 w-3" />
-                        <span>Visualizar senha</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <input
-                  type={showAdminPassword ? "text" : "password"}
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowAdminPassword(!showAdminPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
-                  title={showAdminPassword ? "Ocultar senha" : "Visualizar senha"}
-                >
-                  {showAdminPassword ? (
-                    <EyeOff className="h-4 w-4 text-amber-400" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Checkboxes: Salvar Login & Biometria */}
-            <div className="space-y-2 pt-1 pb-1">
-              <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={adminRememberMe}
-                  onChange={(e) => setAdminRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
-                />
-                <span>Salvar credenciais Master neste dispositivo</span>
-              </label>
-
-              <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={adminEnableBio}
-                  onChange={(e) => setAdminEnableBio(e.target.checked)}
-                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
-                />
-                <span className="flex items-center gap-1.5 text-amber-300">
-                  <Fingerprint className="h-3.5 w-3.5" />
-                  Habilitar entrada com digital Master
-                </span>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-cyan-500 py-3 text-sm font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] cursor-pointer"
-            >
-              <span>{authLoading ? "Validando Acesso..." : "Acessar Portal Master"}</span>
-              <Crown className="h-4 w-4" />
-            </button>
-          </form>
-
-          <div className="mt-6 border-t border-white/10 pt-4 text-center">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Voltar ao App Público</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW 2: AUTHENTICATED SUPER ADMIN DASHBOARD
-  // =========================================================================
   return (
     <div className="min-h-screen bg-[#070a11] text-slate-100 pb-20">
       {/* Top Navbar */}
@@ -2127,7 +2147,12 @@ function AdminDashboardPage() {
                                   <span>WhatsApp</span>
                                 </a>
                               )}
-                              {u.email !== "thiagooriginal2002@gmail.com" && u.email !== "thiago@radardorole.com.br" && (
+                              {!(
+                                u.role === "admin" &&
+                                (u.name?.toLowerCase().includes("thiago") ||
+                                  u.email === "thiago@radardorole.com.br" ||
+                                  u.email === "thiagooriginal2002@gmail.com")
+                              ) && (
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteUser(u)}
@@ -3898,3 +3923,8 @@ function AdminDashboardPage() {
     </div>
   );
 }
+}
+
+export default AdminDashboardPage;
+
+

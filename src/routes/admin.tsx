@@ -406,6 +406,29 @@ function AdminDashboardPage() {
   );
 }
 
+const STORAGE_KEY_DELETED_USERS = "radardorole_deleted_users_cache_v2";
+
+function getLocalDeletedKeys(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DELETED_USERS);
+    if (!raw) return new Set();
+    const arr: string[] = JSON.parse(raw);
+    return new Set(arr.map((k) => k.toLowerCase().trim()));
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function saveLocalDeletedKey(key: string) {
+  if (typeof window === "undefined" || !key) return;
+  try {
+    const current = getLocalDeletedKeys();
+    current.add(key.toLowerCase().trim());
+    localStorage.setItem(STORAGE_KEY_DELETED_USERS, JSON.stringify(Array.from(current)));
+  } catch (e) {}
+}
+
 function AdminDashboardMain({
   currentUser,
   onLogout,
@@ -671,8 +694,8 @@ function AdminDashboardMain({
             }
           } catch (e) {}
 
-          // D. Fetch persistent cloud tombstone deletion records to ensure deleted users NEVER return
-          const deletedKeys = new Set<string>();
+          // D. Fetch persistent cloud tombstone deletion records + local storage cache
+          const deletedKeys = getLocalDeletedKeys();
           try {
             const { data: deletedRows } = await (supabase as any)
               .from("event_confirmations")
@@ -684,22 +707,38 @@ function AdminDashboardMain({
               deletedRows.forEach((r: any) => {
                 try {
                   const d = JSON.parse(r.user_name.replace("[USER_DELETED]:", ""));
-                  if (d.id) deletedKeys.add(String(d.id).toLowerCase());
-                  if (d.email) deletedKeys.add(String(d.email).toLowerCase().trim());
-                  if (d.sync_confirmation_id) deletedKeys.add(String(d.sync_confirmation_id).toLowerCase());
+                  if (d.id) {
+                    deletedKeys.add(String(d.id).toLowerCase().trim());
+                    saveLocalDeletedKey(String(d.id));
+                  }
+                  if (d.email) {
+                    deletedKeys.add(String(d.email).toLowerCase().trim());
+                    saveLocalDeletedKey(String(d.email));
+                  }
+                  if (d.sync_confirmation_id) {
+                    deletedKeys.add(String(d.sync_confirmation_id).toLowerCase().trim());
+                    saveLocalDeletedKey(String(d.sync_confirmation_id));
+                  }
+                  if (d.name) {
+                    deletedKeys.add(String(d.name).toLowerCase().trim());
+                    saveLocalDeletedKey(String(d.name));
+                  }
                 } catch (e) {}
               });
             }
           } catch (e) {}
 
-          // Filter out any user that was marked deleted in Supabase
+          // Filter out any user that was marked deleted in Supabase or local storage
           const allUsers = Array.from(usersMap.values()).filter((u) => {
-            const idKey = u.id ? String(u.id).toLowerCase() : "";
+            const idKey = u.id ? String(u.id).toLowerCase().trim() : "";
             const emailKey = u.email ? String(u.email).toLowerCase().trim() : "";
-            const syncKey = u.sync_confirmation_id ? String(u.sync_confirmation_id).toLowerCase() : "";
+            const syncKey = u.sync_confirmation_id ? String(u.sync_confirmation_id).toLowerCase().trim() : "";
+            const nameKey = u.name ? String(u.name).toLowerCase().trim() : "";
+
             if (idKey && deletedKeys.has(idKey)) return false;
             if (emailKey && deletedKeys.has(emailKey)) return false;
             if (syncKey && deletedKeys.has(syncKey)) return false;
+            if (nameKey && deletedKeys.has(nameKey)) return false;
             return true;
           });
 
@@ -837,7 +876,13 @@ function AdminDashboardMain({
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // 1. Record persistent cloud tombstone in Supabase event_confirmations
+      // 1. Instantly save all user keys into local storage cache
+      if (user.id) saveLocalDeletedKey(user.id);
+      if (user.email) saveLocalDeletedKey(user.email);
+      if (user.sync_confirmation_id) saveLocalDeletedKey(user.sync_confirmation_id);
+      if (user.name) saveLocalDeletedKey(user.name);
+
+      // 2. Record persistent cloud tombstone in Supabase event_confirmations
       // Guaranteed to persist across page refreshes, mobile access and other admin sessions
       try {
         await (supabase as any).from("event_confirmations").insert({
@@ -852,7 +897,7 @@ function AdminDashboardMain({
         });
       } catch (e) {}
 
-      // 2. Try secure RPC delete_admin_user if available
+      // 3. Try secure RPC delete_admin_user if available
       try {
         await (supabase as any).rpc("delete_admin_user", {
           p_user_id: user.id,
@@ -860,7 +905,7 @@ function AdminDashboardMain({
         });
       } catch (e) {}
 
-      // 3. Fallback direct profile delete
+      // 4. Fallback direct profile delete
       try {
         await (supabase as any)
           .from("profiles")
@@ -868,11 +913,12 @@ function AdminDashboardMain({
           .eq("id", user.id);
       } catch (e) {}
 
-      // Optimistically update local state without deleting other users sharing the same email (like Jose Ronald)
+      // Optimistically update local state immediately
       setRegisteredUsers((prev) =>
         prev.filter((u) => {
           if (user.id && u.id === user.id) return false;
           if (user.sync_confirmation_id && u.sync_confirmation_id === user.sync_confirmation_id) return false;
+          if (user.name && u.name && u.name.toLowerCase().trim() === user.name.toLowerCase().trim()) return false;
           if (!user.id && !user.sync_confirmation_id && user.email && u.email === user.email) return false;
           return true;
         })
@@ -926,6 +972,11 @@ function AdminDashboardMain({
 
       // 2. Individual persistent tombstones & fallbacks
       for (const tu of testUsers) {
+        if (tu.id) saveLocalDeletedKey(tu.id);
+        if (tu.email) saveLocalDeletedKey(tu.email);
+        if (tu.sync_confirmation_id) saveLocalDeletedKey(tu.sync_confirmation_id);
+        if (tu.name) saveLocalDeletedKey(tu.name);
+
         try {
           await (supabase as any).from("event_confirmations").insert({
             venue_id: "balada-vilajk",
@@ -1605,264 +1656,166 @@ function AdminDashboardMain({
               <Building2 className="h-3.5 w-3.5" />
               <span>🏢 Locais ({venues.length})</span>
             </button>
-          </div>
-        </div>
-
-        {/* Section Navigation Tabs: Mobile Grid (< sm) */}
-        <div className="mt-5 block sm:hidden">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("dashboard")}
-              className={`col-span-2 flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "dashboard"
-                  ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
-                  : "bg-purple-950/40 text-purple-300 border border-purple-500/40"
-              }`}
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span>📊 Dashboard & Gráficos Master</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("metrics")}
-              className={`col-span-2 flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "metrics"
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] border border-emerald-300"
-                  : "bg-emerald-950/40 text-emerald-300 border border-emerald-500/40"
-              }`}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-              </span>
-              <Activity className="h-4 w-4" />
-              <span>🌐 Métricas do Site (Ao Vivo • {onlineVisitors.length} online)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("venues")}
-              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
-                activeTab === "venues"
-                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
-                  : "bg-white/5 text-slate-300 border border-white/10"
-              }`}
-            >
-              <Building2 className="h-4 w-4" />
-              <span>Locais ({venues.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("leads")}
-              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
-                activeTab === "leads"
-                  ? "bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] border border-cyan-400"
-                  : "bg-white/5 text-slate-300 border border-white/10"
-              }`}
-            >
-              <Ticket className="h-4 w-4" />
-              <span>Leads ({leads.length})</span>
-            </button>
 
             <button
               type="button"
               onClick={() => handleSwitchTab("users")}
-              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 activeTab === "users"
-                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
-                  : "bg-white/5 text-slate-300 border border-white/10"
+                  ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.7)]"
+                  : "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30"
               }`}
             >
-              <Users className="h-4 w-4" />
-              <span>Usuários ({registeredUsers.length})</span>
+              <Users className="h-3.5 w-3.5" />
+              <span>👥 Usuários ({registeredUsers.length})</span>
             </button>
+          </div>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("confirmations")}
-              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
-                activeTab === "confirmations"
-                  ? "bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)] border border-rose-400"
-                  : "bg-white/5 text-slate-300 border border-white/10"
-              }`}
-            >
-              <Flame className="h-4 w-4" />
-              <span>Presenças ({confirmations.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("saas")}
-              className={`flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
-                activeTab === "saas"
-                  ? "bg-gradient-to-r from-emerald-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.5)] border border-emerald-300"
-                  : "bg-white/5 text-slate-300 border border-white/10"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>💼 SaaS & Pix</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("whatsapp")}
-              className={`col-span-2 flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-black transition-all ${
-                activeTab === "whatsapp"
-                  ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] border border-emerald-300 animate-pulse"
-                  : "bg-emerald-950/40 text-emerald-300 border border-emerald-500/40"
-              }`}
-            >
-              <Phone className="h-4 w-4 text-emerald-400" />
-              <span>📲 WhatsApp Hub</span>
-            </button>
+        {/* Section Navigation Header & Primary Actions */}
+        <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+          <div>
+            <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <span>Navegação & Módulos</span>
+              <span className="rounded-full bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 text-[10px] text-purple-300 font-bold lowercase">
+                9 módulos disponíveis
+              </span>
+            </h2>
+            <p className="text-[11px] text-slate-400">Acesse qualquer ferramenta do painel master em 1 clique:</p>
           </div>
 
           <button
             type="button"
             onClick={() => setIsNewVenueModalOpen(true)}
-            className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 p-2.5 text-xs font-black text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer"
+            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2.5 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(16,185,129,0.35)] cursor-pointer self-start sm:self-auto"
           >
             <Plus className="h-4 w-4" />
-            <span>Cadastrar Estabelecimento</span>
+            <span>+ Cadastrar Estabelecimento</span>
           </button>
         </div>
 
-        {/* Section Navigation Tabs: Desktop / Tablet Scrollable Bar (>= sm) */}
-        <div className="mt-8 hidden sm:flex items-center justify-between border-b border-white/10 pb-3 gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full max-w-full">
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("dashboard")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "dashboard"
-                  ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
-                  : "text-purple-300 hover:text-white hover:bg-purple-950/30 border border-purple-500/30"
-              }`}
-            >
-              <BarChart3 className="h-4 w-4 text-purple-400" />
-              <span>📊 Dashboard Geral & Gráficos</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("metrics")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "metrics"
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] font-black"
-                  : "text-emerald-400 hover:text-white hover:bg-emerald-950/30 border border-emerald-500/30"
-              }`}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-              </span>
-              <Activity className="h-4 w-4" />
-              <span>🌐 Métricas do Site (Ao Vivo • {onlineVisitors.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("venues")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
-                activeTab === "venues"
-                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Building2 className="h-4 w-4" />
-              <span>Gestão de Estabelecimentos ({venues.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("leads")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
-                activeTab === "leads"
-                  ? "bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)]"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Ticket className="h-4 w-4" />
-              <span>Mural de Leads VIP ({leads.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("users")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
-                activeTab === "users"
-                  ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              <span>👥 Usuários ({registeredUsers.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("confirmations")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
-                activeTab === "confirmations"
-                  ? "bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)]"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Flame className="h-4 w-4" />
-              <span>Confirmados no Rolê ({confirmations.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("analytics")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "analytics"
-                  ? "bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] font-black"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span>📊 Relatórios ({venues.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("saas")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "saas"
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.5)] font-black"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>💼 SaaS & Projeções ({subscriptions.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSwitchTab("whatsapp")}
-              className={`flex shrink-0 whitespace-nowrap items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
-                activeTab === "whatsapp"
-                  ? "bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.6)] font-black"
-                  : "text-emerald-400 hover:text-white hover:bg-emerald-950/30 border border-emerald-500/20"
-              }`}
-            >
-              <Phone className="h-4 w-4" />
-              <span>📲 WhatsApp Hub & Automações</span>
-            </button>
-          </div>
-
-          {/* Action Button: Add Venue */}
+        {/* Modern Full-Width Navigation Tabs (100% visible on all screen sizes, never cut off) */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 p-2.5 rounded-2xl bg-[#090d18]/90 border border-white/10 shadow-2xl backdrop-blur-md">
           <button
             type="button"
-            onClick={() => setIsNewVenueModalOpen(true)}
-            className="shrink-0 flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-3.5 py-2 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer"
+            onClick={() => handleSwitchTab("dashboard")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "dashboard"
+                ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
+                : "text-purple-300 hover:text-white hover:bg-purple-950/30 border border-purple-500/30"
+            }`}
           >
-            <Plus className="h-4 w-4" />
-            <span>Cadastrar Estabelecimento</span>
+            <BarChart3 className="h-4 w-4 text-purple-400" />
+            <span>📊 Dashboard Geral</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("metrics")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "metrics"
+                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.7)] font-black"
+                : "text-emerald-400 hover:text-white hover:bg-emerald-950/30 border border-emerald-500/30"
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            </span>
+            <Activity className="h-4 w-4" />
+            <span>🌐 Métricas ({onlineVisitors.length} online)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("venues")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "venues"
+                ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400"
+                : "text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            }`}
+          >
+            <Building2 className="h-4 w-4 text-purple-400" />
+            <span>🏢 Locais ({venues.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("leads")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "leads"
+                ? "bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] border border-cyan-400"
+                : "text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            }`}
+          >
+            <Ticket className="h-4 w-4 text-cyan-400" />
+            <span>🎟️ Leads VIP ({leads.length})</span>
+          </button>
+
+          {/* Destaque para o módulo de Usuários */}
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("users")}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "users"
+                ? "bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-600 text-white shadow-[0_0_25px_rgba(168,85,247,0.7)] border border-purple-300 ring-2 ring-purple-400/40"
+                : "bg-purple-950/30 text-purple-300 hover:text-white hover:bg-purple-900/40 border border-purple-500/40"
+            }`}
+          >
+            <Users className="h-4 w-4 text-purple-300" />
+            <span>👥 Usuários Cadastrados ({registeredUsers.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("confirmations")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "confirmations"
+                ? "bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)] border border-rose-400"
+                : "text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            }`}
+          >
+            <Flame className="h-4 w-4 text-rose-400" />
+            <span>🔥 Confirmados ({confirmations.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("analytics")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "analytics"
+                ? "bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] font-black border border-amber-300"
+                : "text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4 text-amber-400" />
+            <span>📈 Relatórios ({venues.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("saas")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "saas"
+                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.5)] font-black border border-emerald-300"
+                : "text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            }`}
+          >
+            <CreditCard className="h-4 w-4 text-emerald-400" />
+            <span>💼 SaaS & Projeções ({subscriptions.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSwitchTab("whatsapp")}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === "whatsapp"
+                ? "bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.6)] font-black border border-emerald-300"
+                : "text-emerald-400 hover:text-white hover:bg-emerald-950/30 border border-emerald-500/30"
+            }`}
+          >
+            <Phone className="h-4 w-4 text-emerald-400" />
+            <span>📲 WhatsApp Hub & Automações</span>
           </button>
         </div>
 

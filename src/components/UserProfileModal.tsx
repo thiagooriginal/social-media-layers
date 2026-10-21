@@ -31,6 +31,7 @@ import {
   UserVipPass,
   clearSavedCredentials,
   updateUserProfile,
+  isUserDeleted,
 } from "../services/authService";
 import {
   getStoredBiometrics,
@@ -86,6 +87,19 @@ export function UserProfileModal({
       setEditEmail(user.email || "");
       setEditBusinessName(user.businessName || "");
       setEditNeighborhood(user.neighborhood || "");
+
+      if (isOpen) {
+        isUserDeleted(user.id, user.email).then((deleted) => {
+          if (deleted) {
+            logoutUser();
+            clearSavedCredentials();
+            clearStoredBiometrics();
+            toast.error("Esta conta foi excluída ou desativada pelo administrador.");
+            onLogout();
+            onClose();
+          }
+        }).catch(() => {});
+      }
     }
   }, [user, isOpen]);
 

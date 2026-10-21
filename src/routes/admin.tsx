@@ -64,6 +64,10 @@ import {
   UserProfile,
   getSavedCredentials,
   saveCredentials,
+  STORAGE_KEY_DELETED_USERS,
+  getLocalDeletedKeys,
+  saveLocalDeletedKey,
+  isUserDeleted,
 } from "../services/authService";
 import { AdminSiteMetricsTab } from "../components/AdminSiteMetricsTab";
 import {
@@ -404,29 +408,6 @@ function AdminDashboardPage() {
       }}
     />
   );
-}
-
-const STORAGE_KEY_DELETED_USERS = "radardorole_deleted_users_cache_v2";
-
-function getLocalDeletedKeys(): Set<string> {
-  if (typeof window === "undefined") return new Set();
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_DELETED_USERS);
-    if (!raw) return new Set();
-    const arr: string[] = JSON.parse(raw);
-    return new Set(arr.map((k) => k.toLowerCase().trim()));
-  } catch (e) {
-    return new Set();
-  }
-}
-
-function saveLocalDeletedKey(key: string) {
-  if (typeof window === "undefined" || !key) return;
-  try {
-    const current = getLocalDeletedKeys();
-    current.add(key.toLowerCase().trim());
-    localStorage.setItem(STORAGE_KEY_DELETED_USERS, JSON.stringify(Array.from(current)));
-  } catch (e) {}
 }
 
 function AdminDashboardMain({
@@ -895,6 +876,16 @@ function AdminDashboardMain({
             deleted_at: new Date().toISOString(),
           })}`,
         });
+      } catch (e) {}
+
+      // 2.1 Clean any registration sync rows for this user
+      try {
+        if (user.sync_confirmation_id) {
+          await (supabase as any).from("event_confirmations").delete().eq("id", user.sync_confirmation_id);
+        }
+        if (user.email) {
+          await (supabase as any).from("event_confirmations").delete().like("user_name", `%${user.email.toLowerCase().trim()}%`);
+        }
       } catch (e) {}
 
       // 3. Try secure RPC delete_admin_user if available

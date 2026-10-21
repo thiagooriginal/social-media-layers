@@ -104,6 +104,109 @@ export function subscribeToAuth(callback: (user: UserProfile | null) => void): (
   };
 }
 
+export const STORAGE_KEY_DELETED_USERS = "radardorole_deleted_users_cache_v2";
+
+export function getLocalDeletedKeys(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DELETED_USERS);
+    if (!raw) return new Set();
+    const arr: string[] = JSON.parse(raw);
+    return new Set(arr.map((k) => k.toLowerCase().trim()));
+  } catch (e) {
+    return new Set();
+  }
+}
+
+export function saveLocalDeletedKey(key: string): void {
+  if (typeof window === "undefined" || !key) return;
+  try {
+    const current = getLocalDeletedKeys();
+    current.add(key.toLowerCase().trim());
+    localStorage.setItem(STORAGE_KEY_DELETED_USERS, JSON.stringify(Array.from(current)));
+  } catch (e) {}
+}
+
+/**
+ * Checks if a user has been deleted or deactivated by admin.
+ * Checks local cache first, then Supabase persistent tombstones in event_confirmations.
+ */
+export async function isUserDeleted(id?: string, email?: string): Promise<boolean> {
+  const cleanEmail = email ? email.toLowerCase().trim() : "";
+  const cleanId = id ? id.toLowerCase().trim() : "";
+
+  // Super admins are protected and never considered deleted
+  if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
+    return false;
+  }
+
+  // 1. Instant check in local storage cache
+  const localKeys = getLocalDeletedKeys();
+  if (cleanEmail && localKeys.has(cleanEmail)) return true;
+  if (cleanId && localKeys.has(cleanId)) return true;
+
+  // 2. Query Supabase persistent tombstones
+  try {
+    if (cleanEmail) {
+      const { data: tombstones } = await (supabase as any)
+        .from("event_confirmations")
+        .select("user_name")
+        .like("user_name", `%[USER_DELETED]:%${cleanEmail}%`)
+        .limit(1);
+
+      if (tombstones && tombstones.length > 0) {
+        saveLocalDeletedKey(cleanEmail);
+        if (cleanId) saveLocalDeletedKey(cleanId);
+        return true;
+      }
+    }
+
+    if (cleanId) {
+      const { data: tombstonesById } = await (supabase as any)
+        .from("event_confirmations")
+        .select("user_name")
+        .like("user_name", `%[USER_DELETED]:%${cleanId}%`)
+        .limit(1);
+
+      if (tombstonesById && tombstonesById.length > 0) {
+        saveLocalDeletedKey(cleanId);
+        if (cleanEmail) saveLocalDeletedKey(cleanEmail);
+        return true;
+      }
+    }
+  } catch (e) {}
+
+  return false;
+}
+
+/**
+ * Validates the currently active session on the device.
+ * If the user has been deleted by an admin, forcibly terminates their session immediately.
+ */
+export async function validateActiveSession(): Promise<boolean> {
+  if (typeof window === "undefined") return true;
+  try {
+    const current = getCurrentUser();
+    if (!current || !current.email) return true;
+
+    const cleanEmail = current.email.toLowerCase().trim();
+    if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
+      return true;
+    }
+
+    const deleted = await isUserDeleted(current.id, cleanEmail);
+    if (deleted) {
+      console.warn("Active session revoked: user was deleted by admin", cleanEmail);
+      logoutUser();
+      clearSavedCredentials();
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+
 // Hook into Supabase auth changes
 if (typeof window !== "undefined") {
   try {
@@ -112,6 +215,16 @@ if (typeof window !== "undefined") {
         localStorage.removeItem(STORAGE_KEY_USER);
         notifyAuthChange(null);
       } else if (event === "SIGNED_IN" && session?.user) {
+        // Security gate: Verify if account was revoked/deleted by admin
+        const isDeleted = await isUserDeleted(session.user.id, session.user.email);
+        if (isDeleted) {
+          await supabase.auth.signOut().catch(() => {});
+          localStorage.removeItem(STORAGE_KEY_USER);
+          clearSavedCredentials();
+          notifyAuthChange(null);
+          return;
+        }
+
         const current = getCurrentUser();
         if (!current || current.id !== session.user.id) {
           const { data: dbProfile } = await supabase
@@ -155,6 +268,14 @@ export async function syncCurrentUserToCloud(): Promise<void> {
       return;
     }
 
+    // Security gate: Never sync deleted accounts back to cloud
+    const deleted = await isUserDeleted(current.id, cleanEmail);
+    if (deleted) {
+      logoutUser();
+      clearSavedCredentials();
+      return;
+    }
+
     const { data: existing } = await (supabase as any)
       .from("event_confirmations")
       .select("id")
@@ -191,7 +312,11 @@ export async function syncCurrentUserToCloud(): Promise<void> {
 
 if (typeof window !== "undefined") {
   setTimeout(() => {
-    syncCurrentUserToCloud().catch(() => {});
+    validateActiveSession().then((valid) => {
+      if (valid) {
+        syncCurrentUserToCloud().catch(() => {});
+      }
+    });
   }, 1000);
 }
 
@@ -254,6 +379,20 @@ export async function loginUser(
 ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = email.toLowerCase().trim();
   try {
+    // 0. Security Gate: Block login if account was deleted/revoked by admin
+    const isDeleted = await isUserDeleted(undefined, cleanEmail);
+    if (isDeleted) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY_USER);
+      }
+      clearSavedCredentials();
+      notifyAuthChange(null);
+      return {
+        success: false,
+        error: "Esta conta foi desativada ou excluída pelo administrador.",
+      };
+    }
+
     // 1. Special master bypass for official Thiago admin (in dev / master dashboard)
     if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
       if (password) {
@@ -284,6 +423,20 @@ export async function loginUser(
         });
 
         if (authData?.user && !authErr) {
+          // Security gate: Verify if account was revoked/deleted by admin
+          if (await isUserDeleted(authData.user.id, authData.user.email)) {
+            await supabase.auth.signOut().catch(() => {});
+            if (typeof window !== "undefined") {
+              localStorage.removeItem(STORAGE_KEY_USER);
+            }
+            clearSavedCredentials();
+            notifyAuthChange(null);
+            return {
+              success: false,
+              error: "Esta conta foi desativada ou excluída pelo administrador.",
+            };
+          }
+
           // Fetch profile row
           let dbProfile: any = null;
           try {

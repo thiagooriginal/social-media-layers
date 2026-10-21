@@ -3,7 +3,7 @@
  * Radar do Rolê - Suporte nativo para Web e PWA Mobile
  */
 
-import { UserProfile, getCurrentUser, loginUser } from "./authService";
+import { UserProfile, getCurrentUser, loginUser, isUserDeleted, clearSavedCredentials } from "./authService";
 
 const STORAGE_KEY_BIOMETRIC = "baladaon_biometric_credentials";
 
@@ -200,6 +200,20 @@ export async function authenticateWithBiometrics(
     };
   }
 
+  // 2.5 Security check: Verify if account was revoked/deleted by admin
+  const isDeletedPrior = await isUserDeleted(stored.userId, stored.userEmail);
+  if (isDeletedPrior) {
+    clearStoredBiometrics();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("baladaon_auth_user");
+    }
+    clearSavedCredentials();
+    return {
+      success: false,
+      error: "Esta conta foi desativada ou excluída pelo administrador.",
+    };
+  }
+
   // 3. HARDWARE BIOMETRIC VERIFICATION PROMPT
   try {
     const hostname = window.location.hostname === "localhost" ? "localhost" : window.location.hostname;
@@ -251,6 +265,20 @@ export async function authenticateWithBiometrics(
   }
 
   // 4. ONLY EXECUTED IF SENSOR ACTUALLY SUCCEEDED:
+  // Re-verify deletion status in case it was deleted while sensor prompt was active
+  const isDeletedAfter = await isUserDeleted(stored.userId, stored.userEmail);
+  if (isDeletedAfter) {
+    clearStoredBiometrics();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("baladaon_auth_user");
+    }
+    clearSavedCredentials();
+    return {
+      success: false,
+      error: "Esta conta foi desativada ou excluída pelo administrador.",
+    };
+  }
+
   let targetRole: "user" | "partner" | "admin" = stored.userRole || "user";
   if (stored.userEmail.toLowerCase().includes("thiagooriginal2002")) {
     targetRole = expectedRole === "partner" ? "partner" : "admin";
@@ -273,6 +301,20 @@ export async function authenticateWithBiometrics(
     return { success: true, user: verifiedUser };
   }
 
+  // If loginUser failed because user was deleted or disabled, do NOT create local session!
+  if (loginRes.error?.includes("desativada") || loginRes.error?.includes("excluída")) {
+    clearStoredBiometrics();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("baladaon_auth_user");
+    }
+    clearSavedCredentials();
+    return {
+      success: false,
+      error: loginRes.error,
+    };
+  }
+
+  // Fallback for valid non-deleted user with offline access
   const localUser: UserProfile = {
     id: stored.userId,
     name: stored.userName,

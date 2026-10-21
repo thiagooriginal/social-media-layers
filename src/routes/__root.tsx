@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
 import { trackPageView, subscribeToRealtimePresence } from "../services/siteMetricsService";
+import { validateActiveSession } from "../services/authService";
 
 function NotFoundComponent() {
   return (
@@ -165,6 +166,9 @@ function RootComponent() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // 0. Auto-verify active session validity against admin revocations/deletions
+    validateActiveSession().catch(() => {});
 
     let unsubPresence: (() => void) | null = null;
     try {

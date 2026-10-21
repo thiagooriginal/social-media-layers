@@ -143,6 +143,58 @@ if (typeof window !== "undefined") {
   }
 }
 
+// Auto sync local user to Supabase cloud on load if not yet synced
+export async function syncCurrentUserToCloud(): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getCurrentUser();
+    if (!current || !current.email) return;
+
+    const cleanEmail = current.email.toLowerCase().trim();
+    if (cleanEmail === "thiagooriginal2002@gmail.com" || cleanEmail === "thiago@radardorole.com.br") {
+      return;
+    }
+
+    const { data: existing } = await (supabase as any)
+      .from("event_confirmations")
+      .select("id")
+      .like("user_name", `%${cleanEmail}%`)
+      .limit(1);
+
+    if (existing && existing.length > 0) return;
+
+    const cloudPayload = {
+      id: current.id,
+      name: current.name,
+      email: cleanEmail,
+      whatsapp: current.whatsapp,
+      role: current.role || "user",
+      cpf: current.cpf || null,
+      phone_verified: Boolean(current.phoneVerified),
+      business_name: current.businessName || null,
+      venue_category: current.venueCategory || null,
+      neighborhood: current.neighborhood || null,
+      created_at: current.createdAt || new Date().toISOString(),
+    };
+
+    await (supabase as any)
+      .from("event_confirmations")
+      .insert({
+        venue_id: "balada-vilajk",
+        user_name: `[USER_REG]:${JSON.stringify(cloudPayload)}`,
+        user_whatsapp: current.whatsapp || "",
+      });
+  } catch (e) {
+    console.warn("Auto sync current user to cloud notice:", e);
+  }
+}
+
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    syncCurrentUserToCloud().catch(() => {});
+  }, 1000);
+}
+
 function notifyAuthChange(user: UserProfile | null) {
   listeners.forEach((fn) => fn(user));
 }

@@ -753,6 +753,47 @@ export async function updateUserProfile(data: {
           neighborhood: updatedUser.neighborhood || null,
         },
       }).catch(() => {});
+
+      // Sincronizar também no canal de confirmações em nuvem
+      try {
+        const cloudPayload = {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          whatsapp: updatedUser.whatsapp,
+          role: updatedUser.role || "user",
+          cpf: updatedUser.cpf || null,
+          phone_verified: Boolean(updatedUser.phoneVerified),
+          business_name: updatedUser.businessName || null,
+          venue_category: updatedUser.venueCategory || null,
+          neighborhood: updatedUser.neighborhood || null,
+          created_at: updatedUser.createdAt || new Date().toISOString(),
+        };
+
+        const { data: rows } = await (supabase as any)
+          .from("event_confirmations")
+          .select("id")
+          .like("user_name", `%${updatedUser.id}%`)
+          .limit(1);
+
+        if (rows && rows.length > 0) {
+          await (supabase as any)
+            .from("event_confirmations")
+            .update({
+              user_name: `[USER_REG]:${JSON.stringify(cloudPayload)}`,
+              user_whatsapp: updatedUser.whatsapp,
+            })
+            .eq("id", rows[0].id);
+        } else {
+          await (supabase as any)
+            .from("event_confirmations")
+            .insert({
+              venue_id: "balada-vilajk",
+              user_name: `[USER_REG]:${JSON.stringify(cloudPayload)}`,
+              user_whatsapp: updatedUser.whatsapp,
+            });
+        }
+      } catch (e) {}
     } catch (e) {
       console.warn("Could not sync updated profile to Supabase:", e);
     }

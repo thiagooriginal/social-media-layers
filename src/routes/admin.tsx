@@ -329,9 +329,8 @@ function AdminDashboardPage() {
             const { data: rpcUsers } = await (supabase as any).rpc("get_admin_users");
             if (rpcUsers && Array.isArray(rpcUsers)) {
               rpcUsers.forEach((u: any) => {
-                if (u.email) {
-                  usersMap.set(u.email.toLowerCase().trim(), u);
-                }
+                const key = u.id || (u.email ? u.email.toLowerCase().trim() : Math.random().toString());
+                usersMap.set(key, u);
               });
             }
           } catch (e) {}
@@ -344,11 +343,9 @@ function AdminDashboardPage() {
               .order("created_at", { ascending: false });
             if (directProfiles && Array.isArray(directProfiles)) {
               directProfiles.forEach((u: any) => {
-                if (u.email) {
-                  const key = u.email.toLowerCase().trim();
-                  if (!usersMap.has(key)) {
-                    usersMap.set(key, u);
-                  }
+                const key = u.id || (u.email ? u.email.toLowerCase().trim() : Math.random().toString());
+                if (!usersMap.has(key)) {
+                  usersMap.set(key, u);
                 }
               });
             }
@@ -366,24 +363,22 @@ function AdminDashboardPage() {
               cloudRows.forEach((row: any) => {
                 try {
                   const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
-                  if (u.email) {
-                    const key = u.email.toLowerCase().trim();
-                    if (!usersMap.has(key)) {
-                      usersMap.set(key, {
-                        id: u.id || row.id,
-                        name: u.name,
-                        email: u.email,
-                        whatsapp: u.whatsapp,
-                        role: u.role || "user",
-                        cpf: u.cpf,
-                        phone_verified: Boolean(u.phone_verified ?? true),
-                        business_name: u.business_name,
-                        venue_category: u.venue_category,
-                        neighborhood: u.neighborhood,
-                        created_at: u.created_at || row.created_at,
-                        sync_confirmation_id: row.id,
-                      });
-                    }
+                  if (u.name || u.email) {
+                    const key = u.id || row.id;
+                    usersMap.set(key, {
+                      id: u.id || row.id,
+                      name: u.name,
+                      email: u.email,
+                      whatsapp: u.whatsapp,
+                      role: u.role || "user",
+                      cpf: u.cpf,
+                      phone_verified: Boolean(u.phone_verified ?? true),
+                      business_name: u.business_name,
+                      venue_category: u.venue_category,
+                      neighborhood: u.neighborhood,
+                      created_at: u.created_at || row.created_at,
+                      sync_confirmation_id: row.id,
+                    });
                   }
                 } catch (e) {}
               });

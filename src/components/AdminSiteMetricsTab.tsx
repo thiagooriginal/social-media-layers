@@ -33,7 +33,7 @@ interface AdminSiteMetricsTabProps {
   lastUpdated: Date;
 }
 
-export function AdminSiteMetricsTab({
+function AdminSiteMetricsTabComponent({
   metrics,
   onlineVisitors,
   isLoading,
@@ -612,3 +612,5 @@ export function AdminSiteMetricsTab({
     </div>
   );
 }
+
+export const AdminSiteMetricsTab = React.memo(AdminSiteMetricsTabComponent);

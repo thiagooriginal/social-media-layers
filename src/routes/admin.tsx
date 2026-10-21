@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useDeferredValue } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ShieldAlert,
@@ -419,6 +419,7 @@ function AdminDashboardMain({
   const [confirmations, setConfirmations] = useState<ConfirmationRow[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
+  const deferredUserSearch = useDeferredValue(userSearch);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "metrics" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp"
@@ -471,7 +472,21 @@ function AdminDashboardMain({
 
   // Venue filters inside admin
   const [venueSearch, setVenueSearch] = useState("");
+  const deferredVenueSearch = useDeferredValue(venueSearch);
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Fast pre-computed category counts to prevent repeated filtering on render
+  const categoryCounts = useMemo(() => {
+    let baladas = 0;
+    let bares = 0;
+    let moteis = 0;
+    for (const v of venues) {
+      if (v.category === "baladas") baladas++;
+      else if (v.category === "moteis") moteis++;
+      else if (v.category === "restaurantes" || v.category === "bares") bares++;
+    }
+    return { baladas, bares, moteis };
+  }, [venues]);
 
   // Modal for new venue
   const [isNewVenueModalOpen, setIsNewVenueModalOpen] = useState(false);
@@ -662,7 +677,12 @@ function AdminDashboardMain({
         } catch (e) {}
       })();
 
-      await Promise.allSettled([venuesPromise, leadsPromise, confPromise, usersPromise]);
+      // 1. Prioritize essential dashboard metrics (venues, leads, confirmations) for instant display
+      await Promise.allSettled([venuesPromise, leadsPromise, confPromise]);
+      setIsLoadingData(false);
+
+      // 2. Finish loading user list asynchronously in background without blocking initial UI
+      await usersPromise;
     } catch (err) {
       console.warn("Could not load full admin data:", err);
     } finally {
@@ -711,23 +731,25 @@ function AdminDashboardMain({
     onLogout();
   };
 
-  // Filtered Venues
+  // Filtered Venues (deferred for silky smooth typing with 0 input lag)
   const filteredVenues = useMemo(() => {
+    const q = deferredVenueSearch.toLowerCase().trim();
     return venues.filter((v) => {
       const matchSearch =
-        v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
-        v.neighborhood.toLowerCase().includes(venueSearch.toLowerCase()) ||
-        v.subType?.toLowerCase().includes(venueSearch.toLowerCase());
+        !q ||
+        v.name.toLowerCase().includes(q) ||
+        v.neighborhood.toLowerCase().includes(q) ||
+        v.subType?.toLowerCase().includes(q);
       const matchCategory = selectedCategory === "all" || v.category === selectedCategory;
       return matchSearch && matchCategory;
     });
-  }, [venues, venueSearch, selectedCategory]);
+  }, [venues, deferredVenueSearch, selectedCategory]);
 
-  // Filtered Registered Users
+  // Filtered Registered Users (deferred for instant responsiveness)
   const filteredUsers = useMemo(() => {
+    const q = deferredUserSearch.toLowerCase().trim();
+    if (!q) return registeredUsers;
     return registeredUsers.filter((u) => {
-      const q = userSearch.toLowerCase().trim();
-      if (!q) return true;
       return (
         (u.name && u.name.toLowerCase().includes(q)) ||
         (u.email && u.email.toLowerCase().includes(q)) ||
@@ -736,7 +758,7 @@ function AdminDashboardMain({
         (u.role && u.role.toLowerCase().includes(q))
       );
     });
-  }, [registeredUsers, userSearch]);
+  }, [registeredUsers, deferredUserSearch]);
 
   // Financial Metrics Calculation
   const estimatedMRR = useMemo(() => {
@@ -1881,7 +1903,7 @@ function AdminDashboardMain({
                     selectedCategory === "baladas" ? "bg-fuchsia-600 text-white" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Baladas ({venues.filter((v) => v.category === "baladas").length})
+                  Baladas ({categoryCounts.baladas})
                 </button>
                 <button
                   onClick={() => setSelectedCategory("restaurantes")}
@@ -1889,7 +1911,7 @@ function AdminDashboardMain({
                     selectedCategory === "restaurantes" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Bares ({venues.filter((v) => v.category === "restaurantes").length})
+                  Bares ({categoryCounts.bares})
                 </button>
                 <button
                   onClick={() => setSelectedCategory("moteis")}
@@ -1897,7 +1919,7 @@ function AdminDashboardMain({
                     selectedCategory === "moteis" ? "bg-purple-600 text-white" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Motéis ({venues.filter((v) => v.category === "moteis").length})
+                  Motéis ({categoryCounts.moteis})
                 </button>
               </div>
             </div>

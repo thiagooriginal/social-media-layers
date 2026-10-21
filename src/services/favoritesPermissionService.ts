@@ -137,19 +137,25 @@ const SEED_BROADCASTS: PromotionBroadcast[] = [
   },
 ];
 
+let memorySubscribersCache: FavoriteSubscriber[] | null = null;
+
 /**
- * Obtém todos os inscritos salvos no storage
+ * Obtém todos os inscritos salvos no storage (com cache em memória de alta performance)
  */
 export function getAllFavoriteSubscribers(): FavoriteSubscriber[] {
+  if (memorySubscribersCache) return memorySubscribersCache;
   if (typeof window === "undefined") return SEED_SUBSCRIBERS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PERMISSIONS);
     if (!raw) {
       localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(SEED_SUBSCRIBERS));
+      memorySubscribersCache = SEED_SUBSCRIBERS;
       return SEED_SUBSCRIBERS;
     }
-    return JSON.parse(raw);
+    memorySubscribersCache = JSON.parse(raw);
+    return memorySubscribersCache || SEED_SUBSCRIBERS;
   } catch (e) {
+    memorySubscribersCache = SEED_SUBSCRIBERS;
     return SEED_SUBSCRIBERS;
   }
 }
@@ -158,6 +164,7 @@ export function getAllFavoriteSubscribers(): FavoriteSubscriber[] {
  * Salva a lista de inscritos
  */
 export function saveFavoriteSubscribers(list: FavoriteSubscriber[]): void {
+  memorySubscribersCache = list;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(list));

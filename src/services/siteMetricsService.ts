@@ -332,6 +332,9 @@ export function subscribeToRealtimePresence(
   }
 }
 
+// Memory cache for parsed remote rows to avoid re-parsing thousands of JSON strings on every poll
+const parsedCloudRowCache = new Map<string, { type: "pv"; data: RealPageview } | { type: "evt"; data: RealEvent }>();
+
 // Fetch all REAL metrics without any simulated or fictitious numbers
 export async function fetchRealSiteMetrics(): Promise<RealSiteMetricsSummary> {
   const pageviewsMap = new Map<string, RealPageview>();
@@ -352,10 +355,21 @@ export async function fetchRealSiteMetrics(): Promise<RealSiteMetricsSummary> {
       .select("id, user_name, created_at")
       .or("user_name.like.[SITE_PAGEVIEW]:%,user_name.like.[SITE_EVENT]:%")
       .order("created_at", { ascending: false })
-      .limit(2000);
+      .limit(1000);
 
     if (cloudRows && !error) {
       cloudRows.forEach((row: any) => {
+        // Fast path: reuse already parsed item from memory
+        const cached = parsedCloudRowCache.get(row.id);
+        if (cached) {
+          if (cached.type === "pv") {
+            pageviewsMap.set(cached.data.id || row.id, cached.data);
+          } else {
+            eventsList.push(cached.data);
+          }
+          return;
+        }
+
         try {
           if (row.user_name.startsWith("[SITE_PAGEVIEW]:")) {
             const rawJson = row.user_name.replace("[SITE_PAGEVIEW]:", "");
@@ -365,16 +379,19 @@ export async function fetchRealSiteMetrics(): Promise<RealSiteMetricsSummary> {
                 ...parsed,
                 timestamp: parsed.timestamp || row.created_at,
               };
+              parsedCloudRowCache.set(row.id, { type: "pv", data: pv });
               pageviewsMap.set(parsed.id || row.id, pv);
             }
           } else if (row.user_name.startsWith("[SITE_EVENT]:")) {
             const rawJson = row.user_name.replace("[SITE_EVENT]:", "");
             const parsed = JSON.parse(rawJson) as RealEvent;
             if (parsed.type) {
-              eventsList.push({
+              const evt: RealEvent = {
                 ...parsed,
                 timestamp: parsed.timestamp || row.created_at,
-              });
+              };
+              parsedCloudRowCache.set(row.id, { type: "evt", data: evt });
+              eventsList.push(evt);
             }
           }
         } catch (e) {}

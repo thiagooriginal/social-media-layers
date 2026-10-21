@@ -419,16 +419,20 @@ const SEED_SUBSCRIPTIONS: SaasSubscription[] = [
   },
 ];
 
+let memorySubscriptionsCache: SaasSubscription[] | null = null;
+
 export function getStoredSubscriptions(): SaasSubscription[] {
+  if (memorySubscriptionsCache) return memorySubscriptionsCache;
   if (typeof window === "undefined") return SEED_SUBSCRIPTIONS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_SUBSCRIPTIONS);
     if (!raw) {
       localStorage.setItem(STORAGE_KEY_SUBSCRIPTIONS, JSON.stringify(SEED_SUBSCRIPTIONS));
+      memorySubscriptionsCache = SEED_SUBSCRIPTIONS;
       return SEED_SUBSCRIPTIONS;
     }
     const parsed: SaasSubscription[] = JSON.parse(raw);
-    return parsed.map((s) => {
+    const result = parsed.map((s) => {
       const isPremium = s.monthlyValue === 89 || s.planId === "premium" || s.tier === "premium";
       const monthly = isPremium ? PREMIUM_PLAN_PRICE : STANDARD_PLAN_PRICE;
       const tier: PlanTier = isPremium ? "premium" : "standard";
@@ -445,12 +449,16 @@ export function getStoredSubscriptions(): SaasSubscription[] {
         canSendPromotions: isPremium,
       };
     });
+    memorySubscriptionsCache = result;
+    return result;
   } catch (e) {
+    memorySubscriptionsCache = SEED_SUBSCRIPTIONS;
     return SEED_SUBSCRIPTIONS;
   }
 }
 
 export function saveSubscriptions(subs: SaasSubscription[]): void {
+  memorySubscriptionsCache = subs;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY_SUBSCRIPTIONS, JSON.stringify(subs));

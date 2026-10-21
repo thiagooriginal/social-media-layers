@@ -59,7 +59,7 @@ interface AdminVisualDashboardProps {
   onSelectVenueForInspection?: (venueId: string) => void;
 }
 
-export function AdminVisualDashboard({
+function AdminVisualDashboardComponent({
   venues,
   leads,
   confirmations,
@@ -72,7 +72,10 @@ export function AdminVisualDashboard({
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    const t = setTimeout(() => {
+      setHasMounted(true);
+    }, 120);
+    return () => clearTimeout(t);
   }, []);
 
   // 1. Métricas Globais Agregadas
@@ -1043,3 +1046,5 @@ export function AdminVisualDashboard({
     </div>
   );
 }
+
+export const AdminVisualDashboard = React.memo(AdminVisualDashboardComponent);

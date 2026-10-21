@@ -69,21 +69,31 @@ const BASE_SEED: Record<string, Partial<VenueMetrics>> = {
   },
 };
 
+let memoryMetricsCache: Record<string, VenueMetrics> | null = null;
+let saveTimeout: any = null;
+
 function getStoredMetrics(): Record<string, VenueMetrics> {
+  if (memoryMetricsCache) return memoryMetricsCache;
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY_ANALYTICS);
-    return raw ? JSON.parse(raw) : {};
+    memoryMetricsCache = raw ? JSON.parse(raw) : {};
+    return memoryMetricsCache || {};
   } catch (e) {
-    return {};
+    memoryMetricsCache = {};
+    return memoryMetricsCache;
   }
 }
 
 function saveStoredMetrics(data: Record<string, VenueMetrics>) {
+  memoryMetricsCache = data;
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_ANALYTICS, JSON.stringify(data));
-  } catch (e) {}
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_ANALYTICS, JSON.stringify(data));
+    } catch (e) {}
+  }, 120);
 }
 
 export function getVenueMetrics(venueId: string, venueName: string = "Estabelecimento"): VenueMetrics {

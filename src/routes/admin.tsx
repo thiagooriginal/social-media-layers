@@ -1371,6 +1371,8 @@ function AdminDashboardMain({
   // Print Executive Report via Browser Native Dialog
   const handlePrintExecutiveReport = () => {
     window.print();
+  };
+
   return (
     <div className="min-h-screen bg-[#070a11] text-slate-100 pb-20">
       {/* Top Navbar */}
@@ -4038,7 +4040,6 @@ function AdminDashboardMain({
       </div>
     </div>
   );
-}
 }
 
 export default AdminDashboardPage;

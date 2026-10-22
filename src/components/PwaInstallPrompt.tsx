@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "@tanstack/react-router";
 import {
   Download,
   X,
@@ -25,6 +26,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PwaInstallPrompt() {
+  const location = useLocation();
+
+  // Never show the floating popup on /baixar (which has its own full dedicated page) or /admin
+  if (location.pathname.startsWith("/baixar") || location.pathname.startsWith("/admin")) {
+    return null;
+  }
+
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(() => {
     if (typeof window !== "undefined") {
       return (window as any).__pwaDeferredPrompt || null;

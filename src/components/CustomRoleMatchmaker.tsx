@@ -1,5 +1,5 @@
-import React from "react";
-import { Sparkles, AlertCircle, Compass, Check } from "lucide-react";
+import React, { useState, useEffect, useMemo, memo } from "react";
+import { Sparkles, AlertCircle, Compass, Check, ChevronDown } from "lucide-react";
 import { Venue, NeighborhoodCoord, ROLE_AMENITIES, RoleAmenityId } from "../data/venues";
 import { VenueCard } from "./VenueCard";
 
@@ -17,7 +17,7 @@ interface CustomRoleMatchmakerProps {
   customRolePartialMatches: Venue[];
 }
 
-export function CustomRoleMatchmaker({
+export const CustomRoleMatchmaker = memo(function CustomRoleMatchmaker({
   venues,
   userLocation,
   favorites,
@@ -30,6 +30,20 @@ export function CustomRoleMatchmaker({
   customRoleMatches,
   customRolePartialMatches,
 }: CustomRoleMatchmakerProps) {
+  // Limitação progressiva de itens no DOM para fluidez instantânea e zero travamentos
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  // Redefine paginação ao alterar a combinação de amenidades
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [selectedAmenities]);
+
+  // Lista recomendada inicial quando nada está selecionado (limitada para não travar o celular)
+  const initialRecommended = useMemo(() => {
+    if (selectedAmenities.length > 0) return [];
+    return venues.filter((v) => v.amenities && v.amenities.length >= 3 && v.category !== "moteis");
+  }, [venues, selectedAmenities.length]);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       {/* Intro Box & Description */}
@@ -125,7 +139,7 @@ export function CustomRoleMatchmaker({
                 key={amenity.id}
                 type="button"
                 onClick={() => onToggleAmenity(amenity.id)}
-                className={`group relative flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-all duration-200 cursor-pointer ${
+                className={`group relative flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-all duration-150 cursor-pointer ${
                   isSelected
                     ? "border-cyan-400 bg-gradient-to-br from-cyan-950/70 via-[#10192e] to-fuchsia-950/70 shadow-[0_0_20px_rgba(0,240,255,0.35)] scale-[1.02]"
                     : "border-white/10 bg-[#0d121f]/90 hover:border-white/25 hover:bg-[#121827]"
@@ -218,47 +232,73 @@ export function CustomRoleMatchmaker({
         )}
       </div>
 
-      {/* Results Content */}
+      {/* Results Content com Paginação Progressiva para Performance Máxima */}
       {selectedAmenities.length === 0 ? (
         <div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {venues
-              .filter((v) => v.amenities && v.amenities.length >= 3)
-              .map((venue) => (
-                <VenueCard
-                  key={venue.id}
-                  venue={venue}
-                  userLocation={userLocation}
-                  isFavorite={favorites.includes(venue.id)}
-                  onToggleFavorite={onToggleFavorite}
-                  onOpenDetails={onOpenDetails}
-                />
-              ))}
-          </div>
-        </div>
-      ) : customRoleMatches.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {customRoleMatches.map((venue) => (
-            <div key={venue.id} className="relative">
-              <div className="mb-2 flex items-center justify-between rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-950/80 via-[#081826] to-fuchsia-950/80 px-3 py-1.5 text-xs font-black text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.4)]">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-                  <span>🎯 100% Match! Tem tudo o que você pediu</span>
-                </span>
-                <span className="text-[10px] text-cyan-200/80 font-bold">
-                  {selectedAmenities.length}/{selectedAmenities.length}
-                </span>
-              </div>
-
+            {initialRecommended.slice(0, visibleCount).map((venue) => (
               <VenueCard
+                key={venue.id}
                 venue={venue}
                 userLocation={userLocation}
                 isFavorite={favorites.includes(venue.id)}
                 onToggleFavorite={onToggleFavorite}
                 onOpenDetails={onOpenDetails}
               />
+            ))}
+          </div>
+
+          {initialRecommended.length > visibleCount && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 12)}
+                className="flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-950/40 hover:bg-cyan-900/60 px-6 py-3 text-sm font-bold text-cyan-300 transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+              >
+                <span>Carregar mais locais (+12)</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
             </div>
-          ))}
+          )}
+        </div>
+      ) : customRoleMatches.length > 0 ? (
+        <div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {customRoleMatches.slice(0, visibleCount).map((venue) => (
+              <div key={venue.id} className="relative">
+                <div className="mb-2 flex items-center justify-between rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-950/80 via-[#081826] to-fuchsia-950/80 px-3 py-1.5 text-xs font-black text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.4)]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span>🎯 100% Match! Tem tudo o que você pediu</span>
+                  </span>
+                  <span className="text-[10px] text-cyan-200/80 font-bold">
+                    {selectedAmenities.length}/{selectedAmenities.length}
+                  </span>
+                </div>
+
+                <VenueCard
+                  venue={venue}
+                  userLocation={userLocation}
+                  isFavorite={favorites.includes(venue.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  onOpenDetails={onOpenDetails}
+                />
+              </div>
+            ))}
+          </div>
+
+          {customRoleMatches.length > visibleCount && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 12)}
+                className="flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-950/40 hover:bg-cyan-900/60 px-6 py-3 text-sm font-bold text-cyan-300 transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+              >
+                <span>Ver mais rolês com 100% de match (+12)</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-8">
@@ -309,7 +349,7 @@ export function CustomRoleMatchmaker({
               </div>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {customRolePartialMatches.map((venue) => {
+                {customRolePartialMatches.slice(0, visibleCount).map((venue) => {
                   const matchCount = selectedAmenities.filter((a) =>
                     venue.amenities?.includes(a)
                   ).length;
@@ -329,10 +369,23 @@ export function CustomRoleMatchmaker({
                   );
                 })}
               </div>
+
+              {customRolePartialMatches.length > visibleCount && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => prev + 12)}
+                    className="flex items-center gap-2 rounded-2xl border border-fuchsia-500/30 bg-fuchsia-950/40 hover:bg-fuchsia-900/60 px-6 py-3 text-sm font-bold text-fuchsia-300 transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                  >
+                    <span>Carregar mais locais parciais (+12)</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
     </div>
   );
-}
+});

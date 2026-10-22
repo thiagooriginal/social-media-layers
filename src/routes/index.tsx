@@ -242,6 +242,7 @@ function IndexPage() {
 
   // Monte Seu Rolê (Matchmaker Personalizado)
   const [selectedAmenities, setSelectedAmenities] = useState<RoleAmenityId[]>([]);
+  const deferredAmenities = useDeferredValue(selectedAmenities);
 
   const handleToggleAmenity = (id: RoleAmenityId) => {
     setSelectedAmenities((prev) =>
@@ -257,9 +258,9 @@ function IndexPage() {
     setSelectedAmenities(combo);
   };
 
-  // Matchmaker Custom Role Results (Exact 100% matches & Partial matches)
+  // Matchmaker Custom Role Results (Exact 100% matches & Partial matches com computação concorrente diferida)
   const { customRoleMatches, customRolePartialMatches } = useMemo(() => {
-    if (selectedAmenities.length === 0) {
+    if (deferredAmenities.length === 0) {
       return { customRoleMatches: [], customRolePartialMatches: [] };
     }
 
@@ -271,7 +272,7 @@ function IndexPage() {
       if (v.category === "moteis") return;
 
       const vAmenities = v.amenities || [];
-      const hasAll = selectedAmenities.every((amenity) =>
+      const hasAll = deferredAmenities.every((amenity) =>
         vAmenities.includes(amenity)
       );
       if (hasAll) {
@@ -279,10 +280,10 @@ function IndexPage() {
         return;
       }
 
-      const matchCount = selectedAmenities.filter((amenity) =>
+      const matchCount = deferredAmenities.filter((amenity) =>
         vAmenities.includes(amenity)
       ).length;
-      if (matchCount >= Math.ceil(selectedAmenities.length / 2)) {
+      if (matchCount >= Math.ceil(deferredAmenities.length / 2)) {
         partial.push(v);
       }
     });
@@ -308,7 +309,7 @@ function IndexPage() {
       customRoleMatches: exact.sort(sortByDist),
       customRolePartialMatches: partial.sort(sortByDist),
     };
-  }, [venues, selectedAmenities, userLocation]);
+  }, [venues, deferredAmenities, userLocation]);
 
   // Smart late-night detector: between 02:00 and 06:00 AM
   const isLateNightTime = useMemo(() => {

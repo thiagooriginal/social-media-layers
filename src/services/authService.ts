@@ -90,7 +90,13 @@ export function getCurrentUser(): UserProfile | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_USER);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const user: UserProfile = JSON.parse(raw);
+    if (user && user.name && (user.name.includes("Super Admin") || user.name.includes("admin-thiago") || user.id === "admin-thiago")) {
+      user.name = "Administrador";
+      user.whatsapp = "";
+    }
+    return user;
   } catch (e) {
     return null;
   }
@@ -426,9 +432,9 @@ export async function loginUser(
       }
       const adminUser: UserProfile = {
         id: "admin-thiago",
-        name: "Thiago (Super Admin Oficial)",
+        name: "Administrador",
         email: cleanEmail,
-        whatsapp: "(11) 98765-4321",
+        whatsapp: "",
         role: "admin",
         businessName: "Radar do Rolê Master HQ",
         createdAt: new Date().toISOString(),

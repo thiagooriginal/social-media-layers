@@ -38,9 +38,18 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
   useEffect(() => {
     if (isOpen) {
       const user = getCurrentUser();
-      if (user) {
-        if (!userName) setUserName(user.name);
-        if (!userWhatsapp) setUserWhatsapp(user.whatsapp);
+      const isDummyOrAdmin =
+        !user ||
+        user.role === "admin" ||
+        user.name?.toLowerCase().includes("admin") ||
+        user.name?.toLowerCase().includes("thiago");
+
+      if (!isDummyOrAdmin && user.name) {
+        setUserName(user.name);
+        setUserWhatsapp(user.whatsapp || "");
+      } else {
+        setUserName("");
+        setUserWhatsapp("");
       }
     }
   }, [isOpen]);
@@ -203,8 +212,8 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
                     required
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Seu nome como no RG"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    placeholder="NOME DO USUÁRIO"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-slate-400 placeholder:uppercase focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                   />
                 </div>
               </div>
@@ -224,7 +233,7 @@ export function VipListModal({ venue, isOpen, onClose }: VipListModalProps) {
                     value={userWhatsapp}
                     onChange={(e) => setUserWhatsapp(e.target.value)}
                     placeholder="(11) 99999-9999"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono"
                   />
                 </div>
               </div>

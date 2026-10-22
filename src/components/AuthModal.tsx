@@ -683,8 +683,8 @@ export function AuthModal({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Thiago Silva Santos"
-                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
+                  placeholder="NOME DO USUÁRIO"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-slate-400 placeholder:uppercase focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -701,8 +701,8 @@ export function AuthModal({
                   type="tel"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
-                  placeholder="(11) 98765-4321"
-                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all font-mono"
+                  placeholder="(11) 99999-9999"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-slate-400 focus:border-cyan-400 focus:bg-white/10 focus:outline-none transition-all font-mono"
                 />
               </div>
             </div>

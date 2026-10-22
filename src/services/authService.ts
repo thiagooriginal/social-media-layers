@@ -147,31 +147,24 @@ export async function isUserDeleted(id?: string, email?: string): Promise<boolea
 
   // 2. Query Supabase persistent tombstones
   try {
-    if (cleanEmail) {
-      const { data: tombstones } = await (supabase as any)
-        .from("event_confirmations")
-        .select("user_name")
-        .like("user_name", `%[USER_DELETED]:%${cleanEmail}%`)
-        .limit(1);
+    const { data: allDeleted } = await (supabase as any)
+      .from("event_confirmations")
+      .select("user_name")
+      .like("user_name", "[USER_DELETED]:%");
 
-      if (tombstones && tombstones.length > 0) {
-        saveLocalDeletedKey(cleanEmail);
-        if (cleanId) saveLocalDeletedKey(cleanId);
-        return true;
-      }
-    }
-
-    if (cleanId) {
-      const { data: tombstonesById } = await (supabase as any)
-        .from("event_confirmations")
-        .select("user_name")
-        .like("user_name", `%[USER_DELETED]:%${cleanId}%`)
-        .limit(1);
-
-      if (tombstonesById && tombstonesById.length > 0) {
-        saveLocalDeletedKey(cleanId);
-        if (cleanEmail) saveLocalDeletedKey(cleanEmail);
-        return true;
+    if (allDeleted && Array.isArray(allDeleted)) {
+      for (const r of allDeleted) {
+        const raw = (r.user_name || "").toLowerCase();
+        if (cleanEmail && raw.includes(cleanEmail)) {
+          saveLocalDeletedKey(cleanEmail);
+          if (cleanId) saveLocalDeletedKey(cleanId);
+          return true;
+        }
+        if (cleanId && raw.includes(cleanId)) {
+          saveLocalDeletedKey(cleanId);
+          if (cleanEmail) saveLocalDeletedKey(cleanEmail);
+          return true;
+        }
       }
     }
   } catch (e) {}
@@ -605,6 +598,9 @@ export async function loginUser(
             try {
               const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
               if (u.email?.toLowerCase() === cleanEmail) {
+                if (await isUserDeleted(u.id || row.id, u.email)) {
+                  continue;
+                }
                 if (u.password_hash === pwdHash || !u.password_hash || u.password === password) {
                   const user: UserProfile = {
                     id: u.id || row.id,

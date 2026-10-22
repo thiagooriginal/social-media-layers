@@ -690,7 +690,9 @@ export function AuthModal({
               <div className="relative">
                 <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400" />
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={cpf}
                   onChange={(e) => setCpf(formatCPF(e.target.value))}
                   placeholder="000.000.000-00"

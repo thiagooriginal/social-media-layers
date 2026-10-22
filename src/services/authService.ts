@@ -361,7 +361,6 @@ export async function isCpfRegistered(cpf: string): Promise<boolean> {
   const formatted = formatCPF(cleanCpf);
 
   try {
-    // 1. Check profiles table in Supabase
     const { data: profileRows } = await (supabase as any)
       .from("profiles")
       .select("id, cpf")
@@ -369,23 +368,6 @@ export async function isCpfRegistered(cpf: string): Promise<boolean> {
       .limit(1);
 
     if (profileRows && profileRows.length > 0) return true;
-
-    // 2. Check event_confirmations for any registered user
-    const { data: cloudRows } = await (supabase as any)
-      .from("event_confirmations")
-      .select("user_name")
-      .like("user_name", `[USER_REG]:%${cleanCpf}%`)
-      .limit(1);
-
-    if (cloudRows && cloudRows.length > 0) return true;
-
-    const { data: cloudRowsFmt } = await (supabase as any)
-      .from("event_confirmations")
-      .select("user_name")
-      .like("user_name", `[USER_REG]:%${formatted}%`)
-      .limit(1);
-
-    if (cloudRowsFmt && cloudRowsFmt.length > 0) return true;
   } catch (e) {}
 
   return false;
@@ -644,45 +626,37 @@ export async function loginUser(
       }
     }
 
-    // 4. Cloud Registered Users Fallback (reads from cloud confirmation sync)
+    // 4. Direct profiles table fallback
     if (password) {
       try {
         const pwdHash = await hashPassword(password);
-        const { data: cloudRows } = await (supabase as any)
-          .from("event_confirmations")
+        const { data: pRows } = await supabase
+          .from("profiles")
           .select("*")
-          .like("user_name", "[USER_REG]:%");
+          .eq("email", cleanEmail)
+          .limit(1);
 
-        if (cloudRows && cloudRows.length > 0) {
-          for (const row of cloudRows) {
-            try {
-              const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
-              if (u.email?.toLowerCase() === cleanEmail) {
-                if (await isUserDeleted(u.id || row.id, u.email)) {
-                  continue;
-                }
-                if (u.password_hash === pwdHash || !u.password_hash || u.password === password) {
-                  const user: UserProfile = {
-                    id: u.id || row.id,
-                    name: u.name,
-                    email: u.email,
-                    whatsapp: u.whatsapp,
-                    cpf: u.cpf,
-                    phoneVerified: Boolean(u.phone_verified ?? true),
-                    role: u.role || "user",
-                    businessName: u.business_name,
-                    venueCategory: u.venue_category,
-                    neighborhood: u.neighborhood,
-                    createdAt: u.created_at || row.created_at,
-                  };
-                  if (typeof window !== "undefined") {
-                    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-                  }
-                  notifyAuthChange(user);
-                  return { success: true, user };
-                }
-              }
-            } catch (e) {}
+        if (pRows && pRows.length > 0) {
+          const u = pRows[0];
+          if (u.password_hash === pwdHash || !u.password_hash) {
+            const user: UserProfile = {
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              whatsapp: u.whatsapp,
+              cpf: u.cpf,
+              phoneVerified: Boolean(u.phone_verified ?? true),
+              role: u.role || "user",
+              businessName: u.business_name,
+              venueCategory: u.venue_category,
+              neighborhood: u.neighborhood,
+              createdAt: u.created_at,
+            };
+            if (typeof window !== "undefined") {
+              localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+            }
+            notifyAuthChange(user);
+            return { success: true, user };
           }
         }
       } catch (e) {}
@@ -797,101 +771,29 @@ export async function registerUser(data: {
       console.warn("Supabase Auth signUp failed, proceeding with fallback:", e);
     }
 
-    // 2. Persist profile row in Supabase cloud (both universal cloud record AND RPC if available)
+    // 2. Persist profile directly in Supabase profiles table
     try {
       const pwdHash = await hashPassword(passwordToUse);
+      const cleanCpfFormatted = cleanCpf ? formatCPF(cleanCpf) : null;
 
-      // A. Universal cloud persistence (persists to Supabase cloud even if email rate limits or RLS apply)
-      const cloudPayload = {
-        id: newUserId,
-        name: data.name.trim(),
-        email: cleanEmail,
-        whatsapp: data.whatsapp.trim(),
-        role: userRole,
-        cpf: data.cpf?.trim() || null,
-        phone_verified: Boolean(data.phoneVerified),
-        business_name: data.businessName?.trim() || null,
-        venue_category: data.venueCategory || null,
-        neighborhood: data.neighborhood?.trim() || null,
-        password_hash: pwdHash,
-        created_at: new Date().toISOString(),
-      };
-
-      try {
-        await (supabase as any)
-          .from("event_confirmations")
-          .insert({
-            venue_id: "balada-vilajk",
-            user_name: `[USER_REG]:${JSON.stringify(cloudPayload)}`,
-            user_whatsapp: data.whatsapp.trim(),
-          });
-      } catch (errSync) {
-        console.warn("Cloud registration sync notice:", errSync);
-      }
-      
-      // B. Try calling with 10 params (including CPF and phone_verified)
-      let rpcData: any = null;
-      let rpcError: any = null;
-      try {
-        const res = await (supabase as any).rpc("register_user", {
-          p_name: data.name.trim(),
-          p_email: cleanEmail,
-          p_whatsapp: data.whatsapp.trim(),
-          p_role: userRole,
-          p_business_name: data.businessName?.trim() || null,
-          p_venue_category: data.venueCategory || null,
-          p_neighborhood: data.neighborhood?.trim() || null,
-          p_password_hash: pwdHash,
-          p_cpf: data.cpf?.trim() || null,
-          p_phone_verified: Boolean(data.phoneVerified),
-        });
-        rpcData = res.data;
-        rpcError = res.error;
-      } catch (e) {
-        rpcError = e;
-      }
-
-      // If 10-param signature failed, fallback to standard 8-param signature
-      if (rpcError || !rpcData) {
-        try {
-          const res8 = await (supabase as any).rpc("register_user", {
-            p_name: data.name.trim(),
-            p_email: cleanEmail,
-            p_whatsapp: data.whatsapp.trim(),
-            p_role: userRole,
-            p_business_name: data.businessName?.trim() || null,
-            p_venue_category: data.venueCategory || null,
-            p_neighborhood: data.neighborhood?.trim() || null,
-            p_password_hash: pwdHash,
-          });
-          rpcData = res8.data;
-          rpcError = res8.error;
-        } catch (e) {
-          rpcError = e;
-        }
-      }
-
-      const created = rpcData && rpcData.length > 0 ? rpcData[0] : null;
-      if (created && !rpcError) {
-        if (!createdViaAuth) {
-          newUserId = created.id;
-        }
-      }
-
-      // Attempt to save CPF and phone_verified directly if available
-      if (data.cpf || data.phoneVerified) {
-        try {
-          await (supabase as any)
-            .from("profiles")
-            .update({
-              cpf: data.cpf?.trim() || null,
-              phone_verified: Boolean(data.phoneVerified),
-            })
-            .eq("email", cleanEmail);
-        } catch (e) {}
-      }
+      await (supabase as any)
+        .from("profiles")
+        .upsert({
+          id: newUserId,
+          name: data.name.trim(),
+          email: cleanEmail,
+          whatsapp: data.whatsapp.trim(),
+          cpf: cleanCpfFormatted,
+          phone_verified: Boolean(data.phoneVerified),
+          role: userRole,
+          business_name: data.businessName?.trim() || null,
+          venue_category: data.venueCategory || null,
+          neighborhood: data.neighborhood?.trim() || null,
+          password_hash: pwdHash,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "email" });
     } catch (e) {
-      console.warn("Could not save to Supabase profiles via RPC:", e);
+      console.warn("Could not save to Supabase profiles:", e);
     }
 
     // 3. Set current active user profile

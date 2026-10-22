@@ -130,6 +130,15 @@ export function saveLocalDeletedKey(key: string): void {
   } catch (e) {}
 }
 
+export function removeLocalDeletedKey(key: string): void {
+  if (typeof window === "undefined" || !key) return;
+  try {
+    const current = getLocalDeletedKeys();
+    current.delete(key.toLowerCase().trim());
+    localStorage.setItem(STORAGE_KEY_DELETED_USERS, JSON.stringify(Array.from(current)));
+  } catch (e) {}
+}
+
 /**
  * Checks if a user has been deleted or deactivated by admin.
  * Checks local cache first, then Supabase persistent tombstones in event_confirmations.
@@ -512,28 +521,39 @@ export async function loginUser(
           return { success: true, user };
         }
 
-        // If Supabase returns 'email_not_confirmed', it has verified that the password is 100% correct!
+        // If Supabase returns 'email_not_confirmed', verify if profile exists in profiles table
         const errMsg = authErr?.message?.toLowerCase() || "";
         const errCode = (authErr as any)?.code || "";
         if (errCode === "email_not_confirmed" || errMsg.includes("email not confirmed")) {
           let dbProfile: any = null;
           try {
-            const { data: allUsers } = await (supabase as any).rpc("get_admin_users");
-            dbProfile = allUsers?.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+            const { data } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("email", cleanEmail)
+              .maybeSingle();
+            dbProfile = data;
           } catch (e) {}
 
+          if (!dbProfile) {
+            return {
+              success: false,
+              error: "Esta conta foi desativada ou excluída pelo administrador.",
+            };
+          }
+
           const user: UserProfile = {
-            id: dbProfile?.id || "usr_" + Math.random().toString(36).substring(2, 9),
-            name: dbProfile?.name || cleanEmail.split("@")[0],
-            email: dbProfile?.email || cleanEmail,
-            whatsapp: dbProfile?.whatsapp || "",
-            cpf: dbProfile?.cpf,
-            phoneVerified: Boolean(dbProfile?.phone_verified ?? true),
-            role: dbProfile?.role || "user",
-            businessName: dbProfile?.business_name || undefined,
-            venueCategory: dbProfile?.venue_category || undefined,
-            neighborhood: dbProfile?.neighborhood || undefined,
-            createdAt: dbProfile?.created_at || new Date().toISOString(),
+            id: dbProfile.id,
+            name: dbProfile.name || cleanEmail.split("@")[0],
+            email: dbProfile.email || cleanEmail,
+            whatsapp: dbProfile.whatsapp || "",
+            cpf: dbProfile.cpf,
+            phoneVerified: Boolean(dbProfile.phone_verified ?? true),
+            role: dbProfile.role || "user",
+            businessName: dbProfile.business_name || undefined,
+            venueCategory: dbProfile.venue_category || undefined,
+            neighborhood: dbProfile.neighborhood || undefined,
+            createdAt: dbProfile.created_at || new Date().toISOString(),
           };
 
           if (typeof window !== "undefined") {
@@ -556,22 +576,33 @@ export async function loginUser(
         if (errCode === "email_not_confirmed" || errMsg.includes("email not confirmed")) {
           let dbProfile: any = null;
           try {
-            const { data: allUsers } = await (supabase as any).rpc("get_admin_users");
-            dbProfile = allUsers?.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+            const { data } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("email", cleanEmail)
+              .maybeSingle();
+            dbProfile = data;
           } catch (e) {}
 
+          if (!dbProfile) {
+            return {
+              success: false,
+              error: "Esta conta foi desativada ou excluída pelo administrador.",
+            };
+          }
+
           const user: UserProfile = {
-            id: dbProfile?.id || "usr_" + Math.random().toString(36).substring(2, 9),
-            name: dbProfile?.name || cleanEmail.split("@")[0],
-            email: dbProfile?.email || cleanEmail,
-            whatsapp: dbProfile?.whatsapp || "",
-            cpf: dbProfile?.cpf,
-            phoneVerified: Boolean(dbProfile?.phone_verified ?? true),
-            role: dbProfile?.role || "user",
-            businessName: dbProfile?.business_name || undefined,
-            venueCategory: dbProfile?.venue_category || undefined,
-            neighborhood: dbProfile?.neighborhood || undefined,
-            createdAt: dbProfile?.created_at || new Date().toISOString(),
+            id: dbProfile.id,
+            name: dbProfile.name || cleanEmail.split("@")[0],
+            email: dbProfile.email || cleanEmail,
+            whatsapp: dbProfile.whatsapp || "",
+            cpf: dbProfile.cpf,
+            phoneVerified: Boolean(dbProfile.phone_verified ?? true),
+            role: dbProfile.role || "user",
+            businessName: dbProfile.business_name || undefined,
+            venueCategory: dbProfile.venue_category || undefined,
+            neighborhood: dbProfile.neighborhood || undefined,
+            createdAt: dbProfile.created_at || new Date().toISOString(),
           };
 
           if (typeof window !== "undefined") {
@@ -747,12 +778,53 @@ export async function registerUser(data: {
           authError.message?.toLowerCase().includes("already exists") ||
           (authError as any).status === 422
         ) {
-          return {
-            success: false,
-            error: "Este e-mail já está cadastrado no sistema. Faça login para continuar.",
-          };
+          // Check if an active profile exists in public.profiles:
+          let existingProfile: any = null;
+          try {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id, email")
+              .eq("email", cleanEmail)
+              .maybeSingle();
+            existingProfile = data;
+          } catch (e) {}
+
+          const isDeleted = await isUserDeleted(undefined, cleanEmail);
+
+          // If active profile exists in profiles table and was NOT deleted, reject duplicate registration:
+          if (existingProfile && !isDeleted) {
+            return {
+              success: false,
+              error: "Este e-mail já está cadastrado no sistema. Faça login para continuar.",
+            };
+          }
+
+          // If NOT in profiles or was marked deleted, this user was deleted by admin and is re-registering!
+          // Clear any deleted tombstones and re-enable account:
+          removeLocalDeletedKey(cleanEmail);
+          if (existingProfile?.id) removeLocalDeletedKey(existingProfile.id);
+
+          try {
+            await (supabase as any)
+              .from("event_confirmations")
+              .delete()
+              .like("user_name", `%[USER_DELETED]%${cleanEmail}%`);
+          } catch (e) {}
+
+          // Auto-signin with password to retrieve Supabase session
+          try {
+            const { data: sData } = await supabase.auth.signInWithPassword({
+              email: cleanEmail,
+              password: passwordToUse,
+            });
+            if (sData?.user) {
+              newUserId = sData.user.id;
+              createdViaAuth = true;
+            }
+          } catch (e) {}
+        } else {
+          console.warn("Supabase auth signUp notice:", authError.message);
         }
-        console.warn("Supabase auth signUp notice:", authError.message);
       } else if (authData?.user) {
         newUserId = authData.user.id;
         createdViaAuth = true;

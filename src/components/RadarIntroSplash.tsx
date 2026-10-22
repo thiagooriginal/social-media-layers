@@ -29,7 +29,7 @@ const RADAR_TARGETS: RadarTarget[] = [
     topOffset: "calc(50% - 126px)",
     leftOffset: "calc(50% + 36px)",
     isRightAligned: false,
-    discoveredAtMs: 600,
+    discoveredAtMs: 250,
   },
   {
     id: "vilamada",
@@ -40,7 +40,7 @@ const RADAR_TARGETS: RadarTarget[] = [
     topOffset: "calc(50% + 94px)",
     leftOffset: "calc(50% + 32px)",
     isRightAligned: false,
-    discoveredAtMs: 1200,
+    discoveredAtMs: 500,
   },
   {
     id: "villacountry",
@@ -51,7 +51,7 @@ const RADAR_TARGETS: RadarTarget[] = [
     topOffset: "calc(50% + 102px)",
     rightOffset: "calc(50% + 40px)",
     isRightAligned: true,
-    discoveredAtMs: 1800,
+    discoveredAtMs: 750,
   },
   {
     id: "komplexo",
@@ -62,7 +62,7 @@ const RADAR_TARGETS: RadarTarget[] = [
     topOffset: "calc(50% - 118px)",
     rightOffset: "calc(50% + 38px)",
     isRightAligned: true,
-    discoveredAtMs: 2400,
+    discoveredAtMs: 1000,
   },
   {
     id: "laroc",
@@ -73,7 +73,7 @@ const RADAR_TARGETS: RadarTarget[] = [
     topOffset: "calc(50% - 10px)",
     leftOffset: "calc(50% + 78px)",
     isRightAligned: false,
-    discoveredAtMs: 3000,
+    discoveredAtMs: 1250,
   },
 ];
 
@@ -100,27 +100,27 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
         splashRef.current.style.setProperty("display", "none", "important");
       }
       onFinish();
-    }, 350);
+    }, 250);
   };
 
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
 
-    // Progresso suave da barra de telemetria
+    // Progresso suave da barra de telemetria (acelerado para entrada em menos de 3s)
     const progressInterval = setInterval(() => {
       setProgressPercent((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        return Math.min(100, prev + 2);
+        return Math.min(100, prev + 3);
       });
-    }, 70);
+    }, 35);
 
     // Momento 1: Inicialização do Radar
     const timerInit = setTimeout(() => {
       setStatusMessage("Varrendo raio local (10 km)...");
-    }, 300);
+    }, 100);
     timers.push(timerInit);
 
     // Momento 2: Descoberta sequencial das baladas sincronizada com o feixe do radar
@@ -142,16 +142,16 @@ export function RadarIntroSplash({ onFinish }: RadarIntroSplashProps) {
       timers.push(timer);
     });
 
-    // Confirmação final e transição obrigatória para a tela inicial
+    // Confirmação final e transição para a tela inicial em ~2.1s total
     const readyTimer = setTimeout(() => {
       setStatusMessage("✅ Radar calibrado! Abrindo rolês...");
       setProgressPercent(100);
-    }, 3500);
+    }, 1600);
     timers.push(readyTimer);
 
     const finishTimer = setTimeout(() => {
       handleComplete();
-    }, 4000);
+    }, 2000);
     timers.push(finishTimer);
 
     return () => {

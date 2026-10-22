@@ -194,7 +194,9 @@ function IndexPage() {
           alert("Não foi possível acessar seu GPS. Verifique a permissão de localização do seu navegador.");
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      isSilent
+        ? { enableHighAccuracy: false, timeout: 2000, maximumAge: 300000 }
+        : { enableHighAccuracy: true, timeout: 5000, maximumAge: 10000 }
     );
   };
 

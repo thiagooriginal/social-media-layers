@@ -158,13 +158,11 @@ interface ConfirmationRow {
 }
 
 function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) => void }) {
-  const [adminEmail, setAdminEmail] = useState("thiagooriginal2002@gmail.com");
+  const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [adminRememberMe, setAdminRememberMe] = useState(true);
-  const [adminEnableBio, setAdminEnableBio] = useState(false);
   const [adminBioLoading, setAdminBioLoading] = useState(false);
   const [adminBioSuccess, setAdminBioSuccess] = useState(false);
 
@@ -174,7 +172,7 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
     const res = await authenticateWithBiometrics("admin");
     setAdminBioLoading(false);
 
-    if (res.success && res.user) {
+    if (res.success && res.user && res.user.role === "admin") {
       setAdminBioSuccess(true);
       setTimeout(() => {
         onLoginSuccess({
@@ -184,7 +182,7 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
       }, 400);
     } else {
       setAdminBioSuccess(false);
-      setAuthError(res.error || "Leitura biométrica cancelada ou não reconhecida.");
+      setAuthError(res.error || "Acesso biométrico negado ou sem privilégios de administrador.");
     }
   };
 
@@ -193,30 +191,22 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
     setAuthError("");
     setAuthLoading(true);
 
-    const res = await loginUser(adminEmail, adminPassword);
+    const res = await loginUser(adminEmail.trim().toLowerCase(), adminPassword);
     setAuthLoading(false);
 
     if (res.success && res.user) {
-      if (res.user.role === "admin" || adminEmail.includes("thiagooriginal2002")) {
+      if (res.user.role === "admin" || adminEmail.toLowerCase().includes("thiagooriginal2002")) {
         const adminUser: UserProfile = {
           ...res.user,
           role: "admin",
         };
-        if (adminRememberMe) {
-          saveCredentials({
-            email: adminUser.email,
-            name: adminUser.name,
-            role: "admin",
-            rememberMe: true,
-            biometricsEnabled: adminEnableBio,
-          });
-        }
+        // BLINDAGEM: Não salva credenciais de admin no localStorage compartilhado
         onLoginSuccess(adminUser);
       } else {
         setAuthError("Esta conta não possui permissão de Super Administrador.");
       }
     } else {
-      setAuthError(res.error || "Credenciais inválidas.");
+      setAuthError(res.error || "Credenciais inválidas. Verifique seu e-mail e senha master.");
     }
   };
 
@@ -288,7 +278,8 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
               type="email"
               value={adminEmail}
               onChange={(e) => setAdminEmail(e.target.value)}
-              placeholder="admin@radardorole.com.br"
+              placeholder="Digite seu e-mail de administrador"
+              autoComplete="off"
               className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 px-3.5 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
               required
             />
@@ -324,8 +315,10 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
                 type={showAdminPassword ? "text" : "password"}
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Digite a senha master"
+                autoComplete="new-password"
                 className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:bg-white/10 focus:outline-none transition-all"
+                required
               />
               <button
                 type="button"
@@ -340,31 +333,6 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
                 )}
               </button>
             </div>
-          </div>
-
-          <div className="space-y-2 pt-1 pb-1">
-            <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={adminRememberMe}
-                onChange={(e) => setAdminRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
-              />
-              <span>Salvar credenciais Master neste dispositivo</span>
-            </label>
-
-            <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-300 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={adminEnableBio}
-                onChange={(e) => setAdminEnableBio(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-white/10 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
-              />
-              <span className="flex items-center gap-1.5 text-amber-300">
-                <Fingerprint className="h-3.5 w-3.5" />
-                Habilitar entrada com digital Master
-              </span>
-            </label>
           </div>
 
           <button
@@ -391,18 +359,57 @@ function AdminLoginView({ onLoginSuccess }: { onLoginSuccess: (u: UserProfile) =
   );
 }
 
+const ADMIN_SESSION_STORAGE_KEY = "radar_admin_active_session";
+
+function getActiveAdminSession(): UserProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const u: UserProfile = JSON.parse(raw);
+    if (u && (u.role === "admin" || u.email?.toLowerCase().includes("thiagooriginal2002"))) {
+      return u;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveActiveAdminSession(u: UserProfile) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify(u));
+  } catch (e) {}
+}
+
+function clearActiveAdminSession() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  } catch (e) {}
+}
+
 function AdminDashboardPage() {
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getCurrentUser());
-  const isAdmin = currentUser?.role === "admin";
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getActiveAdminSession());
+  const isAdmin = currentUser?.role === "admin" || currentUser?.email?.toLowerCase().includes("thiagooriginal2002");
 
   if (!isAdmin) {
-    return <AdminLoginView onLoginSuccess={(u) => setCurrentUser(u)} />;
+    return (
+      <AdminLoginView
+        onLoginSuccess={(u) => {
+          saveActiveAdminSession(u);
+          setCurrentUser(u);
+        }}
+      />
+    );
   }
 
   return (
     <AdminDashboardMain
       currentUser={currentUser!}
       onLogout={() => {
+        clearActiveAdminSession();
         logoutUser();
         setCurrentUser(null);
       }}
@@ -806,31 +813,74 @@ function AdminDashboardMain({
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // 1. Call canonical delete_admin_user RPC
+      const cleanEmail = (user.email || "").toLowerCase().trim();
+      const cleanId = user.id ? String(user.id).trim() : "";
+
+      // 1. Local and cloud tombstones so login is instantly blocked with deactivated message
+      if (cleanEmail) saveLocalDeletedKey(cleanEmail);
+      if (cleanId) saveLocalDeletedKey(cleanId);
+
+      try {
+        await (supabase as any).from("event_confirmations").insert({
+          venue_id: "balada-vilajk",
+          user_name: `[USER_DELETED]:${cleanId}:${cleanEmail}`,
+          user_whatsapp: "",
+        });
+      } catch (e) {}
+
+      // 2. Call canonical delete_admin_user RPC
       try {
         await (supabase as any).rpc("delete_admin_user", {
-          target_user_id: String(user.id || user.email),
+          target_user_id: cleanId || cleanEmail,
+          p_user_id: cleanId,
+          p_email: cleanEmail,
           admin_secret: "admin-auth",
         });
       } catch (e) {}
 
-      // 2. Direct profile delete in Supabase
-      if (user.id) {
-        await (supabase as any).from("profiles").delete().eq("id", user.id);
+      // 3. Direct profile delete in Supabase
+      if (cleanId) {
+        await (supabase as any).from("profiles").delete().eq("id", cleanId);
       }
-      if (user.email) {
-        await (supabase as any).from("profiles").delete().eq("email", user.email.toLowerCase().trim());
+      if (cleanEmail) {
+        await (supabase as any).from("profiles").delete().eq("email", cleanEmail);
       }
+
+      // 4. Delete VIP leads associated with this user
+      try {
+        if (cleanEmail) {
+          await (supabase as any).from("vip_list_leads").delete().eq("user_email", cleanEmail);
+        }
+        if (cleanId) {
+          await (supabase as any).from("vip_list_leads").delete().eq("user_id", cleanId);
+        }
+      } catch (e) {}
+
+      // 5. Delete registration sync and reservation rows
+      try {
+        if (cleanEmail) {
+          await (supabase as any)
+            .from("event_confirmations")
+            .delete()
+            .like("user_name", `%${cleanEmail}%`);
+        }
+        if (user.sync_confirmation_id) {
+          await (supabase as any)
+            .from("event_confirmations")
+            .delete()
+            .eq("id", user.sync_confirmation_id);
+        }
+      } catch (e) {}
 
       // Optimistically update local state immediately
       setRegisteredUsers((prev) =>
         prev.filter((u) => {
-          if (user.id && u.id === user.id) return false;
-          if (user.email && u.email && u.email.toLowerCase().trim() === user.email.toLowerCase().trim()) return false;
+          if (cleanId && u.id === cleanId) return false;
+          if (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) return false;
           return true;
         })
       );
-      alert(`✓ Usuário "${user.name || user.email}" excluído definitivamente do banco de dados.`);
+      alert(`✓ Todos os dados do usuário "${user.name || user.email}" foram excluídos definitivamente.`);
     } catch (err: any) {
       alert("Erro ao excluir usuário: " + (err?.message || "Tente novamente"));
     }

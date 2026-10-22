@@ -66,42 +66,56 @@ export function loadPersistedNavState(): Partial<PersistedNavState> {
   }
 }
 
+let _cachedState: PersistedNavState | null = null;
+let _saveDebounceTimer: any = null;
+
 /**
- * Salva o estado atual de navegação em sessionStorage e localStorage
+ * Salva o estado atual de navegação em sessionStorage e localStorage com debounce não-bloqueante
  */
-export function savePersistedNavState(state: Partial<PersistedNavState>) {
+export function savePersistedNavState(state: Partial<PersistedNavState>, immediate = false) {
   if (typeof window === "undefined") return;
 
-  try {
-    // Mescla com estado existente
-    const current = loadPersistedNavState();
-    const merged: PersistedNavState = {
-      screen: state.screen ?? current.screen ?? "home",
-      activeTab: state.activeTab ?? current.activeTab ?? "baladas",
-      venueId: state.venueId !== undefined ? state.venueId : null,
-      vipVenueId: state.vipVenueId !== undefined ? state.vipVenueId : null,
-      selectedGenre: state.selectedGenre ?? current.selectedGenre ?? "all",
-      selectedCuisine: state.selectedCuisine ?? current.selectedCuisine ?? "all",
-      selectedMotelStyle: state.selectedMotelStyle ?? current.selectedMotelStyle ?? "all",
-      selectedBarVibe: state.selectedBarVibe ?? current.selectedBarVibe ?? "all",
-      selectedNeighborhood: state.selectedNeighborhood ?? current.selectedNeighborhood ?? "all",
-      entryPriceFilter: state.entryPriceFilter ?? current.entryPriceFilter ?? "all",
-      maxDistanceKm: state.maxDistanceKm !== undefined ? state.maxDistanceKm : current.maxDistanceKm ?? null,
-      onlyOpenToday: state.onlyOpenToday ?? current.onlyOpenToday ?? false,
-      onlyWithParking: state.onlyWithParking ?? current.onlyWithParking ?? false,
-      onlyWithHydro: state.onlyWithHydro ?? current.onlyWithHydro ?? false,
-      onlyWithPool: state.onlyWithPool ?? current.onlyWithPool ?? false,
-      onlyAfterHours: state.onlyAfterHours ?? current.onlyAfterHours ?? false,
-      onlySnookerHookah: state.onlySnookerHookah ?? current.onlySnookerHookah ?? false,
-      searchQuery: state.searchQuery ?? current.searchQuery ?? "",
-    };
+  const performSave = () => {
+    try {
+      const current = _cachedState || loadPersistedNavState();
+      const merged: PersistedNavState = {
+        screen: state.screen ?? current.screen ?? "home",
+        activeTab: state.activeTab ?? current.activeTab ?? "baladas",
+        venueId: state.venueId !== undefined ? state.venueId : null,
+        vipVenueId: state.vipVenueId !== undefined ? state.vipVenueId : null,
+        selectedGenre: state.selectedGenre ?? current.selectedGenre ?? "all",
+        selectedCuisine: state.selectedCuisine ?? current.selectedCuisine ?? "all",
+        selectedMotelStyle: state.selectedMotelStyle ?? current.selectedMotelStyle ?? "all",
+        selectedBarVibe: state.selectedBarVibe ?? current.selectedBarVibe ?? "all",
+        selectedNeighborhood: state.selectedNeighborhood ?? current.selectedNeighborhood ?? "all",
+        entryPriceFilter: state.entryPriceFilter ?? current.entryPriceFilter ?? "all",
+        maxDistanceKm: state.maxDistanceKm !== undefined ? state.maxDistanceKm : current.maxDistanceKm ?? null,
+        onlyOpenToday: state.onlyOpenToday ?? current.onlyOpenToday ?? false,
+        onlyWithParking: state.onlyWithParking ?? current.onlyWithParking ?? false,
+        onlyWithHydro: state.onlyWithHydro ?? current.onlyWithHydro ?? false,
+        onlyWithPool: state.onlyWithPool ?? current.onlyWithPool ?? false,
+        onlyAfterHours: state.onlyAfterHours ?? current.onlyAfterHours ?? false,
+        onlySnookerHookah: state.onlySnookerHookah ?? current.onlySnookerHookah ?? false,
+        searchQuery: state.searchQuery ?? current.searchQuery ?? "",
+      };
 
-    const serialized = JSON.stringify(merged);
-    sessionStorage.setItem(STORAGE_KEY, serialized);
-    localStorage.setItem(STORAGE_KEY, serialized);
-  } catch (err) {
-    console.warn("Erro ao salvar estado persistente de navegação:", err);
+      _cachedState = merged;
+      const serialized = JSON.stringify(merged);
+      sessionStorage.setItem(STORAGE_KEY, serialized);
+      localStorage.setItem(STORAGE_KEY, serialized);
+    } catch (err) {
+      console.warn("Erro ao salvar estado persistente de navegação:", err);
+    }
+  };
+
+  if (immediate) {
+    if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+    performSave();
+    return;
   }
+
+  if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+  _saveDebounceTimer = setTimeout(performSave, 250);
 }
 
 /**

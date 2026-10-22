@@ -26,7 +26,7 @@ interface CategoryTabsProps {
   favoritesCount: number;
 }
 
-export function CategoryTabs({
+export const CategoryTabs = React.memo(function CategoryTabs({
   activeTab,
   onTabChange,
   baladasCount,
@@ -351,4 +351,4 @@ export function CategoryTabs({
       </div>
     </div>
   );
-}
+});

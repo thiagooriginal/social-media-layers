@@ -31,7 +31,7 @@ interface HeaderProps {
   onOpenThemeModal?: () => void;
 }
 
-export function Header({
+export const Header = React.memo(function Header({
   currentNeighborhood,
   onSelectNeighborhood,
   favoritesCount,
@@ -746,4 +746,4 @@ export function Header({
       )}
     </header>
   );
-}
+});

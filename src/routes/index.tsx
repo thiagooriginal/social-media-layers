@@ -10,7 +10,6 @@ import {
   ROLE_AMENITIES,
   RoleAmenityId,
   RoleAmenity,
-  loadCatalog4000,
 } from "../data/venues";
 import { Header } from "../components/Header";
 import { CategoryTabs, MainCategory } from "../components/CategoryTabs";
@@ -323,22 +322,12 @@ function IndexPage() {
     return null;
   });
 
-  // Load from Supabase on mount and stream extended 4k catalog in background
+  // Load from Supabase on mount
   useEffect(() => {
     getVenues().then((data) => {
       if (data && data.length > 0) {
         setVenues(data);
       }
-      // Carrega catálogo estendido de 4.000 locais de forma assíncrona sem travar o celular
-      loadCatalog4000().then((cat4k) => {
-        if (cat4k && cat4k.length > 0) {
-          setVenues((prev) => {
-            const existingIds = new Set(prev.map((v) => v.id));
-            const fresh = cat4k.filter((v) => !existingIds.has(v.id));
-            return fresh.length > 0 ? [...prev, ...fresh] : prev;
-          });
-        }
-      });
     });
 
     const unsubscribe = subscribeToAuth((newUser) => {
@@ -486,47 +475,12 @@ function IndexPage() {
     searchQuery,
   ]);
 
-  // Guardião de Visibilidade: salva ao trocar de aba e restaura fielmente ao voltar
-  useEffect(() => {
-    return setupVisibilityPersistence(
-      () => ({
-        screen: currentScreen,
-        activeTab,
-        venueId: activeVenue?.id || null,
-        vipVenueId: vipModalVenue?.id || null,
-        selectedGenre,
-        selectedCuisine,
-        selectedMotelStyle,
-        selectedBarVibe,
-        selectedNeighborhood,
-        entryPriceFilter,
-        maxDistanceKm,
-        onlyOpenToday,
-        onlyWithParking,
-        onlyWithHydro,
-        onlyWithPool,
-        onlyAfterHours,
-        onlySnookerHookah,
-        searchQuery,
-      }),
-      (saved) => {
-        if (!isHydratedRef.current) return;
-        if (saved.screen && saved.screen !== currentScreen) {
-          applyScreenTransition(saved.screen);
-        }
-        if (saved.venueId && (!activeVenue || activeVenue.id !== saved.venueId)) {
-          const v =
-            venues.find((item) => item.id === saved.venueId) ||
-            VENUES_DATA.find((item) => item.id === saved.venueId);
-          if (v) setActiveVenue(v);
-        }
-      }
-    );
-  }, [
-    currentScreen,
+  const currentStateRef = useRef<any>(null);
+  currentStateRef.current = {
+    screen: currentScreen,
     activeTab,
-    activeVenue,
-    vipModalVenue,
+    venueId: activeVenue?.id || null,
+    vipVenueId: vipModalVenue?.id || null,
     selectedGenre,
     selectedCuisine,
     selectedMotelStyle,
@@ -541,8 +495,26 @@ function IndexPage() {
     onlyAfterHours,
     onlySnookerHookah,
     searchQuery,
-    venues,
-  ]);
+  };
+
+  // Guardião de Visibilidade: conecta uma única vez no mount sem recriar listeners a cada render
+  useEffect(() => {
+    return setupVisibilityPersistence(
+      () => currentStateRef.current || {},
+      (saved) => {
+        if (!isHydratedRef.current) return;
+        if (saved.screen && saved.screen !== currentStateRef.current?.screen) {
+          applyScreenTransition(saved.screen);
+        }
+        if (saved.venueId && (!activeVenue || activeVenue.id !== saved.venueId)) {
+          const v =
+            venues.find((item) => item.id === saved.venueId) ||
+            VENUES_DATA.find((item) => item.id === saved.venueId);
+          if (v) setActiveVenue(v);
+        }
+      }
+    );
+  }, []);
 
   // Helper to close all modals directly
   const closeAllModalsDirect = () => {
@@ -759,98 +731,63 @@ function IndexPage() {
     setSelectedCapacity("all");
   };
 
-  // Counts for tabs & menus
-  const baladasCount = useMemo(
-    () => venues.filter((v) => v.category === "baladas").length,
-    [venues]
-  );
-  const baresCount = useMemo(
-    () => venues.filter((v) => v.category === "bares").length,
-    [venues]
-  );
-  const tabacariasCount = useMemo(
-    () => venues.filter((v) => v.category === "tabacarias").length,
-    [venues]
-  );
-  const sinucasCount = useMemo(
-    () => venues.filter((v) => v.category === "sinucas").length,
-    [venues]
-  );
-  const restaurantesCount = useMemo(
-    () => venues.filter((v) => v.category === "restaurantes").length,
-    [venues]
-  );
-  const moteisCount = useMemo(
-    () => venues.filter((v) => v.category === "moteis").length,
-    [venues]
-  );
-  const casasComPiscinaCount = useMemo(
-    () => venues.filter((v) => v.category === "casas_com_piscina").length,
-    [venues]
-  );
-  const kidsCount = useMemo(
-    () => venues.filter((v) => v.hasKidsSpace).length,
-    [venues]
-  );
-  const afterVenuesCount = useMemo(() => {
-    return venues.filter(
-      (v) =>
+  // High-performance single-pass counter for all tabs & menus (Elimina 9 loops de array e 130.000 cálculos de trigonometria mortos)
+  const {
+    baladasCount,
+    baresCount,
+    tabacariasCount,
+    sinucasCount,
+    restaurantesCount,
+    moteisCount,
+    casasComPiscinaCount,
+    kidsCount,
+    afterVenuesCount,
+  } = useMemo(() => {
+    let baladas = 0;
+    let bares = 0;
+    let tabacarias = 0;
+    let sinucas = 0;
+    let restaurantes = 0;
+    let moteis = 0;
+    let casas = 0;
+    let kids = 0;
+    let after = 0;
+
+    for (let i = 0; i < venues.length; i++) {
+      const v = venues[i];
+      const cat = v.category;
+      if (cat === "baladas") baladas++;
+      else if (cat === "bares") bares++;
+      else if (cat === "tabacarias") tabacarias++;
+      else if (cat === "sinucas") sinucas++;
+      else if (cat === "restaurantes") restaurantes++;
+      else if (cat === "moteis") moteis++;
+      else if (cat === "casas_com_piscina") casas++;
+
+      if (v.hasKidsSpace) kids++;
+      if (
         v.isAfterHours ||
         v.openHours?.toLowerCase().includes("24 horas") ||
         v.openHours?.includes("05:") ||
         v.openHours?.includes("06:") ||
         v.openHours?.includes("07:") ||
         v.openHours?.includes("08:")
-    ).length;
-  }, [venues]);
+      ) {
+        after++;
+      }
+    }
 
-  // Home Screen Carousels Data
-  // 1. Trending venues (Highest rating & review count)
-  const trendingVenues = useMemo(() => {
-    return [...venues]
-      .sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount)
-      .slice(0, 8);
-  }, [venues]);
-
-  // 2. Nearby venues (Closest to userLocation)
-  const nearbyVenues = useMemo(() => {
-    return [...venues]
-      .sort((a, b) => {
-        const distA = calculateDistanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          a.coordinates.lat,
-          a.coordinates.lng
-        );
-        const distB = calculateDistanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          b.coordinates.lat,
-          b.coordinates.lng
-        );
-        return distA - distB;
-      })
-      .slice(0, 8);
-  }, [venues, userLocation]);
-
-  // 3. Venues with VIP List or Free Entry
-  const vipVenues = useMemo(() => {
-    return venues.filter((v) => v.hasVipList || v.isWomenFree).slice(0, 8);
-  }, [venues]);
-
-  // 4. After-hours venues (5h+ or 24h)
-  const afterVenuesList = useMemo(() => {
-    return venues
-      .filter(
-        (v) =>
-          v.isAfterHours ||
-          v.openHours?.toLowerCase().includes("24 horas") ||
-          v.openHours?.includes("05:") ||
-          v.openHours?.includes("06:") ||
-          v.openHours?.includes("07:") ||
-          v.openHours?.includes("08:")
-      )
-      .slice(0, 8);
+    return {
+      baladasCount: baladas,
+      baresCount: bares,
+      tabacariasCount: tabacarias,
+      sinucasCount: sinucas,
+      restaurantesCount: restaurantes,
+      moteisCount: moteis,
+      casasComPiscinaCount: casas,
+      kidsCount: kids,
+      afterVenuesCount: after,
+    };
   }, [venues]);
 
   // Instant Search Results on Home Screen (Com pre-cálculo de distância otimizado)
@@ -897,8 +834,12 @@ function IndexPage() {
     );
   }, [venues, deferredSearchQuery, userLocation]);
 
-  // Filtered & Distance-Sorted venues
+  // Filtered & Distance-Sorted venues (Super otimizado: só processa na tela da categoria ativa)
   const filteredVenues = useMemo(() => {
+    if (currentScreen === "home" || currentScreen === "custom-role") {
+      return [];
+    }
+
     return venues.filter((venue) => {
       // 1. Tab / Screen category filter
       if (currentScreen === "after" || onlyAfterHours) {

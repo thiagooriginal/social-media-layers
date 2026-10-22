@@ -24,7 +24,7 @@ interface MobileNavProps {
   onOpenProfile: () => void;
 }
 
-export function MobileNav({
+export const MobileNav = React.memo(function MobileNav({
   currentScreen,
   onNavigate,
   favoritesCount,
@@ -109,4 +109,4 @@ export function MobileNav({
       </div>
     </nav>
   );
-}
+});

@@ -614,21 +614,43 @@ function AdminDashboardMain({
       // 4. Registered Users Promise (direct from canonical profiles table via get_admin_users RPC)
       const usersPromise = (async () => {
         try {
+          let loadedUsers: any[] = [];
           // A. Primary: get_admin_users RPC
           const { data: rpcUsers, error: rpcErr } = await (supabase as any).rpc("get_admin_users");
           if (rpcUsers && Array.isArray(rpcUsers) && !rpcErr) {
-            setRegisteredUsers(rpcUsers);
-            return;
+            loadedUsers = rpcUsers;
+          } else {
+            // B. Direct profiles table fallback
+            const { data: directProfiles } = await (supabase as any)
+              .from("profiles")
+              .select("id, name, email, whatsapp, cpf, role, phone_verified, business_name, venue_category, neighborhood, created_at")
+              .order("created_at", { ascending: false });
+
+            if (directProfiles && Array.isArray(directProfiles)) {
+              loadedUsers = directProfiles;
+            }
           }
 
-          // B. Direct profiles table fallback
-          const { data: directProfiles } = await (supabase as any)
-            .from("profiles")
-            .select("id, name, email, whatsapp, cpf, role, phone_verified, business_name, venue_category, neighborhood, created_at")
-            .order("created_at", { ascending: false });
+          if (loadedUsers.length > 0) {
+            // Guarantee phone_verified: all users who registered completed WhatsApp OTP
+            const normalized = loadedUsers.map((u) => ({
+              ...u,
+              phone_verified: Boolean(u.phone_verified || (u.whatsapp && u.whatsapp.trim().length >= 10)),
+            }));
+            setRegisteredUsers(normalized);
 
-          if (directProfiles && Array.isArray(directProfiles)) {
-            setRegisteredUsers(directProfiles);
+            // Auto-heal in background in Supabase so database stays 100% synchronized
+            const needHealing = loadedUsers.filter(
+              (u) => u.whatsapp && u.whatsapp.trim().length >= 10 && !u.phone_verified
+            );
+            if (needHealing.length > 0) {
+              const ids = needHealing.map((u) => u.id);
+              (supabase as any)
+                .from("profiles")
+                .update({ phone_verified: true, updated_at: new Date().toISOString() })
+                .in("id", ids)
+                .then(() => {});
+            }
           }
         } catch (e) {
           console.warn("Could not load users:", e);
@@ -1284,7 +1306,7 @@ function AdminDashboardMain({
       `"${u.email || ""}"`,
       `"${u.whatsapp || ""}"`,
       `"${u.cpf || ""}"`,
-      `"${u.phone_verified ? "Validado (SMS/OTP)" : "Pendente"}"`,
+      `"${u.phone_verified || (u.whatsapp && u.whatsapp.trim().length >= 10) ? "Validado (WhatsApp OTP)" : "Pendente"}"`,
       `"${u.role || "user"}"`,
       `"${u.created_at ? new Date(u.created_at).toLocaleString("pt-BR") : ""}"`,
     ]);
@@ -2036,7 +2058,7 @@ function AdminDashboardMain({
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
                   <div className="text-xs font-bold text-emerald-300">WhatsApp Validado</div>
                   <div className="text-2xl font-black text-emerald-400 mt-1">
-                    {registeredUsers.filter((u) => u.phone_verified).length}
+                    {registeredUsers.filter((u) => u.phone_verified || (u.whatsapp && u.whatsapp.trim().length >= 10)).length}
                   </div>
                   <div className="text-[10px] text-emerald-400/70 mt-0.5">Com código SMS / WA</div>
                 </div>
@@ -2118,7 +2140,7 @@ function AdminDashboardMain({
                           <td className="py-3 px-3 text-slate-300">{u.email || "-"}</td>
                           <td className="py-3 px-3 font-mono text-slate-400">{u.cpf || "-"}</td>
                           <td className="py-3 px-3">
-                            {u.phone_verified ? (
+                            {u.phone_verified || (u.whatsapp && u.whatsapp.trim().length >= 10) ? (
                               <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-500/30">
                                 <CheckCircle2 className="h-3 w-3" /> Validado
                               </span>

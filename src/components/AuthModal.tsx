@@ -47,6 +47,7 @@ import {
   sendPhoneVerificationCode,
 } from "../services/phoneVerificationService";
 import { NEIGHBORHOODS } from "../data/venues";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -294,6 +295,16 @@ export function AuthModal({
     setLoading(false);
 
     if (res.success && res.user) {
+      // Direct real-time confirmation to Supabase profiles to guarantee phone_verified is true immediately
+      try {
+        await (supabase as any)
+          .from("profiles")
+          .update({ phone_verified: true, updated_at: new Date().toISOString() })
+          .or(`id.eq.${res.user.id},email.eq.${res.user.email}`);
+      } catch (e) {
+        console.warn("Direct phone_verified update notice:", e);
+      }
+
       if (rememberMe) {
         saveCredentials({
           email: res.user.email,

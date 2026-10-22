@@ -714,15 +714,19 @@ function AdminDashboardMain({
                 try {
                   const d = JSON.parse(r.user_name.replace("[USER_DELETED]:", ""));
                   const de = d.email ? String(d.email).toLowerCase().trim() : "";
+                  const dn = d.name ? String(d.name).toLowerCase().trim() : "";
                   // Never add Thiago to deleted keys!
-                  if (de === "thiagooriginal2002@gmail.com" || de === "thiago@radardorole.com.br") {
+                  const isThiagoTombstone =
+                    (de === "thiagooriginal2002@gmail.com" || de === "thiago@radardorole.com.br") &&
+                    dn.includes("thiago");
+                  if (isThiagoTombstone) {
                     return;
                   }
                   if (d.id) {
                     deletedKeys.add(String(d.id).toLowerCase().trim());
                     saveLocalDeletedKey(String(d.id));
                   }
-                  if (de) {
+                  if (de && de !== "thiagooriginal2002@gmail.com" && de !== "thiago@radardorole.com.br") {
                     deletedKeys.add(de);
                     saveLocalDeletedKey(de);
                   }
@@ -730,12 +734,9 @@ function AdminDashboardMain({
                     deletedKeys.add(String(d.sync_confirmation_id).toLowerCase().trim());
                     saveLocalDeletedKey(String(d.sync_confirmation_id));
                   }
-                  if (d.name) {
-                    const dn = String(d.name).toLowerCase().trim();
-                    if (!dn.includes("thiago")) {
-                      deletedKeys.add(dn);
-                      saveLocalDeletedKey(dn);
-                    }
+                  if (dn && !dn.includes("thiago")) {
+                    deletedKeys.add(dn);
+                    saveLocalDeletedKey(dn);
                   }
                 } catch (e) {}
               });
@@ -763,16 +764,19 @@ function AdminDashboardMain({
             return true;
           });
 
+          // Sort users by registration date descending (newest registrations first!)
+          allUsers.sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA;
+          });
+
           setRegisteredUsers(allUsers);
         } catch (e) {}
       })();
 
-      // 1. Prioritize essential dashboard metrics (venues, leads, confirmations) for instant display
-      await Promise.allSettled([venuesPromise, leadsPromise, confPromise]);
-      setIsLoadingData(false);
-
-      // 2. Finish loading user list asynchronously in background without blocking initial UI
-      await usersPromise;
+      // Wait for all data to load concurrently
+      await Promise.allSettled([venuesPromise, leadsPromise, confPromise, usersPromise]);
     } catch (err) {
       console.warn("Could not load full admin data:", err);
     } finally {
@@ -804,13 +808,36 @@ function AdminDashboardMain({
         setOnlineVisitors(presences);
       });
 
-      // Auto-refresh real site metrics every 30 seconds
+      // Live Realtime listener for new user registrations (instant dashboard update)
+      const userChannel = (supabase as any)
+        .channel("admin-realtime-users-feed")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "profiles" },
+          () => {
+            loadDashboardData();
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "event_confirmations" },
+          () => {
+            loadDashboardData();
+          }
+        )
+        .subscribe();
+
+      // Auto-refresh real site metrics & users every 20 seconds
       const metricsInterval = setInterval(() => {
         loadRealSiteMetrics();
-      }, 30000);
+        loadDashboardData();
+      }, 20000);
 
       return () => {
         unsubPresence();
+        try {
+          (supabase as any).removeChannel(userChannel);
+        } catch (e) {}
         clearInterval(metricsInterval);
       };
     }
@@ -1408,6 +1435,9 @@ function AdminDashboardMain({
   // Switch tab with smooth auto-scroll to section
   const handleSwitchTab = (tab: "dashboard" | "metrics" | "venues" | "leads" | "users" | "confirmations" | "analytics" | "saas" | "whatsapp") => {
     setActiveTab(tab);
+    if (tab === "users" || tab === "dashboard") {
+      loadDashboardData();
+    }
     setTimeout(() => {
       const el = document.getElementById("admin-tab-content");
       if (el) {

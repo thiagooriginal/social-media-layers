@@ -2,10 +2,11 @@ import { VENUES_CATALOG_300 } from "./venuesCatalog300";
 import { VENUES_EXPANDED } from "./venuesExpanded";
 import { VENUES_MEGA_CATALOG } from "./venuesMegaCatalog";
 import { CURATED_BARS } from "./curatedBars";
+import { VENUES_POOL_HOUSES_250 } from "./venuesPoolHouses";
 
 export interface Venue {
   id: string;
-  category: "baladas" | "bares" | "tabacarias" | "sinucas" | "restaurantes" | "moteis";
+  category: "baladas" | "bares" | "tabacarias" | "sinucas" | "restaurantes" | "moteis" | "casas_com_piscina";
   name: string;
   tagline: string;
   genre?: "pagode" | "sertanejo" | "funk" | "forro" | "rock" | "eletronica" | undefined;
@@ -33,6 +34,10 @@ export interface Venue {
   hasParking?: boolean | undefined;
   hasHydro?: boolean | undefined;
   hasPool?: boolean | undefined;
+  hasBbq?: boolean | undefined;
+  hasHeatedPool?: boolean | undefined;
+  maxGuests?: number | undefined;
+  dailyRate?: number | undefined;
   hasPrivateGarage?: boolean | undefined;
   periodHours?: string | undefined;
   isAfterHours?: boolean | undefined;
@@ -359,6 +364,7 @@ export const VENUES_DATA: Venue[] = [
   ...VENUES_CATALOG_300,
   ...VENUES_EXPANDED,
   ...VENUES_MEGA_CATALOG,
+  ...VENUES_POOL_HOUSES_250,
 ];
 
 // Carregamento assíncrono dos 4.000 estabelecimentos estendidos (Lazy / Não bloqueia o celular nem o bundle inicial)

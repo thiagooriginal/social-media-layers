@@ -232,6 +232,9 @@ function IndexPage() {
   const [onlyWithParking, setOnlyWithParking] = useState(() => initialNav.onlyWithParking || false);
   const [onlyWithHydro, setOnlyWithHydro] = useState(() => initialNav.onlyWithHydro || false);
   const [onlyWithPool, setOnlyWithPool] = useState(() => initialNav.onlyWithPool || false);
+  const [onlyWithBbq, setOnlyWithBbq] = useState(false);
+  const [onlyWithHeatedPool, setOnlyWithHeatedPool] = useState(false);
+  const [selectedCapacity, setSelectedCapacity] = useState("all");
   const [onlyAfterHours, setOnlyAfterHours] = useState(() => initialNav.onlyAfterHours || (initialNav.screen === "after"));
   const [onlyTrending, setOnlyTrending] = useState(false);
   const [onlySnookerHookah, setOnlySnookerHookah] = useState(() => initialNav.onlySnookerHookah || false);
@@ -574,6 +577,9 @@ function IndexPage() {
     } else if (screen === "moteis") {
       setActiveTab("moteis");
       setOnlyAfterHours(false);
+    } else if (screen === "casas_com_piscina") {
+      setActiveTab("casas_com_piscina");
+      setOnlyAfterHours(false);
     } else if (screen === "after") {
       setOnlyAfterHours(true);
     } else if (screen === "favorites") {
@@ -739,12 +745,18 @@ function IndexPage() {
     } else if (tab === "moteis") {
       setCurrentScreen("moteis");
       setSelectedCuisine("all");
+    } else if (tab === "casas_com_piscina") {
+      setCurrentScreen("casas_com_piscina");
+      setSelectedCuisine("all");
     } else if (tab === "favorites") {
       setCurrentScreen("favorites");
     }
     setSelectedMotelStyle("all");
     setOnlyWithHydro(false);
     setOnlyWithPool(false);
+    setOnlyWithBbq(false);
+    setOnlyWithHeatedPool(false);
+    setSelectedCapacity("all");
   };
 
   // Counts for tabs & menus
@@ -770,6 +782,10 @@ function IndexPage() {
   );
   const moteisCount = useMemo(
     () => venues.filter((v) => v.category === "moteis").length,
+    [venues]
+  );
+  const casasComPiscinaCount = useMemo(
+    () => venues.filter((v) => v.category === "casas_com_piscina").length,
     [venues]
   );
   const kidsCount = useMemo(
@@ -918,6 +934,8 @@ function IndexPage() {
         if (venue.category !== "restaurantes") return false;
       } else if (currentScreen === "moteis" || activeTab === "moteis") {
         if (venue.category !== "moteis") return false;
+      } else if (currentScreen === "casas_com_piscina" || activeTab === "casas_com_piscina") {
+        if (venue.category !== "casas_com_piscina") return false;
       }
 
       // 2. Genre filter (Baladas)
@@ -994,6 +1012,18 @@ function IndexPage() {
         else if (venue.motelStyle && venue.motelStyle !== selectedMotelStyle) return false;
       }
 
+      // 4b. Capacidade de Pessoas (Casas com Piscina)
+      if (
+        (activeTab === "casas_com_piscina" || currentScreen === "casas_com_piscina") &&
+        selectedCapacity !== "all"
+      ) {
+        const guests = venue.maxGuests || 0;
+        if (selectedCapacity === "up_to_20" && guests > 20) return false;
+        if (selectedCapacity === "20_to_50" && (guests < 20 || guests > 50)) return false;
+        if (selectedCapacity === "50_to_100" && (guests < 50 || guests > 100)) return false;
+        if (selectedCapacity === "100_plus" && guests < 100) return false;
+      }
+
       // 5. Hydro toggle (Motéis)
       if (onlyWithHydro && !venue.hasHydro) {
         return false;
@@ -1001,6 +1031,16 @@ function IndexPage() {
 
       // 6. Pool toggle (Motéis)
       if (onlyWithPool && !venue.hasPool) {
+        return false;
+      }
+
+      // 6b. Churrasqueira toggle (Casas com Piscina)
+      if (onlyWithBbq && !venue.hasBbq) {
+        return false;
+      }
+
+      // 6c. Piscina Aquecida toggle (Casas com Piscina)
+      if (onlyWithHeatedPool && !venue.hasHeatedPool) {
         return false;
       }
 
@@ -1092,7 +1132,7 @@ function IndexPage() {
         }
       }
 
-      // 16. Filter by Entry Price (Valores de Entrada)
+      // 16. Filter by Entry Price (Valores de Entrada / Diárias)
       if (entryPriceFilter === "vip_free") {
         if (!venue.hasVipList && !venue.isWomenFree && venue.priceCategory !== "free") {
           return false;
@@ -1115,6 +1155,18 @@ function IndexPage() {
       } else if (entryPriceFilter === "motel_above_160") {
         const price = extractVenuePrice(venue.entryPrice);
         if (price <= 160) return false;
+      } else if (entryPriceFilter === "pool_under_800") {
+        const price = venue.dailyRate || extractVenuePrice(venue.entryPrice);
+        if (price > 800) return false;
+      } else if (entryPriceFilter === "pool_800_1500") {
+        const price = venue.dailyRate || extractVenuePrice(venue.entryPrice);
+        if (price < 800 || price > 1500) return false;
+      } else if (entryPriceFilter === "pool_1500_2500") {
+        const price = venue.dailyRate || extractVenuePrice(venue.entryPrice);
+        if (price < 1500 || price > 2500) return false;
+      } else if (entryPriceFilter === "pool_above_2500") {
+        const price = venue.dailyRate || extractVenuePrice(venue.entryPrice);
+        if (price <= 2500) return false;
       }
 
       return true;
@@ -1138,14 +1190,14 @@ function IndexPage() {
     return filtered.sort((a, b) => {
       // Ordenação por valor / preço (Mais Barato ou Mais Caro)
       if (entryPriceFilter === "price_asc") {
-        const priceA = extractVenuePrice(a.entryPrice);
-        const priceB = extractVenuePrice(b.entryPrice);
+        const priceA = a.dailyRate || extractVenuePrice(a.entryPrice);
+        const priceB = b.dailyRate || extractVenuePrice(b.entryPrice);
         if (priceA !== priceB) {
           return priceA - priceB;
         }
       } else if (entryPriceFilter === "price_desc") {
-        const priceA = extractVenuePrice(a.entryPrice);
-        const priceB = extractVenuePrice(b.entryPrice);
+        const priceA = a.dailyRate || extractVenuePrice(a.entryPrice);
+        const priceB = b.dailyRate || extractVenuePrice(b.entryPrice);
         if (priceA !== priceB) {
           return priceB - priceA;
         }
@@ -1171,6 +1223,9 @@ function IndexPage() {
     onlyWithParking,
     onlyWithHydro,
     onlyWithPool,
+    onlyWithBbq,
+    onlyWithHeatedPool,
+    selectedCapacity,
     onlyAfterHours,
     onlyTrending,
     onlySnookerHookah,
@@ -1188,6 +1243,7 @@ function IndexPage() {
     selectedCuisine,
     selectedMotelStyle,
     selectedBarVibe,
+    selectedCapacity,
     selectedNeighborhood,
     maxDistanceKm,
     entryPriceFilter,
@@ -1196,6 +1252,8 @@ function IndexPage() {
     onlyWithParking,
     onlyWithHydro,
     onlyWithPool,
+    onlyWithBbq,
+    onlyWithHeatedPool,
     onlyAfterHours,
     onlyTrending,
     onlySnookerHookah,
@@ -1217,6 +1275,7 @@ function IndexPage() {
     setSelectedCuisine("all");
     setSelectedMotelStyle("all");
     setSelectedBarVibe("all");
+    setSelectedCapacity("all");
     setSelectedNeighborhood("all");
     setMaxDistanceKm(null);
     setEntryPriceFilter("all");
@@ -1225,6 +1284,8 @@ function IndexPage() {
     setOnlyWithParking(false);
     setOnlyWithHydro(false);
     setOnlyWithPool(false);
+    setOnlyWithBbq(false);
+    setOnlyWithHeatedPool(false);
     setOnlyAfterHours(false);
     setOnlyTrending(false);
     setOnlySnookerHookah(false);
@@ -1236,6 +1297,7 @@ function IndexPage() {
     selectedCuisine !== "all" ||
     selectedMotelStyle !== "all" ||
     selectedBarVibe !== "all" ||
+    selectedCapacity !== "all" ||
     selectedNeighborhood !== "all" ||
     maxDistanceKm !== null ||
     entryPriceFilter !== "all" ||
@@ -1244,6 +1306,8 @@ function IndexPage() {
     onlyWithParking ||
     onlyWithHydro ||
     onlyWithPool ||
+    onlyWithBbq ||
+    onlyWithHeatedPool ||
     onlyTrending ||
     onlySnookerHookah;
 
@@ -1833,6 +1897,12 @@ function IndexPage() {
                         <span>Motéis & Drive-ins</span>
                       </>
                     )}
+                    {currentScreen === "casas_com_piscina" && (
+                      <>
+                        <span className="text-2xl">🏊‍♂️</span>
+                        <span>Casas com Piscina & Chácaras</span>
+                      </>
+                    )}
                     {currentScreen === "after" && (
                       <>
                         <span className="text-2xl">🌙</span>
@@ -1865,6 +1935,8 @@ function IndexPage() {
                       "Culinária japonesa, churrascarias, pizzarias, alta gastronomia e ambiente familiar"}
                     {currentScreen === "moteis" &&
                       "Privacidade, hidromassagem, piscinas privativas, suítes com pernoite e drive-ins"}
+                    {currentScreen === "casas_com_piscina" &&
+                      "Casas de campo, sítios com piscina aquecida, chácaras com churrasqueira para festas e temporada em SP e Grande SP"}
                     {currentScreen === "after" &&
                       "Locais abertos para virar a noite até as 8h da manhã ou lanches/padarias 24h"}
                     {currentScreen === "favorites" &&
@@ -1909,7 +1981,7 @@ function IndexPage() {
             />
           ) : (
             <>
-              {/* Category Tabs (8 Sectors) */}
+              {/* Category Tabs (9 Sectors) */}
               <CategoryTabs
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
@@ -1919,6 +1991,7 @@ function IndexPage() {
                 sinucasCount={sinucasCount}
                 restaurantesCount={restaurantesCount}
                 moteisCount={moteisCount}
+                casasComPiscinaCount={casasComPiscinaCount}
                 kidsCount={kidsCount}
                 favoritesCount={favorites.length}
               />
@@ -1936,6 +2009,8 @@ function IndexPage() {
                 onSelectMotelStyle={setSelectedMotelStyle}
                 selectedBarVibe={selectedBarVibe}
                 onSelectBarVibe={setSelectedBarVibe}
+                selectedCapacity={selectedCapacity}
+                onSelectCapacity={setSelectedCapacity}
                 maxDistanceKm={maxDistanceKm}
                 onSelectMaxDistanceKm={setMaxDistanceKm}
                 selectedNeighborhood={selectedNeighborhood}
@@ -1956,6 +2031,10 @@ function IndexPage() {
                 onToggleWithHydro={() => setOnlyWithHydro(!onlyWithHydro)}
                 onlyWithPool={onlyWithPool}
                 onToggleWithPool={() => setOnlyWithPool(!onlyWithPool)}
+                onlyWithBbq={onlyWithBbq}
+                onToggleWithBbq={() => setOnlyWithBbq(!onlyWithBbq)}
+                onlyWithHeatedPool={onlyWithHeatedPool}
+                onToggleWithHeatedPool={() => setOnlyWithHeatedPool(!onlyWithHeatedPool)}
                 onResetFilters={handleResetFilters}
                 hasActiveFilters={hasActiveFilters}
               />

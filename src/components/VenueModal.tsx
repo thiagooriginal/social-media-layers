@@ -125,6 +125,8 @@ export function VenueModal({
         ? `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de colocar nome na Lista VIP / saber das atrações de hoje!`
         : venue.category === "moteis"
         ? `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de informações de suítes, hidro e valores de pernoite para hoje!`
+        : venue.category === "casas_com_piscina"
+        ? `Olá! Vi o anúncio de ${venue.name} no Radar do Rolê e gostaria de verificar disponibilidade de data, capacidade (${venue.maxGuests || "família/amigos"} pessoas) e solicitar um orçamento!`
         : `Olá! Vi o ${venue.name} no Radar do Rolê e gostaria de informações para reserva de mesa de hoje!`;
     window.open(
       `https://api.whatsapp.com/send?phone=${venue.whatsapp}&text=${encodeURIComponent(message)}`,
@@ -501,22 +503,52 @@ export function VenueModal({
           )}
 
           {/* Details & Amenities Grid */}
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs sm:grid-cols-3 w-full">
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Horários</span>
-              <p className="mt-1 font-semibold text-slate-200 truncate">{venue.openHours}</p>
-            </div>
+          {venue.category === "casas_com_piscina" ? (
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs sm:grid-cols-4 w-full">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase">Capacidade</span>
+                <p className="mt-1 font-bold text-white truncate">👥 Até {venue.maxGuests || 50} pessoas</p>
+              </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Valores</span>
-              <p className="mt-1 font-semibold text-amber-300 truncate">{venue.entryPrice}</p>
-            </div>
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Churrasqueira</span>
+                <p className="mt-1 font-semibold text-amber-300 truncate">
+                  {venue.hasBbq ? "🍖 Inclusa / Completa" : "❌ Sem churrasqueira"}
+                </p>
+              </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 col-span-2 sm:col-span-1 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Destaque</span>
-              <p className="mt-1 font-medium text-slate-300 line-clamp-2">{venue.highlight}</p>
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Piscina</span>
+                <p className="mt-1 font-semibold text-cyan-300 truncate">
+                  {venue.hasHeatedPool ? "♨️ Aquecida" : "🏊 Tradicional"}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Diária / Valores</span>
+                <p className="mt-1 font-bold text-emerald-300 truncate">
+                  {venue.dailyRate ? `A partir de R$ ${venue.dailyRate}` : venue.entryPrice}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs sm:grid-cols-3 w-full">
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Horários</span>
+                <p className="mt-1 font-semibold text-slate-200 truncate">{venue.openHours}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Valores</span>
+                <p className="mt-1 font-semibold text-amber-300 truncate">{venue.entryPrice}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 col-span-2 sm:col-span-1 min-w-0 overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Destaque</span>
+                <p className="mt-1 font-medium text-slate-300 line-clamp-2">{venue.highlight}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal Sticky Bottom Action Footer */}
@@ -525,7 +557,7 @@ export function VenueModal({
             {/* Primary Action Button */}
             <button
               onClick={() => {
-                if (venue.category === "moteis") {
+                if (venue.category === "moteis" || venue.category === "casas_com_piscina") {
                   handleContactWhatsApp();
                 } else {
                   onOpenVipModal(venue);
@@ -536,17 +568,23 @@ export function VenueModal({
                   ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white shadow-[0_0_25px_-5px_rgba(168,85,247,0.7)] hover:brightness-110"
                   : venue.category === "moteis"
                   ? "bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-[0_0_25px_-5px_rgba(244,63,94,0.7)] hover:brightness-110"
+                  : venue.category === "casas_com_piscina"
+                  ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-[0_0_25px_-5px_rgba(16,185,129,0.7)] hover:brightness-110"
                   : venue.hasKidsSpace
                   ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-black font-black shadow-[0_0_25px_-5px_rgba(245,158,11,0.7)] hover:brightness-110"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-[0_0_25px_-5px_rgba(16,185,129,0.7)] hover:brightness-110"
               }`}
             >
-              <span className="shrink-0">{venue.category === "moteis" ? "🏩" : "🎟️"}</span>
+              <span className="shrink-0">
+                {venue.category === "moteis" ? "🏩" : venue.category === "casas_com_piscina" ? "🏊‍♂️" : "🎟️"}
+              </span>
               <span className="truncate">
                 {venue.category === "baladas"
                   ? "Garantir Lista VIP"
                   : venue.category === "moteis"
                   ? "Consultar Suítes"
+                  : venue.category === "casas_com_piscina"
+                  ? "Solicitar Orçamento / Datas"
                   : "Reservar Mesa"}
               </span>
             </button>

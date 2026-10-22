@@ -8,6 +8,7 @@ export type MainCategory =
   | "sinucas"
   | "restaurantes"
   | "moteis"
+  | "casas_com_piscina"
   | "kids"
   | "favorites";
 
@@ -20,6 +21,7 @@ interface CategoryTabsProps {
   sinucasCount?: number;
   restaurantesCount: number;
   moteisCount: number;
+  casasComPiscinaCount?: number;
   kidsCount: number;
   favoritesCount: number;
 }
@@ -33,12 +35,13 @@ export function CategoryTabs({
   sinucasCount = 0,
   restaurantesCount,
   moteisCount,
+  casasComPiscinaCount = 0,
   kidsCount,
   favoritesCount,
 }: CategoryTabsProps) {
   return (
     <div className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-6 w-full max-w-full overflow-hidden">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8 sm:gap-2.5">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 sm:gap-2.5">
         
         {/* 1. Baladas */}
         <button
@@ -244,7 +247,41 @@ export function CategoryTabs({
           </div>
         </button>
 
-        {/* 7. Com Espaço Kids */}
+        {/* 7. Casas com Piscina */}
+        <button
+          onClick={() => onTabChange("casas_com_piscina")}
+          className={`group relative flex flex-col items-start rounded-2xl border p-2.5 sm:p-3 text-left transition-all duration-300 min-w-0 w-full ${
+            activeTab === "casas_com_piscina"
+              ? "border-emerald-400/90 bg-gradient-to-br from-emerald-950/80 via-[#0a201c]/70 to-[#0e1422] shadow-[0_0_25px_-5px_rgba(16,185,129,0.5)]"
+              : "border-white/10 bg-[#0c101c]/70 hover:border-emerald-400/40 hover:bg-[#121829]"
+          }`}
+        >
+          <div className="flex w-full items-center justify-between">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-base sm:text-lg transition-transform group-hover:scale-110">
+              🏊‍♂️
+            </div>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold ${
+                activeTab === "casas_com_piscina"
+                  ? "bg-emerald-400 text-black font-extrabold shadow"
+                  : "bg-white/10 text-slate-400"
+              }`}
+            >
+              {casasComPiscinaCount}
+            </span>
+          </div>
+          <div className="mt-2 min-w-0 w-full">
+            <div className="flex items-center gap-1 font-bold text-slate-100 text-xs truncate">
+              <span>Casa c/ Piscina</span>
+              <Sparkles className="h-3 w-3 text-emerald-400 shrink-0" />
+            </div>
+            <p className="mt-0.5 line-clamp-1 text-[9px] sm:text-[10px] text-slate-400">
+              Chácaras & Day use
+            </p>
+          </div>
+        </button>
+
+        {/* 8. Com Espaço Kids */}
         <button
           onClick={() => onTabChange("kids")}
           className={`group relative flex flex-col items-start rounded-2xl border p-2.5 sm:p-3 text-left transition-all duration-300 min-w-0 w-full ${

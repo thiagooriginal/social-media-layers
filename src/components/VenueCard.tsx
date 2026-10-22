@@ -225,12 +225,27 @@ export const VenueCard = React.memo(function VenueCard({
 
         {/* Tags */}
         <div className="mt-3 flex flex-wrap gap-1.5">
+          {venue.maxGuests && (
+            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-extrabold text-emerald-300">
+              👥 Até {venue.maxGuests} pessoas
+            </span>
+          )}
+          {venue.hasBbq && (
+            <span className="rounded-md border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-extrabold text-amber-300">
+              🍖 Churrasqueira
+            </span>
+          )}
+          {venue.hasHeatedPool && (
+            <span className="rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-extrabold text-cyan-300">
+              ♨️ Piscina Aquecida
+            </span>
+          )}
           {venue.hasHydro && (
             <span className="rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-extrabold text-cyan-300">
               🛁 Hidro
             </span>
           )}
-          {venue.hasPool && (
+          {venue.hasPool && !venue.hasHeatedPool && (
             <span className="rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-extrabold text-cyan-300">
               🏊 Piscina
             </span>
@@ -265,6 +280,8 @@ export const VenueCard = React.memo(function VenueCard({
                 ? "bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-600 shadow-[0_0_20px_-5px_rgba(255,0,127,0.5)] hover:brightness-110"
                 : venue.category === "moteis"
                 ? "bg-gradient-to-r from-fuchsia-600 to-fuchsia-700 shadow-[0_0_20px_-5px_rgba(255,0,127,0.5)] hover:brightness-110"
+                : venue.category === "casas_com_piscina"
+                ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] hover:brightness-110 text-white font-extrabold"
                 : "bg-gradient-to-r from-cyan-600 via-teal-600 to-cyan-600 shadow-[0_0_20px_-5px_rgba(0,240,255,0.4)] hover:brightness-110 text-white font-extrabold"
             }`}
           >
@@ -273,6 +290,8 @@ export const VenueCard = React.memo(function VenueCard({
                 ? "Ver Balada & Lista VIP"
                 : venue.category === "moteis"
                 ? "Ver Suítes & Valores"
+                : venue.category === "casas_com_piscina"
+                ? "Ver Casa & Orçamento no WhatsApp"
                 : venue.hasKidsSpace && venue.category !== "moteis"
                 ? "Ver Espaço Kids & Reservar"
                 : "Ver Restaurante & Reservar"}

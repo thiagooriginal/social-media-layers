@@ -11,6 +11,7 @@ export type AppScreen =
   | "sinucas"
   | "restaurantes"
   | "moteis"
+  | "casas_com_piscina"
   | "after"
   | "favorites";
 

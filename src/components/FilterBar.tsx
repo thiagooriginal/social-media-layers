@@ -12,13 +12,17 @@ export type PriceFilterType =
   | "price_desc"
   | "motel_under_120"
   | "motel_120_160"
-  | "motel_above_160";
+  | "motel_above_160"
+  | "pool_under_800"
+  | "pool_800_1500"
+  | "pool_1500_2500"
+  | "pool_above_2500";
 
 export interface FilterBarProps {
   category: MainCategory;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  // 1. Por Estilo Musical / Culinária / Suíte / Vibe do Bar
+  // 1. Por Estilo Musical / Culinária / Suíte / Vibe do Bar / Capacidade
   selectedGenre: string;
   onSelectGenre: (g: string) => void;
   selectedCuisine: string;
@@ -27,6 +31,8 @@ export interface FilterBarProps {
   onSelectMotelStyle: (s: string) => void;
   selectedBarVibe?: string;
   onSelectBarVibe?: (v: string) => void;
+  selectedCapacity?: string;
+  onSelectCapacity?: (cap: string) => void;
   // 2. Por Distância
   maxDistanceKm: number | null;
   onSelectMaxDistanceKm: (km: number | null) => void;
@@ -36,7 +42,7 @@ export interface FilterBarProps {
   isGpsActive?: boolean;
   userLocationName?: string;
   onOpenNeighborhoodModal?: () => void;
-  // 3. Por Valores de Entrada & Benefícios
+  // 3. Por Valores de Entrada & Benefícios / Diárias & Estrutura
   entryPriceFilter: PriceFilterType;
   onSelectPriceFilter: (p: PriceFilterType) => void;
   onlyOpenToday: boolean;
@@ -49,6 +55,11 @@ export interface FilterBarProps {
   onToggleWithHydro?: () => void;
   onlyWithPool?: boolean;
   onToggleWithPool?: () => void;
+  // Casas com piscina
+  onlyWithBbq?: boolean;
+  onToggleWithBbq?: () => void;
+  onlyWithHeatedPool?: boolean;
+  onToggleWithHeatedPool?: () => void;
   onResetFilters?: () => void;
   hasActiveFilters?: boolean;
 }
@@ -65,6 +76,8 @@ export function FilterBar({
   onSelectMotelStyle,
   selectedBarVibe = "all",
   onSelectBarVibe,
+  selectedCapacity = "all",
+  onSelectCapacity,
   maxDistanceKm,
   onSelectMaxDistanceKm,
   selectedNeighborhood,
@@ -85,12 +98,17 @@ export function FilterBar({
   onToggleWithHydro,
   onlyWithPool,
   onToggleWithPool,
+  onlyWithBbq,
+  onToggleWithBbq,
+  onlyWithHeatedPool,
+  onToggleWithHeatedPool,
   onResetFilters,
   hasActiveFilters = false,
 }: FilterBarProps) {
   const isBaladas = category === "baladas";
   const isBares = category === "bares";
   const isMoteis = category === "moteis";
+  const isCasasComPiscina = category === "casas_com_piscina";
   const isRestaurantes = category === "restaurantes" || category === "kids";
 
   const getPlaceholder = () => {
@@ -99,6 +117,7 @@ export function FilterBar({
     if (category === "tabacarias") return "Buscar por tabacaria, hookah lounge, narguilé, essências...";
     if (category === "sinucas") return "Buscar por casa de sinuca, snooker bar, bilhar...";
     if (category === "moteis") return "Buscar por motel, suíte, hidro, piscina, drive-in...";
+    if (category === "casas_com_piscina") return "Buscar por chácara, sítio, casa com piscina, churrasqueira, diária...";
     return "Buscar por restaurante, culinária, drinks, boteco...";
   };
 
@@ -153,12 +172,12 @@ export function FilterBar({
         </div>
 
         {/* ========================================================================= */}
-        {/* 1. POR ESTILO MUSICAL (ou Culinária / Suíte / Vibe do Bar)                */}
+        {/* 1. POR ESTILO MUSICAL (ou Culinária / Suíte / Vibe do Bar / Capacidade)    */}
         {/* ========================================================================= */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-              <span>{isBaladas ? "🎵" : isBares ? "🍻" : isRestaurantes ? "🍽️" : "🏩"}</span>
+              <span>{isBaladas ? "🎵" : isBares ? "🍻" : isRestaurantes ? "🍽️" : isMoteis ? "🏩" : "👥"}</span>
               <span>
                 {isBaladas
                   ? "1. Por Estilo Musical"
@@ -166,7 +185,11 @@ export function FilterBar({
                   ? "1. Por Estilo & Vibe do Bar"
                   : isRestaurantes
                   ? "1. Por Culinária / Experiência"
-                  : "1. Por Tipo de Suíte"}
+                  : isMoteis
+                  ? "1. Por Tipo de Suíte"
+                  : isCasasComPiscina
+                  ? "1. Por Quantidade de Pessoas (Capacidade)"
+                  : "1. Filtros"}
               </span>
             </span>
             {selectedGenre !== "all" && isBaladas && (
@@ -203,6 +226,15 @@ export function FilterBar({
                 className="text-[10px] text-fuchsia-300 hover:text-white underline cursor-pointer"
               >
                 Ver todas as suítes
+              </button>
+            )}
+            {selectedCapacity !== "all" && isCasasComPiscina && onSelectCapacity && (
+              <button
+                type="button"
+                onClick={() => onSelectCapacity("all")}
+                className="text-[10px] text-emerald-300 hover:text-white underline cursor-pointer"
+              >
+                Qualquer capacidade
               </button>
             )}
           </div>
@@ -293,6 +325,33 @@ export function FilterBar({
                     <span>{m.emoji}</span>
                     <span>{m.name}</span>
                     {active && <Check className="h-3 w-3 text-fuchsia-300 stroke-[3]" />}
+                  </button>
+                );
+              })}
+
+            {/* Casas com Piscina: Quantidade de Pessoas (Capacidade) */}
+            {isCasasComPiscina &&
+              [
+                { id: "all", name: "👥 Qualquer Capacidade" },
+                { id: "up_to_20", name: "Até 20 pessoas" },
+                { id: "20_to_50", name: "20 a 50 pessoas" },
+                { id: "50_to_100", name: "50 a 100 pessoas" },
+                { id: "100_plus", name: "100+ pessoas" },
+              ].map((cap) => {
+                const active = (selectedCapacity || "all") === cap.id;
+                return (
+                  <button
+                    key={cap.id}
+                    type="button"
+                    onClick={() => onSelectCapacity?.(cap.id)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold transition-all cursor-pointer ${
+                      active
+                        ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.03]"
+                        : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-white/20 hover:bg-[#121829]"
+                    }`}
+                  >
+                    <span>{cap.name}</span>
+                    {active && <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />}
                   </button>
                 );
               })}
@@ -399,6 +458,21 @@ export function FilterBar({
               <span>Até 20 km</span>
             </button>
 
+            {/* Raio: Até 50 km (Ideal para Casas de Campo / Chácaras) */}
+            {isCasasComPiscina && (
+              <button
+                type="button"
+                onClick={() => onSelectMaxDistanceKm(50)}
+                className={`flex shrink-0 items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  maxDistanceKm === 50
+                    ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                    : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-white/20"
+                }`}
+              >
+                <span>🌳 Até 50 km</span>
+              </button>
+            )}
+
             {/* Seletor de Bairro */}
             <div className="relative shrink-0">
               <select
@@ -425,13 +499,19 @@ export function FilterBar({
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. POR VALORES DE ENTRADA & BENEFÍCIOS (OU VALORES DAS SUÍTES NO MOTEL)   */}
+        {/* 3. POR VALORES DE ENTRADA & BENEFÍCIOS (OU VALORES DAS DIÁRIAS / SUÍTES)  */}
         {/* ========================================================================= */}
         <div className="pt-3 border-t border-white/5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-fuchsia-300 flex items-center gap-1.5">
               <span>💵</span>
-              <span>{isMoteis ? "3. Por Valores das Suítes & Ordenação" : "3. Por Valores de Entrada"}</span>
+              <span>
+                {isMoteis
+                  ? "3. Por Valores das Suítes & Ordenação"
+                  : isCasasComPiscina
+                  ? "3. Por Valor da Diária & Estrutura"
+                  : "3. Por Valores de Entrada"}
+              </span>
             </span>
             {entryPriceFilter !== "all" && (
               <button
@@ -451,15 +531,123 @@ export function FilterBar({
               onClick={() => onSelectPriceFilter("all")}
               className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 entryPriceFilter === "all"
-                  ? "border-fuchsia-400 bg-fuchsia-500/25 text-fuchsia-200 shadow-[0_0_12px_rgba(255,0,127,0.35)]"
+                  ? isCasasComPiscina
+                    ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                    : "border-fuchsia-400 bg-fuchsia-500/25 text-fuchsia-200 shadow-[0_0_12px_rgba(255,0,127,0.35)]"
                   : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-white/20"
               }`}
             >
-              <span>{isMoteis ? "🏩 Todos os Valores" : "🎟️ Todos os Valores"}</span>
+              <span>{isMoteis ? "🏩 Todos os Valores" : isCasasComPiscina ? "🏡 Todas as Diárias" : "🎟️ Todos os Valores"}</span>
             </button>
 
-            {/* SE FOR MOTEL: ORDENAÇÃO DECRESCENTE / CRESCENTE (MAIS BARATO / MAIS CARO) */}
-            {isMoteis ? (
+            {/* SE FOR CASA COM PISCINA: ORDENAÇÃO E FAIXAS DE DIÁRIA */}
+            {isCasasComPiscina ? (
+              <>
+                {/* Mais Barato Primeiro (Crescente) */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "price_asc" ? "all" : "price_asc")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "price_asc"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.03]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                  title="Ordenar pelo menor valor de diária primeiro (Crescente)"
+                >
+                  <span>📉</span>
+                  <span>Menor Diária (Crescente ⬆️)</span>
+                  {entryPriceFilter === "price_asc" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+
+                {/* Maior Diária / Luxo (Decrescente) */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "price_desc" ? "all" : "price_desc")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "price_desc"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.03]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                  title="Ordenar pelas casas mais luxuosas primeiro (Decrescente)"
+                >
+                  <span>💎</span>
+                  <span>Maior Diária / Luxo (⬇️)</span>
+                  {entryPriceFilter === "price_desc" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+
+                {/* Até R$ 800/dia */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "pool_under_800" ? "all" : "pool_under_800")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "pool_under_800"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                >
+                  <span>🏷️</span>
+                  <span>Até R$ 800/dia</span>
+                  {entryPriceFilter === "pool_under_800" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+
+                {/* R$ 800 a R$ 1.500/dia */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "pool_800_1500" ? "all" : "pool_800_1500")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "pool_800_1500"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                >
+                  <span>🏡</span>
+                  <span>R$ 800 a R$ 1.500</span>
+                  {entryPriceFilter === "pool_800_1500" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+
+                {/* R$ 1.500 a R$ 2.500/dia */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "pool_1500_2500" ? "all" : "pool_1500_2500")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "pool_1500_2500"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                >
+                  <span>✨</span>
+                  <span>R$ 1.500 a R$ 2.500</span>
+                  {entryPriceFilter === "pool_1500_2500" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+
+                {/* Acima de R$ 2.500/dia */}
+                <button
+                  type="button"
+                  onClick={() => onSelectPriceFilter(entryPriceFilter === "pool_above_2500" ? "all" : "pool_above_2500")}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    entryPriceFilter === "pool_above_2500"
+                      ? "border-emerald-400 bg-emerald-500/25 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]"
+                      : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-emerald-500/40 hover:text-white"
+                  }`}
+                >
+                  <span>👑</span>
+                  <span>Acima de R$ 2.500</span>
+                  {entryPriceFilter === "pool_above_2500" && (
+                    <Check className="h-3 w-3 text-emerald-300 stroke-[3]" />
+                  )}
+                </button>
+              </>
+            ) : isMoteis ? (
               <>
                 {/* Mais Barato Primeiro (Crescente) */}
                 <button
@@ -680,6 +868,40 @@ export function FilterBar({
               >
                 <span>🏊</span>
                 <span>Com Piscina</span>
+              </button>
+            )}
+
+            {/* Casas com Piscina: Churrasqueira */}
+            {isCasasComPiscina && onToggleWithBbq && (
+              <button
+                type="button"
+                onClick={onToggleWithBbq}
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  onlyWithBbq
+                    ? "border-amber-400 bg-amber-500/25 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-[1.02]"
+                    : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-amber-500/40"
+                }`}
+              >
+                <span>🍖</span>
+                <span>Churrasqueira</span>
+                {onlyWithBbq && <Check className="h-3 w-3 text-amber-300 stroke-[3]" />}
+              </button>
+            )}
+
+            {/* Casas com Piscina: Piscina Aquecida */}
+            {isCasasComPiscina && onToggleWithHeatedPool && (
+              <button
+                type="button"
+                onClick={onToggleWithHeatedPool}
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  onlyWithHeatedPool
+                    ? "border-cyan-400 bg-cyan-500/25 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.4)] scale-[1.02]"
+                    : "border-white/10 bg-[#0c101c] text-slate-300 hover:border-cyan-500/40"
+                }`}
+              >
+                <span>♨️</span>
+                <span>Piscina Aquecida</span>
+                {onlyWithHeatedPool && <Check className="h-3 w-3 text-cyan-300 stroke-[3]" />}
               </button>
             )}
           </div>

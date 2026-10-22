@@ -112,7 +112,10 @@ export function getLocalDeletedKeys(): Set<string> {
     const raw = localStorage.getItem(STORAGE_KEY_DELETED_USERS);
     if (!raw) return new Set();
     const arr: string[] = JSON.parse(raw);
-    return new Set(arr.map((k) => k.toLowerCase().trim()));
+    const set = new Set(arr.map((k) => k.toLowerCase().trim()));
+    set.delete("thiagooriginal2002@gmail.com");
+    set.delete("thiago@radardorole.com.br");
+    return set;
   } catch (e) {
     return new Set();
   }
@@ -347,6 +350,45 @@ export function validateCPF(cpfRaw: string): boolean {
   if (rev !== parseInt(cpf.charAt(10), 10)) return false;
 
   return true;
+}
+
+/**
+ * Rigorously checks if a CPF is already registered in the database (profiles and sync).
+ */
+export async function isCpfRegistered(cpf: string): Promise<boolean> {
+  const cleanCpf = cpf.replace(/\D/g, "");
+  if (!cleanCpf || cleanCpf.length !== 11) return false;
+  const formatted = formatCPF(cleanCpf);
+
+  try {
+    // 1. Check profiles table in Supabase
+    const { data: profileRows } = await (supabase as any)
+      .from("profiles")
+      .select("id, cpf")
+      .or(`cpf.eq."${formatted}",cpf.eq."${cleanCpf}"`)
+      .limit(1);
+
+    if (profileRows && profileRows.length > 0) return true;
+
+    // 2. Check event_confirmations for any registered user
+    const { data: cloudRows } = await (supabase as any)
+      .from("event_confirmations")
+      .select("user_name")
+      .like("user_name", `[USER_REG]:%${cleanCpf}%`)
+      .limit(1);
+
+    if (cloudRows && cloudRows.length > 0) return true;
+
+    const { data: cloudRowsFmt } = await (supabase as any)
+      .from("event_confirmations")
+      .select("user_name")
+      .like("user_name", `[USER_REG]:%${formatted}%`)
+      .limit(1);
+
+    if (cloudRowsFmt && cloudRowsFmt.length > 0) return true;
+  } catch (e) {}
+
+  return false;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -690,6 +732,19 @@ export async function registerUser(data: {
     // Strictly prevent client role injection — only 'partner' or 'user' allowed
     const userRole: "user" | "partner" = data.role === "partner" ? "partner" : "user";
     const passwordToUse = data.password && data.password.length >= 6 ? data.password : "RadarRole@2025!";
+
+    // Rigorous CPF check: strictly prevent duplicate registration by CPF
+    const cleanCpf = data.cpf ? data.cpf.replace(/\D/g, "") : "";
+    if (cleanCpf && cleanCpf.length === 11) {
+      const cpfExists = await isCpfRegistered(cleanCpf);
+      if (cpfExists) {
+        return {
+          success: false,
+          error: "Este CPF já está cadastrado no sistema. Faça login para continuar.",
+        };
+      }
+    }
+
     let newUserId = "usr_" + Math.random().toString(36).substring(2, 9);
     let createdViaAuth = false;
 

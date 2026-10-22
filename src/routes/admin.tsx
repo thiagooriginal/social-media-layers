@@ -614,14 +614,42 @@ function AdminDashboardMain({
         try {
           const usersMap = new Map<string, any>();
 
+          const getDedupKey = (u: any): string => {
+            const cleanCpf = u.cpf ? String(u.cpf).replace(/\D/g, "") : "";
+            if (cleanCpf && cleanCpf.length === 11) {
+              return `cpf_${cleanCpf}`;
+            }
+            const cleanEmail = u.email ? String(u.email).toLowerCase().trim() : "";
+            if (cleanEmail) {
+              return `email_${cleanEmail}`;
+            }
+            return u.id ? `id_${String(u.id).toLowerCase().trim()}` : Math.random().toString();
+          };
+
+          const upsertUser = (u: any) => {
+            if (!u) return;
+            const key = getDedupKey(u);
+            const existing = usersMap.get(key);
+            if (existing) {
+              usersMap.set(key, {
+                ...existing,
+                ...u,
+                name: existing.name || u.name,
+                cpf: existing.cpf || u.cpf,
+                whatsapp: existing.whatsapp || u.whatsapp,
+                phone_verified: existing.phone_verified || u.phone_verified,
+                role: (existing.role === "admin" || u.role === "admin") ? "admin" : (existing.role === "partner" || u.role === "partner") ? "partner" : "user",
+              });
+            } else {
+              usersMap.set(key, u);
+            }
+          };
+
           // A. Fetch via secure RPC get_admin_users
           try {
             const { data: rpcUsers } = await (supabase as any).rpc("get_admin_users");
             if (rpcUsers && Array.isArray(rpcUsers)) {
-              rpcUsers.forEach((u: any) => {
-                const key = u.id || (u.email ? u.email.toLowerCase().trim() : Math.random().toString());
-                usersMap.set(key, u);
-              });
+              rpcUsers.forEach(upsertUser);
             }
           } catch (e) {}
 
@@ -632,12 +660,7 @@ function AdminDashboardMain({
               .select("*")
               .order("created_at", { ascending: false });
             if (directProfiles && Array.isArray(directProfiles)) {
-              directProfiles.forEach((u: any) => {
-                const key = u.id || (u.email ? u.email.toLowerCase().trim() : Math.random().toString());
-                if (!usersMap.has(key)) {
-                  usersMap.set(key, u);
-                }
-              });
+              directProfiles.forEach(upsertUser);
             }
           } catch (e) {}
 
@@ -654,8 +677,7 @@ function AdminDashboardMain({
                 try {
                   const u = JSON.parse(row.user_name.replace("[USER_REG]:", ""));
                   if (u.name || u.email) {
-                    const key = u.id || row.id;
-                    usersMap.set(key, {
+                    upsertUser({
                       id: u.id || row.id,
                       name: u.name,
                       email: u.email,
@@ -677,6 +699,9 @@ function AdminDashboardMain({
 
           // D. Fetch persistent cloud tombstone deletion records + local storage cache
           const deletedKeys = getLocalDeletedKeys();
+          deletedKeys.delete("thiagooriginal2002@gmail.com");
+          deletedKeys.delete("thiago@radardorole.com.br");
+
           try {
             const { data: deletedRows } = await (supabase as any)
               .from("event_confirmations")
@@ -688,31 +713,46 @@ function AdminDashboardMain({
               deletedRows.forEach((r: any) => {
                 try {
                   const d = JSON.parse(r.user_name.replace("[USER_DELETED]:", ""));
+                  const de = d.email ? String(d.email).toLowerCase().trim() : "";
+                  // Never add Thiago to deleted keys!
+                  if (de === "thiagooriginal2002@gmail.com" || de === "thiago@radardorole.com.br") {
+                    return;
+                  }
                   if (d.id) {
                     deletedKeys.add(String(d.id).toLowerCase().trim());
                     saveLocalDeletedKey(String(d.id));
                   }
-                  if (d.email) {
-                    deletedKeys.add(String(d.email).toLowerCase().trim());
-                    saveLocalDeletedKey(String(d.email));
+                  if (de) {
+                    deletedKeys.add(de);
+                    saveLocalDeletedKey(de);
                   }
                   if (d.sync_confirmation_id) {
                     deletedKeys.add(String(d.sync_confirmation_id).toLowerCase().trim());
                     saveLocalDeletedKey(String(d.sync_confirmation_id));
                   }
                   if (d.name) {
-                    deletedKeys.add(String(d.name).toLowerCase().trim());
-                    saveLocalDeletedKey(String(d.name));
+                    const dn = String(d.name).toLowerCase().trim();
+                    if (!dn.includes("thiago")) {
+                      deletedKeys.add(dn);
+                      saveLocalDeletedKey(dn);
+                    }
                   }
                 } catch (e) {}
               });
             }
           } catch (e) {}
 
-          // Filter out any user that was marked deleted in Supabase or local storage
+          // Filter out deleted users, BUT ALWAYS PRESERVE SUPER ADMIN THIAGO
           const allUsers = Array.from(usersMap.values()).filter((u) => {
-            const idKey = u.id ? String(u.id).toLowerCase().trim() : "";
             const emailKey = u.email ? String(u.email).toLowerCase().trim() : "";
+            const isThiago =
+              (emailKey === "thiagooriginal2002@gmail.com" && (!u.name || String(u.name).toLowerCase().includes("thiago"))) ||
+              emailKey === "thiago@radardorole.com.br" ||
+              (u.name && String(u.name).toLowerCase().includes("thiago") && (u.role === "admin" || u.role === "partner"));
+
+            if (isThiago) return true; // Thiago is NEVER excluded!
+
+            const idKey = u.id ? String(u.id).toLowerCase().trim() : "";
             const syncKey = u.sync_confirmation_id ? String(u.sync_confirmation_id).toLowerCase().trim() : "";
             const nameKey = u.name ? String(u.name).toLowerCase().trim() : "";
 

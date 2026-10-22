@@ -34,6 +34,7 @@ import {
   SavedCredentials,
   formatCPF,
   validateCPF,
+  isCpfRegistered,
 } from "../services/authService";
 import {
   authenticateWithBiometrics,
@@ -161,7 +162,7 @@ export function AuthModal({
   if (!isOpen) return null;
 
   // 1. Etapa 1: Validação dos dados preenchidos e disparo do código SMS/WhatsApp
-  const handleStartPhoneVerification = (e: React.FormEvent) => {
+  const handleStartPhoneVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -193,6 +194,20 @@ export function AuthModal({
     }
     if (cleanCpf.length !== 11) {
       showError("O CPF deve conter todos os 11 dígitos numéricos.");
+      return;
+    }
+    if (!validateCPF(cpf)) {
+      showError("O CPF digitado não é válido. Verifique os dígitos digitados.");
+      return;
+    }
+
+    // Rigorously verify if CPF is already registered in the database
+    setLoading(true);
+    const cpfAlreadyExists = await isCpfRegistered(cleanCpf);
+    setLoading(false);
+
+    if (cpfAlreadyExists) {
+      showError("Este CPF já está cadastrado no Radar do Rolê. Acesse a aba 'Entrar' para fazer login.");
       return;
     }
 

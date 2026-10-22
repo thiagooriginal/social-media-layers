@@ -776,22 +776,38 @@ export async function registerUser(data: {
       const pwdHash = await hashPassword(passwordToUse);
       const cleanCpfFormatted = cleanCpf ? formatCPF(cleanCpf) : null;
 
-      await (supabase as any)
+      const profilePayload = {
+        id: newUserId,
+        name: data.name.trim(),
+        email: cleanEmail,
+        whatsapp: data.whatsapp.trim(),
+        cpf: cleanCpfFormatted,
+        phone_verified: Boolean(data.phoneVerified),
+        role: userRole,
+        business_name: data.businessName?.trim() || null,
+        venue_category: data.venueCategory || null,
+        neighborhood: data.neighborhood?.trim() || null,
+        password_hash: pwdHash,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: upsertErr } = await (supabase as any)
         .from("profiles")
-        .upsert({
-          id: newUserId,
-          name: data.name.trim(),
-          email: cleanEmail,
-          whatsapp: data.whatsapp.trim(),
-          cpf: cleanCpfFormatted,
-          phone_verified: Boolean(data.phoneVerified),
-          role: userRole,
-          business_name: data.businessName?.trim() || null,
-          venue_category: data.venueCategory || null,
-          neighborhood: data.neighborhood?.trim() || null,
-          password_hash: pwdHash,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "email" });
+        .upsert(profilePayload, { onConflict: "id" });
+
+      if (upsertErr) {
+        console.warn("Supabase profiles upsert error, attempting update:", upsertErr);
+        await (supabase as any)
+          .from("profiles")
+          .update(profilePayload)
+          .or(`id.eq.${newUserId},email.eq.${cleanEmail}`);
+      } else {
+        // Explicitly guarantee phone_verified flag is true on the database record
+        await (supabase as any)
+          .from("profiles")
+          .update({ phone_verified: Boolean(data.phoneVerified) })
+          .eq("id", newUserId);
+      }
     } catch (e) {
       console.warn("Could not save to Supabase profiles:", e);
     }

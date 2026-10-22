@@ -186,6 +186,7 @@ export function EditVenueModal({
                 <option value="baladas">🪩 Baladas & Casas Noturnas</option>
                 <option value="restaurantes">🍸 Bares & Gastronomia</option>
                 <option value="moteis">🔥 Motéis & Suítes Design</option>
+                <option value="casas_com_piscina">🏊‍♂️ Casas com Piscina & Chácaras</option>
               </select>
             </div>
           </div>

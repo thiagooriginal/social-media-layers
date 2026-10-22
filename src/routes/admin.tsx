@@ -484,12 +484,14 @@ function AdminDashboardMain({
     let baladas = 0;
     let bares = 0;
     let moteis = 0;
+    let casasComPiscina = 0;
     for (const v of venues) {
       if (v.category === "baladas") baladas++;
       else if (v.category === "moteis") moteis++;
       else if (v.category === "restaurantes" || v.category === "bares") bares++;
+      else if (v.category === "casas_com_piscina") casasComPiscina++;
     }
-    return { baladas, bares, moteis };
+    return { baladas, bares, moteis, casasComPiscina };
   }, [venues]);
 
   // Modal for new venue
@@ -1781,6 +1783,14 @@ function AdminDashboardMain({
                   }`}
                 >
                   Motéis ({categoryCounts.moteis})
+                </button>
+                <button
+                  onClick={() => setSelectedCategory("casas_com_piscina")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    selectedCategory === "casas_com_piscina" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Casas c/ Piscina ({categoryCounts.casasComPiscina})
                 </button>
               </div>
             </div>

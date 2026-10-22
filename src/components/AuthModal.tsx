@@ -577,7 +577,7 @@ export function AuthModal({
           </form>
         ) : registerStep === "fill_data" ? (
           /* VIEW 2: CADASTRO - ETAPA 1 (DADOS PESSOAIS + CPF) */
-          <form onSubmit={handleStartPhoneVerification} className="mt-4 space-y-3">
+          <form noValidate onSubmit={handleStartPhoneVerification} className="mt-4 space-y-3">
             {persona === "partner" && (
               <>
                 <div>
@@ -707,7 +707,6 @@ export function AuthModal({
                 <input
                   type="tel"
                   inputMode="numeric"
-                  pattern="[0-9]*"
                   value={cpf}
                   onChange={(e) => setCpf(formatCPF(e.target.value))}
                   placeholder="000.000.000-00"

@@ -301,33 +301,14 @@ export async function authenticateWithBiometrics(
     return { success: true, user: verifiedUser };
   }
 
-  // If loginUser failed because user was deleted or disabled, do NOT create local session!
-  if (loginRes.error?.includes("desativada") || loginRes.error?.includes("excluída")) {
-    clearStoredBiometrics();
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("baladaon_auth_user");
-    }
-    clearSavedCredentials();
-    return {
-      success: false,
-      error: loginRes.error,
-    };
-  }
-
-  // Fallback for valid non-deleted user with offline access
-  const localUser: UserProfile = {
-    id: stored.userId,
-    name: stored.userName,
-    email: stored.userEmail,
-    whatsapp: "(11) 98765-4321",
-    role: targetRole,
-    businessName: stored.businessName || (targetRole === "partner" ? "Vila JK" : undefined),
-    venueCategory: stored.venueCategory || "baladas",
-    neighborhood: stored.neighborhood || "Itaim Bibi",
-    createdAt: stored.createdAt,
-  };
+  // If loginUser failed, reject access and do NOT create local session
+  clearStoredBiometrics();
   if (typeof window !== "undefined") {
-    localStorage.setItem("baladaon_auth_user", JSON.stringify(localUser));
+    localStorage.removeItem("baladaon_auth_user");
   }
-  return { success: true, user: localUser };
+  clearSavedCredentials();
+  return {
+    success: false,
+    error: loginRes.error || "Esta conta foi desativada ou excluída pelo administrador.",
+  };
 }

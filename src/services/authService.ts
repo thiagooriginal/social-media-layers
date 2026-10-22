@@ -443,9 +443,27 @@ export async function loginUser(
 
           if (!dbProfile) {
             try {
-              const { data: allUsers } = await (supabase as any).rpc("get_admin_users");
-              dbProfile = allUsers?.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+              const { data: pByEmail } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("email", cleanEmail)
+                .maybeSingle();
+              dbProfile = pByEmail;
             } catch (e) {}
+          }
+
+          // Strict Security Gate: If user was deleted from profiles table and is not super admin, REJECT!
+          if (!dbProfile && cleanEmail !== "thiagooriginal2002@gmail.com" && cleanEmail !== "thiago@radardorole.com.br") {
+            await supabase.auth.signOut().catch(() => {});
+            if (typeof window !== "undefined") {
+              localStorage.removeItem(STORAGE_KEY_USER);
+            }
+            clearSavedCredentials();
+            notifyAuthChange(null);
+            return {
+              success: false,
+              error: "Esta conta foi desativada ou excluída pelo administrador.",
+            };
           }
 
           const meta = authData.user.user_metadata || {};

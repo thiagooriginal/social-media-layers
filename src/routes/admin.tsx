@@ -896,12 +896,14 @@ function AdminDashboardMain({
         });
       } catch (e) {}
 
-      // 4. Fallback direct profile delete
+      // 4. Direct profile delete in Supabase
       try {
-        await (supabase as any)
-          .from("profiles")
-          .delete()
-          .eq("id", user.id);
+        if (user.id) {
+          await (supabase as any).from("profiles").delete().eq("id", user.id);
+        }
+        if (user.email) {
+          await (supabase as any).from("profiles").delete().eq("email", user.email.toLowerCase().trim());
+        }
       } catch (e) {}
 
       // Optimistically update local state immediately

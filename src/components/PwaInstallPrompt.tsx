@@ -41,6 +41,8 @@ export function PwaInstallPrompt() {
   });
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [isChromeIos, setIsChromeIos] = useState(false);
+  const [iosBrowserTab, setIosBrowserTab] = useState<"chrome" | "safari">("safari");
   const [isAndroid, setIsAndroid] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
@@ -66,12 +68,19 @@ export function PwaInstallPrompt() {
 
     // 2. Detect mobile device, OS & In-App Webviews (Instagram, Facebook, TikTok, WhatsApp)
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const chromeIos = isIosDevice && /crios/.test(userAgent);
     const isAndroidDevice = /android/.test(userAgent);
     const isMobileDevice = isIosDevice || isAndroidDevice || window.innerWidth < 768;
     const inApp = /instagram|fbav|fban|tiktok|micromessenger|threads|wv/i.test(userAgent);
 
     setIsIos(isIosDevice);
+    setIsChromeIos(chromeIos);
+    if (chromeIos) {
+      setIosBrowserTab("chrome");
+    } else {
+      setIosBrowserTab("safari");
+    }
     setIsAndroid(isAndroidDevice);
     setIsMobile(isMobileDevice);
     setIsInAppBrowser(inApp);
@@ -518,8 +527,8 @@ export function PwaInstallPrompt() {
                   <Smartphone className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-black text-white">Instalar no iPhone / Safari</h3>
-                  <p className="text-[11px] text-slate-400">2 passos rápidos para adicionar à tela:</p>
+                  <h3 className="text-sm font-black text-white">Instalar no iPhone</h3>
+                  <p className="text-[11px] text-slate-400">Adicione à Tela de Início em segundos:</p>
                 </div>
               </div>
               <button
@@ -531,45 +540,121 @@ export function PwaInstallPrompt() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-3.5 text-xs text-slate-300">
-              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300 font-black">
-                  1
-                </div>
-                <div>
-                  <p className="font-bold text-white flex items-center gap-1.5">
-                    Toque no botão Compartilhar
-                    <Share className="h-3.5 w-3.5 text-cyan-400" />
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Fica na barra inferior do Safari (o quadrado com uma seta para cima).
-                  </p>
-                </div>
+            <div className="mt-4 space-y-3">
+              {/* Browser Selector Tabs for iOS */}
+              <div className="flex rounded-xl bg-white/5 p-1 border border-white/10 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setIosBrowserTab("chrome")}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    iosBrowserTab === "chrome"
+                      ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-sm font-black"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  No Google Chrome (...)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIosBrowserTab("safari")}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    iosBrowserTab === "safari"
+                      ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-sm font-black"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  No Safari (⬆️)
+                </button>
               </div>
 
-              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 text-purple-300 font-black">
-                  2
+              {iosBrowserTab === "chrome" ? (
+                <div className="space-y-2.5 text-xs text-slate-300">
+                  <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-2.5 text-[11px] text-cyan-200">
+                    💡 <strong>Você está no Google Chrome do iPhone?</strong> Siga estes 2 passos:
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-black">1</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        Toque nos 3 Pontinhos [ ... ]
+                        <MoreVertical className="h-3.5 w-3.5 text-cyan-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Fica no canto inferior direito da barra do Chrome (ao lado do endereço do site).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 font-black">2</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        "Adicionar à tela de início"
+                        <PlusSquare className="h-3.5 w-3.5 text-purple-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Role o menu para baixo e toque em "Adicionar à tela de início", depois confirme em "Adicionar" no topo direito!
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-white flex items-center gap-1.5">
-                    Toque em "Adicionar à Tela de Início"
-                    <PlusSquare className="h-3.5 w-3.5 text-purple-400" />
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Depois confirme em "Adicionar" no canto superior direito!
-                  </p>
+              ) : (
+                <div className="space-y-2.5 text-xs text-slate-300">
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-black">1</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        Toque no botão Compartilhar <Share className="h-3.5 w-3.5 text-cyan-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Na barra inferior do Safari (o ícone quadrado com uma seta para cima).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-500/20 text-pink-300 font-black">2</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        "Adicionar à Tela de Início" <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Role as opções para baixo, toque em "Adicionar à Tela de Início" e confirme em "Adicionar" no topo direito!
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowIosGuide(false)}
-              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] cursor-pointer"
-            >
-              Entendi, vou adicionar!
-            </button>
+            <div className="mt-5 space-y-2">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="h-4 w-4 text-emerald-400" />
+                    <span className="text-emerald-300 font-bold">Link Copiado! Cole no Safari</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 text-slate-400" />
+                    <span>Copiar Link para Abrir no Safari</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowIosGuide(false)}
+                className="w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] cursor-pointer"
+              >
+                Entendi, fechar
+              </button>
+            </div>
           </div>
         </div>
       )}

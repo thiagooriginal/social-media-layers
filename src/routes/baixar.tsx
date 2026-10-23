@@ -134,23 +134,14 @@ export function BaixarAppPage() {
     setShowGuide(true);
   };
 
-  const handleTriggerShare = async () => {
-    if (typeof navigator !== "undefined" && (navigator as any).share) {
-      try {
-        await (navigator as any).share({
-          title: "Radar do Rolê",
-          text: "Adicionar Radar do Rolê à Tela de Início",
-          url: window.location.origin,
-        });
-        toast.success("Menu aberto! Role para baixo e toque em 'Adicionar à Tela de Início' 📲");
-        return;
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
-          console.warn("Share error:", err);
-        }
-      }
-    }
-    toast.info("Olhe na barra cinza do próprio Safari (no rodapé da tela do seu iPhone) e toque no botão ⬆️!");
+  const [showBottomPointer, setShowBottomPointer] = useState(false);
+
+  const handleTriggerShare = () => {
+    setShowGuide(false);
+    setShowBottomPointer(true);
+    toast.info("Olhe no rodapé do seu iPhone e toque no ícone ⬆️. Depois role a listinha para baixo!", {
+      duration: 6000,
+    });
   };
 
   const handleCopyLink = async () => {
@@ -500,14 +491,13 @@ export function BaixarAppPage() {
                       onClick={handleTriggerShare}
                       className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(6,182,212,0.45)] cursor-pointer"
                     >
-                      <Share className="h-4 w-4 animate-bounce" />
-                      <span>ABRIR MENU COMPARTILHAR NO IPHONE</span>
+                      <span>ENTENDI, VOU TOCAR NO BOTÃO DO SAFARI ⬇️</span>
                     </button>
 
                     <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200 flex items-start gap-2">
-                      <span className="text-base shrink-0">👇</span>
+                      <span className="text-base shrink-0">⚠️</span>
                       <span>
-                        <strong>Dica:</strong> Toque no botão acima ou no ícone <strong>⬆️ (quadrado com seta para cima)</strong> na barra cinza do próprio Safari, bem no rodapé do seu celular (fora deste aviso)!
+                        <strong>Importante:</strong> Na tela que subir, <strong>arraste a listinha para cima (role para baixo)</strong>! O botão <strong>"Adicionar à Tela de Início"</strong> fica logo abaixo de "Copiar"!
                       </span>
                     </div>
 
@@ -518,19 +508,19 @@ export function BaixarAppPage() {
                           1. Toque no botão Compartilhar <Share className="h-3.5 w-3.5 text-cyan-400" />
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          Fica bem no centro da barra inferior do Safari (o ícone de quadrado com a seta para cima).
+                          Fica bem no centro da barra inferior do Safari (o ícone de quadrado com a seta para cima, no rodapé do celular).
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-start gap-3 rounded-2xl border-2 border-pink-500/40 bg-pink-950/20 p-3">
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-500/20 text-pink-300 font-black">2</span>
                       <div>
                         <p className="font-bold text-white flex items-center gap-1.5">
-                          2. Role e toque em "Adicionar à Tela de Início" <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
+                          2. Role a lista para baixo! <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
                         </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          Vai subir um menu do iPhone. Role um pouquinho para baixo e procure a opção com o sinal de <strong>[+] "Adicionar à Tela de Início"</strong>.
+                        <p className="text-[10px] text-pink-200 mt-0.5 font-semibold">
+                          Na gaveta que abrir, deslize o dedo para cima para rolar. A opção com o sinal de <strong>[+] "Adicionar à Tela de Início"</strong> está um pouco mais para baixo!
                         </p>
                       </div>
                     </div>
@@ -548,7 +538,7 @@ export function BaixarAppPage() {
                     </div>
 
                     <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-[11px] text-emerald-300 leading-snug">
-                      ✨ <strong>Vantagem:</strong> O app abre em tela inteira, super rápido, e não precisa ocupar o espaço de memória do seu iPhone!
+                      ✨ <strong>Vantagem:</strong> O app abre em tela inteira, super rápido, e não ocupa o espaço de memória do seu iPhone!
                     </div>
                   </div>
                 )}
@@ -595,6 +585,27 @@ export function BaixarAppPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Bottom Pointer on iPhone */}
+      {showBottomPointer && (
+        <div className="fixed bottom-3 left-3 right-3 z-50 rounded-2xl border-2 border-cyan-400 bg-[#0c1020]/95 backdrop-blur-xl p-4 text-center text-white shadow-[0_0_50px_rgba(6,182,212,0.8)] animate-bounce">
+          <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+            <span className="text-xs font-black text-cyan-300 flex items-center gap-1.5">
+              <span>⬇️</span>
+              <span>TOQUE NO BOTÃO ⬆️ DA BARRA DO SAFARI LOGO ABAIXO</span>
+            </span>
+            <button
+              onClick={() => setShowBottomPointer(false)}
+              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded-lg bg-white/10 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-200 mt-2 font-semibold leading-relaxed">
+            Na gaveta que subir, <strong>arraste a lista para cima (role para baixo)</strong> até achar o botão <strong>"Adicionar à Tela de Início" [+]</strong>!
+          </p>
         </div>
       )}
     </div>

@@ -367,10 +367,7 @@ export function validateCPF(cpfRaw: string): boolean {
   return true;
 }
 
-/**
- * Rigorously checks if a CPF is already registered in the database (profiles and sync).
- */
-export async function isCpfRegistered(cpf: string): Promise<boolean> {
+export async function isCpfRegistered(cpf: string, excludeEmail?: string): Promise<boolean> {
   const cleanCpf = cpf.replace(/\D/g, "");
   if (!cleanCpf || cleanCpf.length !== 11) return false;
   const formatted = formatCPF(cleanCpf);
@@ -378,11 +375,20 @@ export async function isCpfRegistered(cpf: string): Promise<boolean> {
   try {
     const { data: profileRows } = await (supabase as any)
       .from("profiles")
-      .select("id, cpf")
+      .select("id, cpf, email")
       .or(`cpf.eq."${formatted}",cpf.eq."${cleanCpf}"`)
-      .limit(1);
+      .limit(5);
 
-    if (profileRows && profileRows.length > 0) return true;
+    if (profileRows && profileRows.length > 0) {
+      if (excludeEmail) {
+        const cleanExclude = excludeEmail.toLowerCase().trim();
+        const otherUsersWithSameCpf = profileRows.filter(
+          (p: any) => p.email && p.email.toLowerCase().trim() !== cleanExclude
+        );
+        return otherUsersWithSameCpf.length > 0;
+      }
+      return true;
+    }
   } catch (e) {}
 
   return false;
@@ -744,14 +750,14 @@ export async function registerUser(data: {
     const userRole: "user" | "partner" = data.role === "partner" ? "partner" : "user";
     const passwordToUse = data.password && data.password.length >= 6 ? data.password : "RadarRole@2025!";
 
-    // Rigorous CPF check: strictly prevent duplicate registration by CPF
+    // Rigorous CPF check: strictly prevent duplicate registration by CPF for different users
     const cleanCpf = data.cpf ? data.cpf.replace(/\D/g, "") : "";
     if (cleanCpf && cleanCpf.length === 11) {
-      const cpfExists = await isCpfRegistered(cleanCpf);
+      const cpfExists = await isCpfRegistered(cleanCpf, cleanEmail);
       if (cpfExists) {
         return {
           success: false,
-          error: "Este CPF já está cadastrado no sistema. Faça login para continuar.",
+          error: "Este CPF já está cadastrado por outro usuário no sistema.",
         };
       }
     }
@@ -784,28 +790,22 @@ export async function registerUser(data: {
           authError.message?.toLowerCase().includes("already exists") ||
           (authError as any).status === 422
         ) {
-          // Check if an active profile exists in public.profiles:
+          // The email is already registered in Auth or database.
+          // Seamlessly recover & update profile so the user is never blocked!
           let existingProfile: any = null;
           try {
             const { data } = await supabase
               .from("profiles")
-              .select("id, email")
+              .select("id, email, cpf")
               .eq("email", cleanEmail)
               .maybeSingle();
             existingProfile = data;
           } catch (e) {}
 
-          const isDeleted = await isUserDeleted(undefined, cleanEmail);
-
-          // If active profile exists in profiles table and was NOT deleted, reject duplicate registration:
-          if (existingProfile && !isDeleted) {
-            return {
-              success: false,
-              error: "Este e-mail já está cadastrado no sistema. Faça login para continuar.",
-            };
+          if (existingProfile?.id) {
+            newUserId = existingProfile.id;
           }
 
-          // If NOT in profiles or was marked deleted, this user was deleted by admin and is re-registering!
           // Clear any deleted tombstones and re-enable account:
           removeLocalDeletedKey(cleanEmail);
           if (existingProfile?.id) removeLocalDeletedKey(existingProfile.id);

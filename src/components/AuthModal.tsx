@@ -202,13 +202,13 @@ export function AuthModal({
       return;
     }
 
-    // Rigorously verify if CPF is already registered in the database
+    // Rigorously verify if CPF is already registered in the database by another user
     setLoading(true);
-    const cpfAlreadyExists = await isCpfRegistered(cleanCpf);
+    const cpfAlreadyExists = await isCpfRegistered(cleanCpf, email.trim());
     setLoading(false);
 
     if (cpfAlreadyExists) {
-      showError("Este CPF já está cadastrado no Radar do Rolê. Acesse a aba 'Entrar' para fazer login.");
+      showError("Este CPF já está cadastrado por outro usuário no Radar do Rolê.");
       return;
     }
 

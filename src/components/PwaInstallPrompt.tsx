@@ -569,46 +569,34 @@ export function PwaInstallPrompt() {
 
               {iosBrowserTab === "chrome" ? (
                 <div className="space-y-2.5 text-xs text-slate-300">
-                  <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-2.5 text-[11px] text-cyan-200">
-                    💡 <strong>Você está no Google Chrome do iPhone?</strong> Siga estes 2 passos:
+                  {/* Visual Bar Simulation for Chrome */}
+                  <div className="rounded-2xl border border-purple-500/30 bg-purple-950/30 p-2.5 text-center">
+                    <p className="text-[10px] text-purple-300 font-bold mb-1.5 flex items-center justify-center gap-1">
+                      <span>🌐</span> Olhe para a barra no rodapé do seu Chrome:
+                    </p>
+                    <div className="flex items-center justify-between text-slate-500 py-1.5 px-3 bg-[#080d1a] rounded-xl border border-white/10">
+                      <span className="text-sm font-bold text-slate-400">‹</span>
+                      <span className="text-[10px] text-slate-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+                        radardorole.com.br
+                      </span>
+                      <div className="relative flex flex-col items-center">
+                        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse">
+                          <MoreVertical className="h-4 w-4" />
+                        </div>
+                        <span className="text-[8px] font-black text-purple-300 mt-0.5 tracking-tighter">TOQUE AQUI</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-black">1</span>
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 font-black">1</span>
                     <div>
                       <p className="font-bold text-white flex items-center gap-1.5">
                         Toque nos 3 Pontinhos [ ... ]
-                        <MoreVertical className="h-3.5 w-3.5 text-cyan-400" />
+                        <MoreVertical className="h-3.5 w-3.5 text-purple-400" />
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Fica no canto inferior direito da barra do Chrome (ao lado do endereço do site).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 font-black">2</span>
-                    <div>
-                      <p className="font-bold text-white flex items-center gap-1.5">
-                        "Adicionar à tela de início"
-                        <PlusSquare className="h-3.5 w-3.5 text-purple-400" />
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
-                        Role o menu para baixo e toque em "Adicionar à tela de início", depois confirme em "Adicionar" no topo direito!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2.5 text-xs text-slate-300">
-                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-black">1</span>
-                    <div>
-                      <p className="font-bold text-white flex items-center gap-1.5">
-                        Toque no botão Compartilhar <Share className="h-3.5 w-3.5 text-cyan-400" />
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
-                        Na barra inferior do Safari (o ícone quadrado com uma seta para cima).
+                        No canto inferior direito da barra do seu Google Chrome.
                       </p>
                     </div>
                   </div>
@@ -617,12 +605,87 @@ export function PwaInstallPrompt() {
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-500/20 text-pink-300 font-black">2</span>
                     <div>
                       <p className="font-bold text-white flex items-center gap-1.5">
-                        "Adicionar à Tela de Início" <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
+                        "Adicionar à tela de início"
+                        <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Role as opções para baixo, toque em "Adicionar à Tela de Início" e confirme em "Adicionar" no topo direito!
+                        Role o menu para baixo e selecione <strong>"Adicionar à tela de início"</strong>.
                       </p>
                     </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 font-black">3</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        Confirme em "Adicionar"
+                        <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Toque em "Adicionar" no topo direito. O app vai para a tela de início!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5 text-xs text-slate-300">
+                  {/* Visual Bar Simulation for Safari */}
+                  <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 p-2.5 text-center">
+                    <p className="text-[10px] text-cyan-300 font-bold mb-1.5 flex items-center justify-center gap-1">
+                      <span>🧭</span> Olhe para a barra no rodapé do seu Safari:
+                    </p>
+                    <div className="flex items-center justify-around text-slate-500 py-1.5 px-3 bg-[#080d1a] rounded-xl border border-white/10">
+                      <span className="text-sm font-bold text-slate-400">‹</span>
+                      <span className="text-sm font-bold text-slate-400">›</span>
+                      <div className="relative flex flex-col items-center">
+                        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-cyan-400 text-slate-950 font-black shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
+                          <Share className="h-4 w-4" />
+                        </div>
+                        <span className="text-[8px] font-black text-cyan-300 mt-0.5 tracking-tighter">TOQUE AQUI</span>
+                      </div>
+                      <span className="text-sm text-slate-400">📖</span>
+                      <span className="text-sm text-slate-400">⧉</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-black">1</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        1. Toque no botão Compartilhar <Share className="h-3.5 w-3.5 text-cyan-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Fica bem no centro da barra inferior do Safari (o ícone de quadrado com a seta para cima).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-500/20 text-pink-300 font-black">2</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        2. Role e toque em "Adicionar à Tela de Início" <PlusSquare className="h-3.5 w-3.5 text-pink-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Vai abrir um menu. Role um pouquinho para baixo e procure a opção com o sinal de <strong>[+] "Adicionar à Tela de Início"</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 font-black">3</span>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        3. Confirme em "Adicionar" <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        No canto superior direito da tela, toque em <strong>"Adicionar"</strong> e pronto! O ícone oficial do Radar do Rolê já estará na sua tela inicial!
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-[11px] text-emerald-300 leading-snug">
+                    ✨ <strong>Vantagem:</strong> O app abre em tela inteira, super rápido, e não ocupa a memória do seu iPhone!
                   </div>
                 </div>
               )}

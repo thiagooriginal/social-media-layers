@@ -15,6 +15,7 @@ import {
   Globe,
   AlertCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -233,6 +234,25 @@ export function PwaInstallPrompt() {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 3000);
     }
+  };
+
+  const handleTriggerShare = async () => {
+    if (typeof navigator !== "undefined" && (navigator as any).share) {
+      try {
+        await (navigator as any).share({
+          title: "Radar do Rolê",
+          text: "Adicionar Radar do Rolê à Tela de Início",
+          url: window.location.origin,
+        });
+        toast.success("Menu aberto! Role para baixo e toque em 'Adicionar à Tela de Início' 📲");
+        return;
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.warn("Share error:", err);
+        }
+      }
+    }
+    toast.info("Olhe na barra cinza do próprio Safari (no rodapé da tela do seu iPhone) e toque no botão ⬆️!");
   };
 
   // Dismiss banner and avoid re-prompting on this session
@@ -572,20 +592,40 @@ export function PwaInstallPrompt() {
                   {/* Visual Bar Simulation for Chrome */}
                   <div className="rounded-2xl border border-purple-500/30 bg-purple-950/30 p-2.5 text-center">
                     <p className="text-[10px] text-purple-300 font-bold mb-1.5 flex items-center justify-center gap-1">
-                      <span>🌐</span> Olhe para a barra no rodapé do seu Chrome:
+                      <span>🌐</span> Barra no rodapé do Google Chrome:
                     </p>
                     <div className="flex items-center justify-between text-slate-500 py-1.5 px-3 bg-[#080d1a] rounded-xl border border-white/10">
                       <span className="text-sm font-bold text-slate-400">‹</span>
                       <span className="text-[10px] text-slate-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
                         radardorole.com.br
                       </span>
-                      <div className="relative flex flex-col items-center">
-                        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse">
+                      <button
+                        type="button"
+                        onClick={handleTriggerShare}
+                        className="relative flex flex-col items-center group cursor-pointer active:scale-90 transition-transform"
+                      >
+                        <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse">
                           <MoreVertical className="h-4 w-4" />
                         </div>
-                        <span className="text-[8px] font-black text-purple-300 mt-0.5 tracking-tighter">TOQUE AQUI</span>
-                      </div>
+                        <span className="text-[8px] font-black text-purple-300 mt-0.5 tracking-tighter">3 PONTINHOS</span>
+                      </button>
                     </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleTriggerShare}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(168,85,247,0.45)] cursor-pointer"
+                  >
+                    <Share className="h-4 w-4" />
+                    <span>ABRIR MENU DO IPHONE AGORA</span>
+                  </button>
+
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200 flex items-start gap-2">
+                    <span className="text-base shrink-0">👇</span>
+                    <span>
+                      <strong>Dica:</strong> Toque nos <strong>3 pontinhos (...)</strong> na barra cinza do próprio Google Chrome, bem no rodapé da sua tela (fora deste aviso).
+                    </span>
                   </div>
 
                   <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
@@ -632,20 +672,40 @@ export function PwaInstallPrompt() {
                   {/* Visual Bar Simulation for Safari */}
                   <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 p-2.5 text-center">
                     <p className="text-[10px] text-cyan-300 font-bold mb-1.5 flex items-center justify-center gap-1">
-                      <span>🧭</span> Olhe para a barra no rodapé do seu Safari:
+                      <span>🧭</span> Barra no rodapé do Safari:
                     </p>
                     <div className="flex items-center justify-around text-slate-500 py-1.5 px-3 bg-[#080d1a] rounded-xl border border-white/10">
                       <span className="text-sm font-bold text-slate-400">‹</span>
                       <span className="text-sm font-bold text-slate-400">›</span>
-                      <div className="relative flex flex-col items-center">
-                        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-cyan-400 text-slate-950 font-black shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
+                      <button
+                        type="button"
+                        onClick={handleTriggerShare}
+                        className="relative flex flex-col items-center group cursor-pointer active:scale-90 transition-transform"
+                      >
+                        <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-cyan-400 text-slate-950 font-black shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
                           <Share className="h-4 w-4" />
                         </div>
-                        <span className="text-[8px] font-black text-cyan-300 mt-0.5 tracking-tighter">TOQUE AQUI</span>
-                      </div>
+                        <span className="text-[8px] font-black text-cyan-300 mt-0.5 tracking-tighter">COMPARTILHAR</span>
+                      </button>
                       <span className="text-sm text-slate-400">📖</span>
                       <span className="text-sm text-slate-400">⧉</span>
                     </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleTriggerShare}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 py-3.5 px-4 text-xs font-black text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(6,182,212,0.45)] cursor-pointer"
+                  >
+                    <Share className="h-4 w-4 animate-bounce" />
+                    <span>ABRIR MENU COMPARTILHAR NO IPHONE</span>
+                  </button>
+
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200 flex items-start gap-2">
+                    <span className="text-base shrink-0">👇</span>
+                    <span>
+                      <strong>Dica:</strong> Toque no botão acima ou no ícone <strong>⬆️ (quadrado com seta para cima)</strong> na barra cinza do próprio Safari, bem no rodapé do seu celular (fora deste aviso)!
+                    </span>
                   </div>
 
                   <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">

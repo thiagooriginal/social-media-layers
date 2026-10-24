@@ -198,11 +198,15 @@ export function BaixarAppPage() {
             </span>
           </div>
 
-          <h1 className="mt-5 text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Baixar Radar do Rolê
+          <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-[11px] font-bold text-emerald-300">
+            <span>✓ O Radar funciona 100% no seu navegador!</span>
+          </div>
+
+          <h1 className="mt-3 text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Instalar App (Opcional)
           </h1>
           <p className="mt-1.5 text-xs sm:text-sm text-slate-300">
-            O radar oficial da vida noturna de São Paulo direto na sua tela inicial!
+            A versão web atende tudo perfeitamente. Se quiser um atalho na tela inicial do celular, você pode instalar abaixo:
           </p>
 
           {/* Key Advantages Grid */}
@@ -308,13 +312,13 @@ export function BaixarAppPage() {
           </div>
 
           {/* Fallback to Web Version */}
-          <div className="mt-6 pt-4 border-t border-white/10 text-center">
+          <div className="mt-6 pt-4 border-t border-white/10">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-cyan-300 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 py-3.5 text-xs font-black text-cyan-300 transition-all cursor-pointer shadow-sm"
             >
-              <span>Acessar a versão Web sem baixar agora</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>Navegar no Radar do Rolê Agora (Versão Web)</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

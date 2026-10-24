@@ -90,27 +90,18 @@ export function PwaInstallPrompt() {
     const dismissedUntil = localStorage.getItem("radar_pwa_dismissed_until");
     const isDismissed = dismissedUntil && Date.now() < Number(dismissedUntil);
 
-    // 4. Capture native beforeinstallprompt (Android / Chrome / Edge)
+    // 4. Capture native beforeinstallprompt (Android / Chrome / Edge) for optional manual install
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
       (window as any).__pwaDeferredPrompt = promptEvent;
-
-      if (!isDismissed) {
-        setTimeout(() => setShowBanner(true), 1200);
-      }
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
-    // 5. Trigger the banner on mobile after 2s if not dismissed and not in standalone
-    if (isMobileDevice && !isDismissed) {
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
+    // 5. Web-first policy: DO NOT show automatic popups/banners.
+    // Installation is 100% optional and only triggered if the user clicks a button.
 
     // 6. Detect successful app installation
     const handleAppInstalled = () => {
